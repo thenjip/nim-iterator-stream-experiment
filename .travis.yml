@@ -1,3 +1,10 @@
+language: c
+compiler: clang
+
+
+os: linux
+dist: bionic
+
 sudo: required
 
 services:
