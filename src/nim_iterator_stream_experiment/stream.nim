@@ -13,6 +13,9 @@ type
 
   FilteredStream* [S; T] = Stream[S, Optional[T]]
 
+  SingleElementState* = object
+    hasMore: bool
+
   TakeWhileState* [S; T] = object
     state: S
     item: Optional[T]
@@ -37,21 +40,25 @@ proc takeWhileState [S; T](state: S; item: Optional[T]): TakeWhileState[S, T] =
   TakeWhileState[S, T](state: state, item: item)
 
 
+func singleElementState (hasMore: bool): SingleElementState =
+  SingleElementState(hasMore: hasMore)
 
-func emptyStream* (T: typedesc): FilteredStream[Unit, T] =
-  stream(unit, _ => false, _ => T.toNone(), itself)
+
+
+func emptyStream* (T: typedesc): Stream[Unit, T] =
+  stream[Unit, T](() => unit(), (_: Unit) => false, nil, itself)
 
 
 func emptyStream* [T](): FilteredStream[Unit, T] =
   T.emptyStream()
 
 
-func singleElementStream* [T](element: () -> T): Stream[bool, T] =
+func singleElementStream* [T](element: () -> T): Stream[SingleElementState, T] =
   stream(
-    () => true,
-    itself,
-    _ => element,
-    _ => false
+    () => singleElementState(true),
+    s => s.hasMore,
+    _ => element(),
+    s => singleElementState(not s.hasMore)
   )
 
 
@@ -85,6 +92,20 @@ proc applyPredicate [T](item: T; predicate: T -> bool): Optional[T] =
   item.predicate().ifElse(() => item.toSome(), toNone)
 
 
+
+func filter* [S; T](
+  self: Stream[S, T]; predicate: T -> bool
+): FilteredStream[S, T] =
+  self.map(item => item.applyPredicate(predicate))
+
+
+func filter* [S; T](
+  self: FilteredStream[S, T]; predicate: T -> bool
+): FilteredStream[S, T] =
+  self.map((opt: Optional[T]) => opt.filter(predicate))
+
+
+
 proc generateTakeWhileState [S; T](
   state: S; hasMore: S -> bool; generate: S -> T; predicate: T -> bool
 ): TakeWhileState[S, T] =
@@ -95,7 +116,6 @@ proc generateTakeWhileState [S; T](
       toNone
     )
   )
-
 
 
 func takeWhile* [S; T](
@@ -114,19 +134,6 @@ func takeWhile* [S; T](
         self.hasMore, self.generate, predicate
       )
   )
-
-
-
-func filter* [S; T](
-  self: Stream[S, T]; predicate: T -> bool
-): FilteredStream[S, T] =
-  self.map(item => item.applyPredicate(predicate))
-
-
-func filter* [S; T](
-  self: FilteredStream[S, T]; predicate: T -> bool
-): FilteredStream[S, T] =
-  self.map((opt: Optional[T]) => opt.filter(predicate))
 
 
 
@@ -284,7 +291,7 @@ when isMainModule:
 
   suite currentSourcePath().splitFile().name:
     test "stream: seq":
-      proc self_seq_test [T](source: seq[T]) =
+      proc streamTest [T](source: seq[T]) =
         let sut =
           source.pairs()
           .filter(
@@ -306,12 +313,12 @@ when isMainModule:
           ).ignore()
 
 
-      self_seq_test(@["abc", "a", "abcde", currentSourcePath()])
+      streamTest(@["abc", "a", "abcde", currentSourcePath()])
 
 
 
     test "reduce: slice -> set":
-      proc reduce_slice2Set_test (source: Slice[char]) =
+      proc reduceTest (source: Slice[char]) =
         require:
           source.len() > 0
 
@@ -329,12 +336,12 @@ when isMainModule:
           ).ignore()
 
 
-      reduce_slice2Set_test('0'..'9')
+      reduceTest('0'..'9')
 
 
 
     test "findFirst: compile time":
-      proc first_compileTime_test [T](source: static[seq[T]]) =
+      proc findFirstTest [T](source: static[seq[T]]) =
         require:
           source.len() > 0
 
@@ -353,12 +360,12 @@ when isMainModule:
           ).ignore()
 
 
-      first_compileTime_test(@[(0, 1), (1, 0)])
+      findFirstTest(@[(0, 1), (1, 0)])
 
 
 
     test "count: filtered":
-      proc count_filtered_test (U: typedesc[SomeUnsignedInt | Natural]) =
+      proc countTest (U: typedesc[SomeUnsignedInt | Natural]) =
         let
           source = 0 .. 100
           validRange = 15 .. 80
@@ -376,13 +383,13 @@ when isMainModule:
           sut == expected
 
 
-      count_filtered_test(uint)
-      count_filtered_test(Natural)
+      countTest(uint)
+      countTest(Natural)
 
 
 
     test "count: compile time":
-      proc count_compileTime_test [T](
+      proc countTest [T](
         source: seq[T]; U: typedesc[SomeUnsignedInt | Natural]
       ) =
         let
@@ -393,14 +400,42 @@ when isMainModule:
           sut == expected
 
 
-      count_compileTime_test(@[-5, 16, 95465, 0, -3547], uint64)
+      countTest(@[-5, 16, 95465, 0, -3547], uint64)
+
+
+
+    test "emptyStream":
+      proc emptyStreamTest (T: typedesc) =
+        let
+          expected = 0u
+          sut = T.emptyStream().count(expected.typeof())
+
+        check:
+          sut == expected
+
+
+      emptyStreamTest((char, uint))
+
+
+
+    test "singleElementStream":
+      proc singleElementStreamTest [T](element: () -> T) =
+        let
+          expected = 1u
+          sut = singleElementStream(element).count(expected.typeof())
+
+        check:
+          sut == expected
+
+
+      singleElementStreamTest(() => 2)
+      singleElementStreamTest(() => 'a')
+      singleElementStreamTest(() => newException(RangeError, ""))
 
 
 
     test "takeWhile: count ASCII chars":
-      proc takeWhile_countAsciiChars_test (
-        U: typedesc[SomeUnsignedInt or Natural]
-      ) =
+      proc takeWhileTest (U: typedesc[SomeUnsignedInt or Natural]) =
         let
           source = "abc65abc"
           expected = 3.U
@@ -410,14 +445,12 @@ when isMainModule:
           sut == expected
 
 
-      takeWhile_countAsciiChars_test(Natural)
+      takeWhileTest(Natural)
 
 
 
-  test "takeWhile: count ASCII chars, compile time":
-    proc takeWhile_countAsciiCharsCompileTime_test [
-      U: SomeUnsignedInt | Natural
-    ]() =
+  test "takeWhile: count ASCII spaces, compile time":
+    proc takeWhileTest [U: SomeUnsignedInt | Natural]() =
       const
         source = " \t\n, abc"
         expected = 3.U
@@ -427,4 +460,4 @@ when isMainModule:
         sut == expected
 
 
-    takeWhile_countAsciiCharsCompileTime_test[Natural]()
+    takeWhileTest[Natural]()
