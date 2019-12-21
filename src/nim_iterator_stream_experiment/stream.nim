@@ -13,12 +13,31 @@ type
 
   FilteredStream* [S; T] = Stream[S, Optional[T]]
 
+  FlatStream* [S1; S2; T] = Stream[S1, Stream[S2, T]]
+
   SingleElementState* = object
     hasMore: bool
+
+  LimitState* [S; U: SomeUnsignedInt] = object
+    state: S
+    i: U
 
   TakeWhileState* [S; T] = object
     state: S
     item: Optional[T]
+
+
+
+func singleElementState (hasMore: bool): SingleElementState =
+  SingleElementState(hasMore: hasMore)
+
+
+func limitState [S; U: SomeUnsignedInt](state: S; i: U): LimitState[S, U] =
+  LimitState[S, U](state: state, i: i)
+
+
+proc takeWhileState [S; T](state: S; item: Optional[T]): TakeWhileState[S, T] =
+  TakeWhileState[S, T](state: state, item: item)
 
 
 
@@ -34,14 +53,6 @@ func stream* [S; T](
     generate: generate,
     nextStep: nextStep
   )
-
-
-proc takeWhileState [S; T](state: S; item: Optional[T]): TakeWhileState[S, T] =
-  TakeWhileState[S, T](state: state, item: item)
-
-
-func singleElementState (hasMore: bool): SingleElementState =
-  SingleElementState(hasMore: hasMore)
 
 
 
@@ -62,8 +73,9 @@ func singleElementStream* [T](element: () -> T): Stream[SingleElementState, T] =
   )
 
 
+
 func infiniteStream* [T](generator: () -> T): Stream[Unit, T] =
-  stream(unit, _ => true, _ => generator(), itself)
+  stream(() => unit(), _ => true, _ => generator(), itself)
 
 
 func infiniteStream* [T](initialItem: () -> T; f: T -> T): Stream[T, T] =
@@ -87,6 +99,28 @@ func map* [S; A; B](
   self.map((opt: Optional[A]) => opt.map(f))
 
 
+func map* [S1; S2; A; B](
+  self: FlatStream[S1, S2, A];
+  f: A -> B
+): FlatStream[S1, S2, B] =
+  self.map((s: Stream[S2, A]) => s.map(f))
+
+
+
+func flatMap* [SA; A; SB; B](
+  self: Stream[SA, A];
+  f: A -> Stream[SB, B]
+): FlatStream[SA, SB, B] =
+  self.map(f)
+
+
+func flatMap* [SA; A; SB; B](
+  self: FilteredStream[SA, A];
+  f: A -> Stream[SB, B]
+): FlatStream[SA, SB, B] =
+  self.map(f)
+
+
 
 proc applyPredicate [T](item: T; predicate: T -> bool): Optional[T] =
   item.predicate().ifElse(() => item.toSome(), toNone)
@@ -94,20 +128,43 @@ proc applyPredicate [T](item: T; predicate: T -> bool): Optional[T] =
 
 
 func filter* [S; T](
-  self: Stream[S, T]; predicate: T -> bool
+  self: Stream[S, T];
+  predicate: T -> bool
 ): FilteredStream[S, T] =
   self.map(item => item.applyPredicate(predicate))
 
 
 func filter* [S; T](
-  self: FilteredStream[S, T]; predicate: T -> bool
+  self: FilteredStream[S, T];
+  predicate: T -> bool
 ): FilteredStream[S, T] =
   self.map((opt: Optional[T]) => opt.filter(predicate))
 
 
+func filter* [S1; S2; T](
+  self: FlatStream[S1, S2, T];
+  predicate: T -> bool
+): FlatStream[S1, S2, Optional[T]] =
+  self.map((s: Stream[S2, T]) => s.filter(predicate))
+
+
+
+func limit* [S; T; U](self: Stream[S, T]; n: U): Stream[LimitState[S, U], T] =
+  stream(
+    () => limitState(self.initialState(), 0.U),
+    limit => limit.i < n and self.hasMore(limit.state),
+    limit => self.generate(limit.state),
+    (limit: LimitState[S, U]) =>
+      limitState(self.nextStep(limit.state), limit.i + 1)
+  )
+
+
 
 proc generateTakeWhileState [S; T](
-  state: S; hasMore: S -> bool; generate: S -> T; predicate: T -> bool
+  state: S;
+  hasMore: S -> bool;
+  generate: S -> T;
+  predicate: T -> bool
 ): TakeWhileState[S, T] =
   takeWhileState(
     state,
@@ -119,7 +176,8 @@ proc generateTakeWhileState [S; T](
 
 
 func takeWhile* [S; T](
-  self: Stream[S, T]; predicate: T -> bool
+  self: Stream[S, T];
+  predicate: T -> bool
 ): Stream[TakeWhileState[S, T], T] =
   stream(
     () =>
@@ -134,6 +192,13 @@ func takeWhile* [S; T](
         self.hasMore, self.generate, predicate
       )
   )
+
+
+func takeWhile* [S1; S2; T](
+  self: FlatStream[S1, S2, T];
+  predicate: T -> bool
+): FlatStream[S1, S2, T] =
+  self.map(s => s.takeWhile(predicate))
 
 
 
@@ -160,6 +225,16 @@ proc reduce* [S; A; B](
     (acc: B, opt: Optional[A]) =>
       opt.ifSome(item => acc.accumulate(item), () => acc)
   )
+
+
+proc reduce* [S1; S2; A; B](
+  self: FlatStream[S1, S2, A];
+  initialResult: () -> B;
+  accumulate: (accumulation: B, item: A) -> B
+): B =
+  self
+    .map(s => s.reduce(initialResult, accumulate))
+    .reduce(initialResult, accumulate)
 
 
 
@@ -199,28 +274,85 @@ proc reduceIfNotEmpty* [S; A; B](
   )
 
 
+proc reduceIfNotEmpty* [S1; S2; A; B](
+  self: FlatStream[S1, S2, A];
+  initialResult: () -> B;
+  accumulate: (accumulation: B, item: A) -> B
+): Optional[B] =
+  self
+    .map(s => s.reduceIfNotEmpty(initialResult, accumulate))
+    .reduce(initialResult, accumulate)
+
+
 
 proc forEach* [S; T](self: Stream[S, T]; consume: T -> Unit): Unit =
-  self.reduce(unit, (_, item) => item.consume())
+  self.reduce(() => unit(), (_, item) => item.consume())
 
 
-proc forEach* [S; T](
-  self: FilteredStream[S, T]; consume: T -> Unit
+proc forEach* [S; T](self: FilteredStream[S, T]; consume: T -> Unit): Unit =
+  self.reduce(() => unit(), (_, item: T) => item.consume())
+
+
+proc forEach* [S1; S2; T](
+  self: FlatStream[S1, S2, T];
+  consume: T -> Unit
 ): Unit =
   self.reduce(() => unit(), (_, item: T) => item.consume())
 
 
 
-proc count* [S; T](
-  self: Stream[S, T]; R: typedesc[SomeUnsignedInt or Natural]
+
+proc sum* [S; T: SomeNumber](self: Stream[S, T]; R: typedesc[SomeNumber]): R =
+  self.reduce(() => 0.R, (acc, item) => acc + item.R)
+
+
+proc sum* [S; T: SomeNumber](
+  self: FilteredStream[S, T];
+  R: typedesc[SomeNumber]
 ): R =
-  self.reduce(() => 0.R, (acc, _) => acc + 1)
+  self.reduce(() => 0.R, (acc: R, item: T) => acc + item.R)
+
+
+proc sum* [S1; S2; T: SomeNumber](
+  self: FlatStream[S1, S2, T];
+  R: typedesc[SomeNumber]
+): R =
+  self.reduce(() => 0.R, (acc: R, item: T) => acc + item.R)
+
+
+
+proc sum* [S; T: SomeNumber; R: SomeNumber](self: Stream[S, T]): R =
+  self.sum(R)
+
+
+proc sum* [S; T: SomeNumber; R: SomeNumber](self: FilteredStream[S, T]): R =
+  self.sum(R)
+
+
+proc sum* [S1; S2; T: SomeNumber; R: SomeNumber](
+  self: FlatStream[S1, S2, T]
+): R =
+  self.sum(R)
+
+
+
+proc count* [S; T](self: Stream[S, T]; R: typedesc[SomeUnsignedInt]): R =
+  self.map(_ => 1.R).sum(R)
 
 
 proc count* [S; T](
-  self: FilteredStream[S, T]; R: typedesc[SomeUnsignedInt or Natural]
+  self: FilteredStream[S, T];
+  R: typedesc[SomeUnsignedInt]
 ): R =
-  self.reduce(() => 0.R, (acc, _) => acc + 1)
+  self.map((_: T) => 1.R).sum(R)
+
+
+proc count* [S1; S2; T](
+  self: FlatStream[S1, S2, T];
+  R: typedesc[SomeUnsignedInt]
+): R =
+  self.map(count[S2, T, R]).sum(R)
+
 
 
 proc count* [S; T; R](self: Stream[S, T]): R =
@@ -228,6 +360,10 @@ proc count* [S; T; R](self: Stream[S, T]): R =
 
 
 proc count* [S; T; R](self: FilteredStream[S, T]): R =
+  self.count(R)
+
+
+proc count* [S1; S2; T; R](self: FlatStream[S1, S2, T]): R =
   self.count(R)
 
 
@@ -246,13 +382,13 @@ proc findFirst* [S; T](self: FilteredStream[S, T]): Optional[T] =
   self.findFirst().flatMap(opt => opt)
 
 
-proc findFirst* [S; T](self: Stream[S, T]; predicate: T -> bool): Optional[T] =
-  discard
+proc findFirst* [S1; S2; T](self: FlatStream[S1, S2, T]): Optional[T] =
+  self.map(s => s.findFirst()).findFirst()
 
 
 
 when isMainModule:
-  import std/[os, strutils, unittest]
+  import std/[os, sequtils, strutils, unittest]
 
 
 
@@ -291,19 +427,21 @@ when isMainModule:
 
   suite currentSourcePath().splitFile().name:
     test "stream: seq":
-      proc streamTest [T](source: seq[T]) =
+      proc streamTest (source: seq[string]) =
         let sut =
-          source.pairs()
-          .filter(
-            (pair: tuple[item: T; index: Natural]) => pair.item.len() > 3
-          ).map(
-            (pair: tuple[item: T; index: Natural]) =>
+          source
+          .pairs()
+          .filter(pair => pair.item.len() > 3)
+          .map(
+            (pair: tuple[item: string; index: Natural]) =>
               (item: pair.item, length: pair.item.len(), index: pair.index)
           )
 
         sut
           .forEach(
-            proc (elm: tuple[item: T; length: Natural; index: Natural]): Unit =
+            proc (
+              elm: tuple[item: string; length: Natural; index: Natural]
+            ): Unit =
               let (item, length, index) = elm
 
               check:
@@ -365,7 +503,7 @@ when isMainModule:
 
 
     test "count: filtered":
-      proc countTest (U: typedesc[SomeUnsignedInt | Natural]) =
+      proc countTest (U: typedesc[SomeUnsignedInt]) =
         let
           source = 0 .. 100
           validRange = 15 .. 80
@@ -384,14 +522,11 @@ when isMainModule:
 
 
       countTest(uint)
-      countTest(Natural)
 
 
 
     test "count: compile time":
-      proc countTest [T](
-        source: seq[T]; U: typedesc[SomeUnsignedInt | Natural]
-      ) =
+      proc countTest [T](source: seq[T]; U: typedesc[SomeUnsignedInt]) =
         let
           expected = source.len().U
           sut = source.items().count(U)
@@ -434,8 +569,41 @@ when isMainModule:
 
 
 
+    test "infiniteStream: generator, limit":
+      proc infiniteStreamTest [T; U: SomeUnsignedInt](
+        generator: () -> T;
+        expectedLimit: U
+      ) =
+        let sut = infiniteStream(generator).limit(expectedLimit).count(U)
+
+        check:
+          sut == expectedLimit
+
+
+      infiniteStreamTest(() => (5, '"'), 0.uint)
+      infiniteStreamTest(() => "abc", 13.uint)
+
+
+
+    test "infiniteStream: seed, limit":
+      proc infiniteStreamTest [T; U: SomeUnsignedInt](
+        seed: () -> T;
+        f: T -> T;
+        expectedLimit: U
+      ) =
+        let sut = infiniteStream(seed, f).limit(expectedLimit).count(U)
+
+        check:
+          sut == expectedLimit
+
+
+
+      infiniteStreamTest(() => 0u32, i => i + 1, 100.uint64)
+
+
+
     test "takeWhile: count ASCII chars":
-      proc takeWhileTest (U: typedesc[SomeUnsignedInt or Natural]) =
+      proc takeWhileTest (U: typedesc[SomeUnsignedInt]) =
         let
           source = "abc65abc"
           expected = 3.U
@@ -445,19 +613,58 @@ when isMainModule:
           sut == expected
 
 
-      takeWhileTest(Natural)
+      takeWhileTest(uint64)
 
 
 
-  test "takeWhile: count ASCII spaces, compile time":
-    proc takeWhileTest [U: SomeUnsignedInt | Natural]() =
-      const
-        source = " \t\n, abc"
-        expected = 3.U
-        sut = source.chars().takeWhile(c => c.isSpaceAscii()).count(U)
+    test "takeWhile: count ASCII spaces, compile time":
+      proc takeWhileTest [U: SomeUnsignedInt]() =
+        const
+          source = " \t\n, abc"
+          expected = 3.U
+          sut = source.chars().takeWhile(c => c.isSpaceAscii()).count(U)
 
-      check:
-        sut == expected
+        check:
+          sut == expected
 
 
-    takeWhileTest[Natural]()
+      takeWhileTest[uint32]()
+
+
+
+    test "FlatStream: seq[string], count characters":
+      proc flatStreamTest (source: seq[string]; U: typedesc[SomeUnsignedInt]) =
+        let
+          expected = source.foldl(a + b.len().U, 0.U)
+          sut = source.items().flatMap(chars).count(U)
+
+        check:
+          sut == expected
+
+
+      flatStreamTest(@[], uint)
+      flatStreamTest(@["abc"], uint)
+      flatStreamTest(@["", "01 ab", "abc"], uint)
+
+
+
+    test "FlatStream: seq[string], count letters":
+      proc flatStreamTest (source: seq[string]; U: typedesc[SomeUnsignedInt]) =
+        let
+          expected =
+            source.foldl(a + b.filterIt(it.isAlphaAscii()).len().U, 0.U)
+          sut =
+            source
+            .items()
+            .flatMap(chars)
+            .filter(isAlphaAscii)
+            .map((s: FilteredStream[Natural, char]) => s.count(U))
+            .sum(U)
+
+        check:
+          sut == expected
+
+
+      flatStreamTest(@[], uint)
+      flatStreamTest(@["abc01abc, az"], uint)
+      flatStreamTest(@["", "01 ab", "abc"], uint)
