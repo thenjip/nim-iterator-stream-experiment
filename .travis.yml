@@ -1,3 +1,8 @@
+branches:
+  only:
+    - master
+    - devel
+
 language: c
 
 os: linux
@@ -14,4 +19,3 @@ before_install:
 script:
   - docker run nimlang/nim nim --version
   - docker run -v "$(pwd):/project" -w /project nimlang/nim sh -c "nimble install -dy && nimble test"
-
