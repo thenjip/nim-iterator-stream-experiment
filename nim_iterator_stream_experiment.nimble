@@ -14,15 +14,19 @@ requires "nim >= 1.0.4"
 
 
 
-import std/[os, sequtils, strutils]
+import std/[os, sequtils, strformat, strutils]
 
 
 
 task test, "":
-  let cmdElements = [
-    "c",
-    "-r",
-    projectDir() / srcDir / "nim_iterator_stream_experiment" / "stream.nim"
-  ]
+  withDir srcDir:
+    let
+      projectName = "nim_iterator_stream_experiment"
+      cmdElements =
+        [
+          "c",
+          "-r",
+          projectDir() / srcDir / fmt"{projectName}{ExtSep}nim"
+        ]
 
-  cmdElements.foldl([a, b.quoteShell()].join($' '), "").selfExec()
+    cmdElements.foldl([a, b.quoteShell()].join($' '), "").selfExec()
