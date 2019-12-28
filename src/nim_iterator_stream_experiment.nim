@@ -18,6 +18,8 @@ when isMainModule:
 
 
   proc exec (cmdLine: string) =
+    echo(cmdLine)
+
     if cmdLine.execShellCmd() != QuitSuccess:
       osLastError().raiseOSError("Command failed:\n" & cmdLine)
 
