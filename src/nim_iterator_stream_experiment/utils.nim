@@ -23,4 +23,9 @@ proc ifElse* [T](condition: bool; then: () -> T; `else`: () -> T): T =
 
 
 when isMainModule:
-  discard
+  import std/[os, unittest]
+
+
+
+  suite currentSourcePath().splitFile().name:
+    discard
