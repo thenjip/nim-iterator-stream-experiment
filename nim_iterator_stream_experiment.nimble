@@ -26,7 +26,7 @@ task test, "":
         [
           "c",
           "-r",
-          projectDir() / srcDir / projectName / fmt"{projectName}{ExtSep}nim"
+          projectDir() / srcDir / fmt"{projectName}{ExtSep}nim"
         ]
 
     cmdElements.foldl([a, b.quoteShell()].join($' '), "").selfExec()
