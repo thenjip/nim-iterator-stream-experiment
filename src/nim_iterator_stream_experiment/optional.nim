@@ -65,3 +65,13 @@ proc `==`* [T](self, other: Optional[T]): bool =
     ,
     () => other.isNone()
   )
+
+
+
+when isMainModule:
+  import std/[os, unittest]
+
+
+
+  suite currentSourcePath().splitFile().name:
+    discard
