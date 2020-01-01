@@ -95,7 +95,7 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 
 when isMainModule:
-  import unit
+  import io, unit
 
   import std/[os, unittest]
 
@@ -183,7 +183,7 @@ when isMainModule:
           initialVal
           .toSome()
           .ifSome(
-            a => lazyCheck(a == initialVal).chain(_ => expected)(),
+            a => lazyCheck(a == initialVal).chain(_ => expected).run(),
             () => unexpected
           )
 
@@ -222,7 +222,7 @@ when isMainModule:
           .toSome()
           .ifNone(
             () => unexpected,
-            a => lazyCheck(a == initialVal).chain(_ => expected)()
+            a => lazyCheck(a == initialVal).chain(_ => expected).run()
           )
 
         check:
@@ -279,7 +279,9 @@ when isMainModule:
             .toSome()
             .flatMap(
               (a: A) =>
-                lazyCheck(a == initialVal).chain(_ => expectedVal.toSome())()
+                lazyCheck(a == initialVal)
+                .chain(_ => expectedVal.toSome())
+                .run()
             )
 
         check:
@@ -311,7 +313,7 @@ when isMainModule:
           sut =
             initialVal
             .toSome()
-            .map(a => lazyCheck(a == initialVal).chain(_ => expectedVal)())
+            .map(a => lazyCheck(a == initialVal).chain(_ => expectedVal).run())
 
         check:
           sut == expected
