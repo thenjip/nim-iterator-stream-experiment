@@ -4,10 +4,6 @@ import std/[sugar]
 
 
 
-{.experimental: "notnil".}
-
-
-
 type
   SomePointer* = ref or ptr or pointer or cstring or proc
 
@@ -36,6 +32,8 @@ func toNone* [T](): Optional[T] =
 
 
 func toSome* [T: SomePointer](value: T): Optional[T] =
+  assert(not value.isNil())
+
   Optional[T](value: value)
 
 
