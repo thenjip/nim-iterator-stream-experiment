@@ -1,4 +1,4 @@
-import identity, optional, unit, utils
+import identity, io, optional, unit, utils
 
 import std/[sugar]
 
@@ -6,7 +6,7 @@ import std/[sugar]
 
 type
   Stream* [S; T] = object
-    initialState: () -> S
+    buildComputation: (loop: (initialState: S) -> Unit) -> IO[Unit]
     hasMore: S -> bool
     generate: S -> T
     nextStep: S -> S
@@ -41,18 +41,42 @@ proc takeWhileState [S; T](state: S; item: Optional[T]): TakeWhileState[S, T] =
 
 
 
+func stream [S, T](
+  buildComputation: (loop: (initialState: S) -> Unit) -> IO[Unit];
+  hasMore: S -> bool;
+  generate: S -> T;
+  nextStep: S -> S
+): Stream[S, T] =
+  Stream[S, T](
+    buildComputation: buildComputation,
+    hasMore: hasMore,
+    generate: generate,
+    nextStep: nextStep
+  )
+
+
+func stream* [S; T](
+  initialState: () -> S;
+  hasMore: S -> bool;
+  generate: S -> T;
+  nextStep: S -> S;
+  onClose: S -> Unit
+): Stream[S, T] =
+  stream(
+    (loop: S -> Unit) => initialState.bracket(loop, onClose),
+    hasMore,
+    generate,
+    nextStep
+  )
+
+
 func stream* [S; T](
   initialState: () -> S;
   hasMore: S -> bool;
   generate: S -> T;
   nextStep: S -> S
 ): Stream[S, T] =
-  Stream[S, T](
-    initialState: initialState,
-    hasMore: hasMore,
-    generate: generate,
-    nextStep: nextStep
-  )
+  stream(initialState, hasMore, generate, nextStep, _ => unit())
 
 
 
@@ -85,7 +109,7 @@ func infiniteStream* [T](initialItem: () -> T; f: T -> T): Stream[T, T] =
 
 func map* [S; A; B](self: Stream[S, A]; f: A -> B): Stream[S, B] =
   stream(
-    self.initialState,
+    self.buildComputation,
     self.hasMore,
     state => self.generate(state).f(),
     self.nextStep
@@ -202,17 +226,23 @@ func takeWhile* [S1; S2; T](
 
 
 
-proc reduce* [S; A; B](
-  self: Stream[S, A];
-  initialResult: () -> B;
-  accumulate: (accumulation: B, item: A) -> B
-): B =
-  var state = self.initialState()
-  result = initialResult()
+proc reduce* [S; T; R](
+  self: Stream[S, T];
+  initialResult: () -> R;
+  accumulate: (accumulation: R, item: T) -> R
+): R =
+  var accumulation = initialResult()
 
-  while self.hasMore(state):
-    result = result.accumulate(self.generate(state))
-    state = self.nextStep(state)
+  self
+    .buildComputation(
+      proc (initialState: S): Unit =
+        var state = initialState
+
+        while self.hasMore(state):
+          accumulation = accumulation.accumulate(self.generate(state))
+          state = self.nextStep(state)
+    ).map(_ => accumulation)
+    .run()
 
 
 proc reduce* [S; A; B](
@@ -369,13 +399,22 @@ proc count* [S1; S2; T; R](self: FlatStream[S1, S2, T]): R =
 
 
 proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
-  self.initialState().apply(
-    initial =>
-      self.hasMore(initial).ifElse(
-        () => self.generate(initial).toSome(),
-        toNone
-      )
-  )
+  var found: result.typeof()
+
+  self
+    .buildComputation(
+      proc (state: S): Unit =
+        found =
+          self
+          .hasMore(state)
+          .ifElse(
+            () => self.generate(state).toSome(),
+            toNone[T]
+          )
+    ).run()
+    .ignore()
+
+  result = found
 
 
 proc findFirst* [S; T](self: FilteredStream[S, T]): Optional[T] =

@@ -1,10 +1,11 @@
-import chain, identity
+import identity
+import ../utils/[chain]
 
 import std/[sugar]
 
 
 
-type Reader[S, T] = S -> T
+type Reader* [S, T] = S -> T
 
 
 
@@ -53,7 +54,8 @@ func local* [S; T](self: Reader[S, T]; f: S -> S): Reader[S, T] =
 
 
 when isMainModule:
-  import io, unit
+  import io
+  import ../utils/[unit]
 
   import std/[os, unittest]
 

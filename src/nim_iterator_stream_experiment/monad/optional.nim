@@ -1,4 +1,5 @@
-import chain, identity, utils
+import identity
+import ../utils/[chain, ifelse]
 
 import std/[sugar]
 
@@ -93,7 +94,8 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 
 when isMainModule:
-  import io, unit
+  import io
+  import ../utils/[ignore, unit]
 
   import std/[os, unittest]
 

@@ -1,4 +1,5 @@
-import chain, unit, utils
+import identity
+import ../utils/[chain, unit]
 
 import std/[sugar]
 
