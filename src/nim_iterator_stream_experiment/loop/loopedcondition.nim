@@ -1,6 +1,6 @@
 import ../monad/[reader]
 import ../optics/[focus, lens]
-import ../utils/[convert, ignore, predicate, unit]
+import ../utils/[convert, ignore, predicate, unit, variables]
 
 import std/[sugar]
 
@@ -76,7 +76,7 @@ proc run* [S](self: LoopedCondition[S]; initial: S; body: S -> Unit): S =
 
   while self.condition.test(result):
     body.run(result).ignore()
-    result = self.stepper.advance(result)
+    result.modify(self.stepper).ignore()
 
 
 proc run* [S](self: LoopedCondition[S]; initial: S): S =
