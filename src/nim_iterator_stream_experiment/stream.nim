@@ -1,709 +1,381 @@
-import identity, io, optional, unit, utils
+import loop
+import loop/[loopedcondition, loopsteps]
+import monad/[identity, io, optional, reader]
+import optics/[focus, lens]
+import stream/[streamsteps]
+import utils/[convert, ignore, ifelse, predicate, unit, variables]
 
 import std/[sugar]
 
 
 
 type
+  OnCloseCallBack* [T] = Reader[T, Unit]
+
   Stream* [S; T] = object
-    buildComputation: (loop: (initialState: S) -> Unit) -> IO[Unit]
-    hasMore: S -> bool
-    generate: S -> T
-    nextStep: S -> S
-
-  FilteredStream* [S; T] = Stream[S, Optional[T]]
-
-  FlatStream* [S1; S2; T] = Stream[S1, Stream[S2, T]]
-
-  SingleElementState* = object
-    hasMore: bool
-
-  LimitState* [S; U: SomeUnsignedInt] = object
-    state: S
-    i: U
-
-  TakeWhileState* [S; T] = object
-    state: S
-    item: Optional[T]
+    initialStep: IO[S]
+    loop: Loop[S, T]
+    closure: OnCloseCallBack[S]
 
 
 
-func singleElementState (hasMore: bool): SingleElementState =
-  SingleElementState(hasMore: hasMore)
-
-
-func limitState [S; U: SomeUnsignedInt](state: S; i: U): LimitState[S, U] =
-  LimitState[S, U](state: state, i: i)
-
-
-proc takeWhileState [S; T](state: S; item: Optional[T]): TakeWhileState[S, T] =
-  TakeWhileState[S, T](state: state, item: item)
-
-
-
-func stream [S, T](
-  buildComputation: (loop: (initialState: S) -> Unit) -> IO[Unit];
-  hasMore: S -> bool;
-  generate: S -> T;
-  nextStep: S -> S
+func startingAt* [S; T](
+  loop: Loop[S, T];
+  initialStep: IO[S];
+  closure: OnCloseCallBack[S]
 ): Stream[S, T] =
-  Stream[S, T](
-    buildComputation: buildComputation,
-    hasMore: hasMore,
-    generate: generate,
-    nextStep: nextStep
+  Stream[S, T](initialStep: initialStep, loop: loop, closure: closure)
+
+
+func startingAt* [S; T](loop: Loop[S, T]; initialStep: IO[S]): Stream[S, T] =
+  loop.startingAt(initialStep, doNothing[S])
+
+
+
+func initialStep* [S; T](X: typedesc[Stream[S, T]]): Lens[X, IO[S]] =
+  lens(
+    (self: X) => self.initialStep,
+    (self: X, initialStep: IO[S]) =>
+      self.loop.startingAt(initialStep, self.closure)
   )
 
 
-func stream* [S; T](
-  initialState: () -> S;
-  hasMore: S -> bool;
-  generate: S -> T;
-  nextStep: S -> S;
-  onClose: S -> Unit
-): Stream[S, T] =
-  stream(
-    (loop: S -> Unit) => initialState.bracket(loop, onClose),
-    hasMore,
-    generate,
-    nextStep
+func loop* [S; A](
+  X: typedesc[Stream[S, A]];
+  B: typedesc
+): PLens[X, Loop[S, A], Loop[S, B], Stream[S, B]] =
+  lens(
+    (self: X) => self.loop,
+    (self: X, loop: Loop[S, B]) =>
+      loop.startingAt(self.initialStep, self.closure)
   )
 
 
-func stream* [S; T](
-  initialState: () -> S;
-  hasMore: S -> bool;
-  generate: S -> T;
-  nextStep: S -> S
-): Stream[S, T] =
-  stream(initialState, hasMore, generate, nextStep, _ => unit())
+func loop* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Loop[S, T]] =
+  X.loop(T)
 
 
-
-func emptyStream* (T: typedesc): Stream[Unit, T] =
-  stream[Unit, T](() => unit(), (_: Unit) => false, nil, itself)
-
-
-func emptyStream* [T](): FilteredStream[Unit, T] =
-  T.emptyStream()
-
-
-func singleElementStream* [T](element: () -> T): Stream[SingleElementState, T] =
-  stream(
-    () => singleElementState(true),
-    s => s.hasMore,
-    _ => element(),
-    s => singleElementState(not s.hasMore)
+func closure* [S; T](X: typedesc[Stream[S, T]]): Lens[X, OnCloseCallBack[S]] =
+  lens(
+    (self: X) => self.closure,
+    (self: X, closure: OnCloseCallBack[S]) =>
+      self.loop.startingAt(self.initialStep, self.closure)
   )
 
 
+func condition* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Condition[S]] =
+  X.loop().chain(Loop[S, T].condition())
 
-func infiniteStream* [T](generator: () -> T): Stream[Unit, T] =
-  stream(() => unit(), _ => true, _ => generator(), itself)
+
+func generator* [S; A](
+  X: typedesc[Stream[S, A]];
+  B: typedesc
+): PLens[X, Generator[S, A], Generator[S, B], Stream[S, B]] =
+  X.loop(B).chain(Loop[S, A].generator(B))
 
 
-func infiniteStream* [T](initialItem: () -> T; f: T -> T): Stream[T, T] =
-  stream(initialItem, _ => true, itself, f)
+func generator* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Generator[S, T]] =
+  X.generator(T)
+
+
+func stepper* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]] =
+  X.loop().chain(Loop[S, T].stepper())
+
+
+
+proc hasMore [S; T](self: Stream[S, T]; step: S): bool =
+  self.focusOn(self.typeof().condition()).read().test(step)
+
+
+proc generate [S; T](self: Stream[S, T]; step: S): T =
+  self.focusOn(self.typeof().generator()).read().run(step)
+
+
+proc nextStep [S; T](self: Stream[S, T]; step: S): S =
+  self.focusOn(self.typeof().stepper()).read().advance(step)
+
+
+proc run* [S](self: Stream[S, Unit]): Unit =
+  self.loop.run(self.initialStep.run()).apply(self.closure)
+
+
+
+func wrapSteps* [SA; SB; T](
+  self: Stream[SA, T];
+  extractor: SB -> SA;
+  stepperBuilder: Stepper[SA] -> Stepper[SB];
+  initialStepWrapper: SA -> SB
+): Stream[SB, T] =
+  func buildResult (
+    self: self.typeof();
+    extractor: extractor.typeof();
+    stepperBuilder: stepperBuilder.typeof();
+    initialStepWrapper: initialStepWrapper.typeof()
+  ): result.typeof() =
+    self
+      .loop
+      .wrapSteps(extractor, stepperBuilder)
+      .startingAt(
+        self.initialStep.map(initialStepWrapper),
+        extractor.map(self.closure)
+      )
+
+  self.buildResult(extractor, stepperBuilder, initialStepWrapper)
+
+
+
+func emptyStream* (T: typedesc): Stream[ZeroStep, T] =
+  T.emptyLoop().startingAt(zeroStep)
+
+
+func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
+  func buildResult (
+    item: item.typeof();
+    S: typedesc[SingleStep]
+  ): result.typeof() =
+    S
+      .isConsumed()
+      .read()
+      .convert(Condition[S])
+      .looped(alwaysFalse[S].map(singleStep))
+      .generating((_: S) => item())
+      .startingAt(() => true.singleStep())
+
+  item.buildResult(SingleStep)
+
+
+
+func onClose* [S; T](self: Stream[S, T]; callBack: () -> Unit): Stream[S, T] =
+  self
+    .focusOn(self.typeof().closure())
+    .modify(closure => closure.map(_ => callBack.run()))
 
 
 
 func map* [S; A; B](self: Stream[S, A]; f: A -> B): Stream[S, B] =
-  stream(
-    self.buildComputation,
-    self.hasMore,
-    state => self.generate(state).f(),
-    self.nextStep
-  )
-
-
-func map* [S; A; B](
-  self: FilteredStream[S, A];
-  f: A -> B
-): FilteredStream[S, B] =
-  self.map((opt: Optional[A]) => opt.map(f))
-
-
-func map* [S1; S2; A; B](
-  self: FlatStream[S1, S2, A];
-  f: A -> B
-): FlatStream[S1, S2, B] =
-  self.map((s: Stream[S2, A]) => s.map(f))
-
-
-
-func flatMap* [SA; A; SB; B](
-  self: Stream[SA, A];
-  f: A -> Stream[SB, B]
-): FlatStream[SA, SB, B] =
-  self.map(f)
-
-
-func flatMap* [SA; A; SB; B](
-  self: FilteredStream[SA, A];
-  f: A -> Stream[SB, B]
-): FlatStream[SA, SB, B] =
-  self.map(f)
-
-
-
-proc applyPredicate [T](item: T; predicate: T -> bool): Optional[T] =
-  item.predicate().ifElse(() => item.toSome(), toNone)
-
+  self.focusOn(self.typeof().generator(B)).modify(gen => gen.map(f))
 
 
 func filter* [S; T](
   self: Stream[S, T];
-  predicate: T -> bool
-): FilteredStream[S, T] =
-  self.map(item => item.applyPredicate(predicate))
+  predicate: Predicate[T]
+): Stream[S, Optional[T]] =
+  self.map(item => predicate.test(item).ifElse(() => item.toSome(), toNone[T]))
 
 
-func filter* [S; T](
-  self: FilteredStream[S, T];
-  predicate: T -> bool
-): FilteredStream[S, T] =
-  self.map((opt: Optional[T]) => opt.filter(predicate))
+func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
+  func buildResult [S; N](
+    self: self.typeof();
+    n: N;
+    L: typedesc[LimitStep[S, N]]
+  ): result.typeof() =
+    self
+      .wrapSteps(
+        L.step().read(),
+        stepper =>
+          L.step().modify(stepper).map(L.count().modify(count => count + 1.N))
+        ,
+        step => step.limitStep(0.N)
+      ).focusOn(result.typeof().condition())
+      .modify(
+        (hasMore: Condition[L]) =>
+          hasMore
+            .`and`(L.count().read().map(count => count < n) as hasMore.typeof())
+      )
+
+  self.buildResult(n, LimitStep[S, N])
 
 
-func filter* [S1; S2; T](
-  self: FlatStream[S1, S2, T];
-  predicate: T -> bool
-): FlatStream[S1, S2, Optional[T]] =
-  self.map((s: Stream[S2, T]) => s.filter(predicate))
-
-
-
-func limit* [S; T; U](self: Stream[S, T]; n: U): Stream[LimitState[S, U], T] =
-  stream(
-    () => limitState(self.initialState(), 0.U),
-    limit => limit.i < n and self.hasMore(limit.state),
-    limit => self.generate(limit.state),
-    (limit: LimitState[S, U]) =>
-      limitState(self.nextStep(limit.state), limit.i + 1)
-  )
-
-
-
-proc generateTakeWhileState [S; T](
-  state: S;
-  hasMore: S -> bool;
-  generate: S -> T;
-  predicate: T -> bool
-): TakeWhileState[S, T] =
-  takeWhileState(
-    state,
-    state.hasMore().ifElse(
-      () => state.generate().applyPredicate(predicate),
-      toNone
-    )
-  )
+func skip* [S; T; N: SomeUnsignedInt](self: Stream[S, T]; n: N): Stream[S, T] =
+  # TODO
+  discard
 
 
 func takeWhile* [S; T](
   self: Stream[S, T];
-  predicate: T -> bool
-): Stream[TakeWhileState[S, T], T] =
-  stream(
-    () =>
-      self.initialState().generateTakeWhileState(
-        self.hasMore, self.generate, predicate
+  condition: Predicate[T]
+): Stream[TakeWhileStep[S, T], T] =
+  let generateTakeWhileStep =
+    (step: S) =>
+      step.takeWhileStep(
+        self.hasMore(step).ifElse(
+          () => self.generate(step).toSome().filter(condition),
+          toNone[T]
+        )
       )
-    ,
-    twState => twState.item.isSome(),
-    twState => twState.item.get(),
-    (twState: TakeWhileState[S, T]) =>
-      self.nextStep(twState.state).generateTakeWhileState(
-        self.hasMore, self.generate, predicate
-      )
-  )
+
+  func buildResult [S; T; X: self.typeof()](
+    self: X;
+    TW: typedesc[TakeWhileStep[S, T]]
+  ): Stream[TW, T] =
+    self
+      .wrapSteps(
+        TW.step().read(),
+        stepper =>
+          TW
+            .step()
+            .modify(stepper)
+            .map(TW.step().read().map(generateTakeWhileStep))
+        ,
+        generateTakeWhileStep
+      ).focusOn(result.typeof().condition())
+      .write(TW.item().read().map(isSome).convert(Condition[TW]))
+
+  self.buildResult(TakeWhileStep[S, T])
 
 
-func takeWhile* [S1; S2; T](
-  self: FlatStream[S1, S2, T];
-  predicate: T -> bool
-): FlatStream[S1, S2, T] =
-  self.map(s => s.takeWhile(predicate))
+
+func dropWhile* [S; T](
+  self: Stream[S, T];
+  condition: Predicate[T]
+): Stream[S, T] =
+  func buildDropLoop [S; T; L: LoopedCondition[S]](
+    selfLoop: L;
+    generator: Generator[S, T];
+    condition: condition.typeof()
+  ): L =
+    selfLoop.focusOn(L.condition()).modify(
+      (hasMore: Condition[S]) =>
+        hasMore.`and`(generator.map(condition) as hasMore.typeof())
+    )
+
+  func buildResult [X: self.typeof()](
+    self: X;
+    condition: condition.typeof();
+    S: typedesc
+  ): X =
+    self.focusOn(X.initialStep()).modify(
+      (initialStep: IO[S]) =>
+        initialStep.map(
+          self
+            .focusOn(X.loop().chain(Loop[S, T].loopedCondition()))
+            .read()
+            .buildDropLoop(self.focusOn(X.generator()).read(), condition)
+            .asReader()
+        )
+    )
+
+  self.buildResult(condition, S)
 
 
 
 proc reduce* [S; T; R](
   self: Stream[S, T];
-  initialResult: () -> R;
-  accumulate: (accumulation: R, item: T) -> R
+  reducer: (reduction: R, item: T) -> R;
+  initialResult: () -> R
 ): R =
-  var accumulation = initialResult()
+  var reduction = initialResult.run()
 
   self
-    .buildComputation(
-      proc (initialState: S): Unit =
-        var state = initialState
-
-        while self.hasMore(state):
-          accumulation = accumulation.accumulate(self.generate(state))
-          state = self.nextStep(state)
-    ).map(_ => accumulation)
+    .map(item => reduction.modify(r => r.reducer(item)).doNothing())
     .run()
+    .apply(_ => reduction.read())
 
 
-proc reduce* [S; A; B](
-  self: FilteredStream[S, A];
-  initialResult: () -> B;
-  accumulate: (accumulation: B, item: A) -> B
-): B =
-  self.reduce(
-    initialResult,
-    (acc: B, opt: Optional[A]) =>
-      opt.ifSome(item => acc.accumulate(item), () => acc)
-  )
+proc reduceIfNotEmpty* [S; T; R](
+  self: Stream[S, T];
+  reducer: (reduction: R, item: T) -> R;
+  initialResult: () -> R
+): Optional[R] =
+  let reduceOnNextStep =
+    (step: S) =>
+      self
+        .focusOn(self.typeof().initialStep())
+        .write(() => self.nextStep(step))
+        .reduce(reducer, initialResult.map(r => r.reducer(self.generate(step))))
 
-
-proc reduce* [S1; S2; A; B](
-  self: FlatStream[S1, S2, A];
-  initialResult: () -> B;
-  accumulate: (accumulation: B, item: A) -> B
-): B =
   self
-    .map(s => s.reduce(initialResult, accumulate))
-    .reduce(initialResult, accumulate)
+    .initialStep
+    .map(
+      (initialStep: S) =>
+        self
+          .hasMore(initialStep)
+          .ifElse(() => initialStep.reduceOnNextStep().toSome(), toNone[R])
+    ).run()
+
+
+proc forEach* [S; T](self: Stream[S, T]; action: T -> Unit): Unit =
+  self.map(action).reduce((u: Unit, _: Unit) => u, () => unit())
+
+
+proc sum* [S; N](self: Stream[S, N]): N =
+  self.reduce((sum: N, item: N) => convert(sum + item, N), () => 0.N)
+
+
+proc count* [S; T](self: Stream[S, T]; N: typedesc): N =
+  self.map((_: T) => 1.N).sum()
+
+
+proc count* [S; T; N](self: Stream[S, T]): N =
+  self.count(N)
 
 
 
-proc reduceIfNotEmpty* [S; A; B](
-  self: Stream[S, A];
-  initialResult: () -> B;
-  accumulate: (accumulation: B, item: A) -> B
-): Optional[B] =
-  self.initialState().apply(
-    (initialState: S) =>
-      self.hasMore(initialState).ifElse(
-        () =>
-          stream(
-            () => self.nextStep(initialState),
-            self.hasMore,
-            self.generate,
-            self.nextStep
-          ).reduce(
-            initialResult().accumulate(self.generate(initialState)),
-            accumulate
-          ).toSome()
-        ,
-        toNone[B]
-      )
-  )
+proc findFirst* [S; T](
+  self: Stream[S, T];
+  predicate: Predicate[T]
+): Optional[T] =
+  let findItem =
+    (step: S) =>
+      self
+        .hasMore(step)
+        .ifElse(() => self.generate(step).toSome(), toNone)
+        .apply(found => self.closure.map(_ => found).run(step))
 
-
-proc reduceIfNotEmpty* [S; A; B](
-  self: FilteredStream[S, A];
-  initialResult: () -> B;
-  accumulate: (accumulation: B, item: A) -> B
-): Optional[B] =
-  self.reduceIfNotEmpty(
-    initialResult,
-    (acc: B, opt: Optional[A]) =>
-      opt.ifSome(item => acc.accumulate(item), () => acc)
-  )
-
-
-proc reduceIfNotEmpty* [S1; S2; A; B](
-  self: FlatStream[S1, S2, A];
-  initialResult: () -> B;
-  accumulate: (accumulation: B, item: A) -> B
-): Optional[B] =
-  self
-    .map(s => s.reduceIfNotEmpty(initialResult, accumulate))
-    .reduce(initialResult, accumulate)
-
-
-
-proc forEach* [S; T](self: Stream[S, T]; consume: T -> Unit): Unit =
-  self.reduce(() => unit(), (_, item) => item.consume())
-
-
-proc forEach* [S; T](self: FilteredStream[S, T]; consume: T -> Unit): Unit =
-  self.reduce(() => unit(), (_, item: T) => item.consume())
-
-
-proc forEach* [S1; S2; T](
-  self: FlatStream[S1, S2, T];
-  consume: T -> Unit
-): Unit =
-  self.reduce(() => unit(), (_, item: T) => item.consume())
-
-
-
-
-proc sum* [S; T: SomeNumber](self: Stream[S, T]; R: typedesc[SomeNumber]): R =
-  self.reduce(() => 0.R, (acc, item) => acc + item.R)
-
-
-proc sum* [S; T: SomeNumber](
-  self: FilteredStream[S, T];
-  R: typedesc[SomeNumber]
-): R =
-  self.reduce(() => 0.R, (acc: R, item: T) => acc + item.R)
-
-
-proc sum* [S1; S2; T: SomeNumber](
-  self: FlatStream[S1, S2, T];
-  R: typedesc[SomeNumber]
-): R =
-  self.reduce(() => 0.R, (acc: R, item: T) => acc + item.R)
-
-
-
-proc sum* [S; T: SomeNumber; R: SomeNumber](self: Stream[S, T]): R =
-  self.sum(R)
-
-
-proc sum* [S; T: SomeNumber; R: SomeNumber](self: FilteredStream[S, T]): R =
-  self.sum(R)
-
-
-proc sum* [S1; S2; T: SomeNumber; R: SomeNumber](
-  self: FlatStream[S1, S2, T]
-): R =
-  self.sum(R)
-
-
-
-proc count* [S; T](self: Stream[S, T]; R: typedesc[SomeUnsignedInt]): R =
-  self.map(_ => 1.R).sum(R)
-
-
-proc count* [S; T](
-  self: FilteredStream[S, T];
-  R: typedesc[SomeUnsignedInt]
-): R =
-  self.map((_: T) => 1.R).sum(R)
-
-
-proc count* [S1; S2; T](
-  self: FlatStream[S1, S2, T];
-  R: typedesc[SomeUnsignedInt]
-): R =
-  self.map(count[S2, T, R]).sum(R)
-
-
-
-proc count* [S; T; R](self: Stream[S, T]): R =
-  self.count(R)
-
-
-proc count* [S; T; R](self: FilteredStream[S, T]): R =
-  self.count(R)
-
-
-proc count* [S1; S2; T; R](self: FlatStream[S1, S2, T]): R =
-  self.count(R)
-
+  self.dropWhile(not predicate).initialStep.map(findItem).run()
 
 
 proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
-  var found: result.typeof()
-
-  self
-    .buildComputation(
-      proc (state: S): Unit =
-        found =
-          self
-          .hasMore(state)
-          .ifElse(
-            () => self.generate(state).toSome(),
-            toNone[T]
-          )
-    ).run()
-    .ignore()
-
-  result = found
-
-
-proc findFirst* [S; T](self: FilteredStream[S, T]): Optional[T] =
-  self.findFirst().flatMap(opt => opt)
-
-
-proc findFirst* [S1; S2; T](self: FlatStream[S1, S2, T]): Optional[T] =
-  self.map(s => s.findFirst()).findFirst()
+  self.findFirst(alwaysTrue[T])
 
 
 
 when isMainModule:
-  import std/[os, sequtils, strutils, unittest]
-
-
-
-  func indexes [T](s: seq[T]): Stream[Natural, Natural] =
-    stream(() => s.low().Natural, i => i < s.len(), i => i, i => i.succ())
-
-
-  func items [T](s: seq[T]): Stream[Natural, T] =
-    s.indexes().map(i => s[i])
-
-
-  func chars (s: string): Stream[Natural, char] =
-    stream(() => s.low().Natural, i => i < s.len(), i => s[i], i => i.succ())
-
-
-  func items [T: Ordinal](slice: Slice[T]): Stream[int64, T] =
-    stream(
-      () => slice.a.int64,
-      elm => elm <= slice.b.int64,
-      elm => elm.T,
-      elm => elm + 1
-    )
-
-
-  func items [T: Ordinal](s: set[T]): FilteredStream[int64, T] =
-    items(T.low() .. T.high()).filter(it => it in s)
-
-
-
-  func pairs [T](
-    s: seq[T]
-  ): Stream[Natural, tuple[item: T; index: Natural]] =
-    s.indexes().map(i => (s[i], i))
+  import std/[os, unittest]
 
 
 
   suite currentSourcePath().splitFile().name:
-    test "stream: seq":
-      proc streamTest (source: seq[string]) =
-        let sut =
-          source
-          .pairs()
-          .filter(pair => pair.item.len() > 3)
-          .map(
-            (pair: tuple[item: string; index: Natural]) =>
-              (item: pair.item, length: pair.item.len(), index: pair.index)
-          )
-
-        sut
-          .forEach(
-            proc (
-              elm: tuple[item: string; length: Natural; index: Natural]
-            ): Unit =
-              let (item, length, index) = elm
-
-              check:
-                length > 3
-                item == source[index]
-                length == source[index].len()
-          ).ignore()
-
-
-      streamTest(@["abc", "a", "abcde", currentSourcePath()])
-
-
-
-    test "reduce: slice -> set":
-      proc reduceTest (source: Slice[char]) =
-        require:
-          source.len() > 0
-
-        let sut =
-          source
-          .items()
-          .reduce(() => {}.set[:char], (acc, item) => acc + {item})
-
-        sut
-          .items()
-          .forEach(
-            proc (it: char): Unit =
-              check:
-                it in source
-          ).ignore()
-
-
-      reduceTest('0'..'9')
-
-
-
-    test "findFirst: compile time":
-      proc findFirstTest [T](source: static[seq[T]]) =
-        require:
-          source.len() > 0
-
-        const sut = source.pairs().findFirst()
-
-        check:
-          sut.isSome()
-
-        sut
-          .get()
-          .apply(
-            proc (pair: tuple[item: T; index: Natural]): Unit =
-              check:
-                pair.index == source.low()
-                pair.item == source[source.low()]
-          ).ignore()
-
-
-      findFirstTest(@[(0, 1), (1, 0)])
-
-
-
-    test "count: filtered":
-      proc countTest (U: typedesc[SomeUnsignedInt]) =
-        let
-          source = 0 .. 100
-          validRange = 15 .. 80
-
-        require:
-          source.len() > 0
-          validRange.a in source
-          validRange.b in source
-
-        let
-          expected = validRange.len().U
-          sut = source.items().filter(i => i in validRange).count(U)
-
-        check:
-          sut == expected
-
-
-      countTest(uint)
-
-
-
-    test "count: compile time":
-      proc countTest [T](source: seq[T]; U: typedesc[SomeUnsignedInt]) =
-        let
-          expected = source.len().U
-          sut = source.items().count(U)
-
-        check:
-          sut == expected
-
-
-      countTest(@[-5, 16, 95465, 0, -3547], uint64)
-
-
-
-    test "emptyStream":
-      proc emptyStreamTest (T: typedesc) =
-        let
-          expected = 0u
-          sut = T.emptyStream().count(expected.typeof())
-
-        check:
-          sut == expected
-
-
-      emptyStreamTest((char, uint))
-
-
-
-    test "singleElementStream":
-      proc singleElementStreamTest [T](element: () -> T) =
-        let
-          expected = 1u
-          sut = singleElementStream(element).count(expected.typeof())
-
-        check:
-          sut == expected
-
-
-      singleElementStreamTest(() => 2)
-      singleElementStreamTest(() => 'a')
-      singleElementStreamTest(() => newException(RangeError, ""))
-
-
-
-    test "infiniteStream: generator, limit":
-      proc infiniteStreamTest [T; U: SomeUnsignedInt](
-        generator: () -> T;
-        expectedLimit: U
-      ) =
-        let sut = infiniteStream(generator).limit(expectedLimit).count(U)
-
-        check:
-          sut == expectedLimit
-
-
-      infiniteStreamTest(() => (5, '"'), 0.uint)
-      infiniteStreamTest(() => "abc", 13.uint)
-
-
-
-    test "infiniteStream: seed, limit":
-      proc infiniteStreamTest [T; U: SomeUnsignedInt](
-        seed: () -> T;
-        f: T -> T;
-        expectedLimit: U
-      ) =
-        let sut = infiniteStream(seed, f).limit(expectedLimit).count(U)
-
-        check:
-          sut == expectedLimit
-
-
-
-      infiniteStreamTest(() => 0u32, i => i + 1, 100.uint64)
-
-
-
-    test "takeWhile: count ASCII chars":
-      proc takeWhileTest (U: typedesc[SomeUnsignedInt]) =
-        let
-          source = "abc65abc"
-          expected = 3.U
-          sut = source.chars().takeWhile(c => c.isAlphaAscii()).count(U)
-
-        check:
-          sut == expected
-
-
-      takeWhileTest(uint64)
-
-
-
-    test "takeWhile: count ASCII spaces, compile time":
-      proc takeWhileTest [U: SomeUnsignedInt]() =
-        const
-          source = " \t\n, abc"
-          expected = 3.U
-          sut = source.chars().takeWhile(c => c.isSpaceAscii()).count(U)
-
-        check:
-          sut == expected
-
-
-      takeWhileTest[uint32]()
-
-
-
-    test "FlatStream: seq[string], count characters":
-      proc flatStreamTest (source: seq[string]; U: typedesc[SomeUnsignedInt]) =
-        let
-          expected = source.foldl(a + b.len().U, 0.U)
-          sut = source.items().flatMap(chars).count(U)
-
-        check:
-          sut == expected
-
-
-      flatStreamTest(@[], uint)
-      flatStreamTest(@["abc"], uint)
-      flatStreamTest(@["", "01 ab", "abc"], uint)
-
-
-
-    test "FlatStream: seq[string], count letters":
-      proc flatStreamTest (source: seq[string]; U: typedesc[SomeUnsignedInt]) =
-        let
-          expected =
-            source.foldl(a + b.filterIt(it.isAlphaAscii()).len().U, 0.U)
-          sut =
-            source
-            .items()
-            .flatMap(chars)
-            .filter(isAlphaAscii)
-            .map((s: FilteredStream[Natural, char]) => s.count(U))
-            .sum(U)
-
-        check:
-          sut == expected
-
-
-      flatStreamTest(@[], uint)
-      flatStreamTest(@["abc01abc, az"], uint)
-      flatStreamTest(@["", "01 ab", "abc"], uint)
+    test "test":
+      func indexes [I, T](a: array[I, T]): Stream[Natural, Natural] =
+        itself((i: Natural) => i < a.len())
+          .looped((i: Natural) => i + 1)
+          .generating(itself[Natural])
+          .startingAt(() => 0)
+
+      func items [I, T](a: array[I, T]): Stream[Natural, T] =
+        a.indexes().map(i => a[i])
+
+      let someArray = [0, 1, 3, 10]
+
+      check:
+        someArray.indexes().count(Natural) == someArray.len()
+
+      someArray.indexes().forEach(proc (i: Natural): Unit = echo(i)).ignore()
+      someArray
+        .items()
+        .filter(alwaysTrue[int])
+        .forEach(proc (i: Optional[int]): Unit = echo(i))
+        .ignore()
+
+      check:
+        singleItemStream(() => 0).count(uint) == 1u
+        singleItemStream(() => 0).limit(2u).count(uint) == 1u
+
+      check:
+        someArray
+          .indexes()
+          .onClose(() => unit())
+          .reduceIfNotEmpty((count: int, _: Natural) => count + 1, () => 0)
+          .isSome()
+
+      check:
+        someArray.items().takeWhile((i: int) => i < 5).count(uint) == 3u
+
+      check:
+        someArray.items().dropWhile((i: int) => i <= 1).count(uint) == 2u
+
+      check:
+        someArray.items().findFirst((i: int) => i == 10).isSome()
+        someArray.items().findFirst((i: int) => i > 15).isNone()
+        someArray.items().findFirst().get() == someArray[0]
