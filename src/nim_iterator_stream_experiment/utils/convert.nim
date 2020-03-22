@@ -1,9 +1,17 @@
-func `as`* [A](a: A; B: typedesc): B =
+func convert* [A](a: A; B: typedesc): B =
   a.B
 
 
+func convert* [A; B](a: A): B =
+  a.convert(B)
+
+
+func `as`* [A](a: A; B: typedesc): B =
+  a.convert(B)
+
+
 func `as`* [A; B](a: A): B =
-  a as B
+  a.convert(B)
 
 
 
