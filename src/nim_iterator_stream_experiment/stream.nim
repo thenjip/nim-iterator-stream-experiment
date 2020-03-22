@@ -205,21 +205,20 @@ func skip* [S; T; N: SomeUnsignedInt](self: Stream[S, T]; n: N): Stream[S, T] =
       )
 
   func buildResult [N; X: self.typeof()](self: X; n: N; S: typedesc): X =
-    self
-      .focusOn(X.initialStep())
-      .modify(
-        (initialStep: IO[S]) =>
-          initialStep.map(
-            (step: S) =>
-              self
-                .focusOn(X.loop().chain(Loop[S, T].loopedCondition()))
-                .read()
-                .buildSkipLoop(n, SkipStep[S, N])
-                .asReader(doNothing)
-                .map(SkipStep[S, N].step().read())
-                .run(step.skipStep(0.N))
-          )
-      )
+    let skipSteps =
+      (initialStep: self.initialStep.typeof()) =>
+        initialStep.map(
+          (step: S) =>
+            self
+              .focusOn(X.loop().chain(Loop[S, T].loopedCondition()))
+              .read()
+              .buildSkipLoop(n, SkipStep[S, N])
+              .asReader(doNothing)
+              .map(SkipStep[S, N].step().read())
+              .run(step.skipStep(0.N))
+        )
+
+    self.focusOn(X.initialStep()).modify(skipSteps)
 
   self.buildResult(n, S)
 
@@ -331,6 +330,7 @@ proc forEach* [S; T](self: Stream[S, T]; action: T -> Unit): Unit =
   self.map(action).reduce((u: Unit, _: Unit) => u, () => unit())
 
 
+
 proc sum* [S; N](self: Stream[S, N]): N =
   self.reduce((sum: N, item: N) => convert(sum + item, N), () => 0.N)
 
@@ -360,6 +360,19 @@ proc findFirst* [S; T](
 
 proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
   self.findFirst(alwaysTrue[T])
+
+
+
+proc any* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
+  self.findFirst(predicate).isSome()
+
+
+proc all* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
+  not self.any(not predicate)
+
+
+proc none* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
+  self.all(not predicate)
 
 
 
@@ -413,3 +426,8 @@ when isMainModule:
         someArray.items().findFirst((i: int) => i > 15).isNone()
         someArray.items().findFirst().get() == someArray[0]
         someArray.items().skip(2u).findFirst().get() == someArray[2]
+
+      check:
+        someArray.items().any((i: int) => i > 0)
+        someArray.items().all((i: int) => i >= 0)
+        someArray.items().none((i: int) => i < 0)
