@@ -15,10 +15,18 @@ func default* [T: Unit](): Unit =
 
 
 
+func doNothing* [T](_: T): Unit =
+  unit()
+
+
+
 when isMainModule:
   import std/[os, unittest]
 
 
 
   suite currentSourcePath().splitFile().name:
-    discard
+    test "Unit.default() == unit()":
+      check:
+        Unit.default() == unit()
+        default[Unit]() == unit()
