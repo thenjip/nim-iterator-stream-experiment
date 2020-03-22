@@ -187,8 +187,42 @@ func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
 
 
 func skip* [S; T; N: SomeUnsignedInt](self: Stream[S, T]; n: N): Stream[S, T] =
-  # TODO
-  discard
+  func buildSkipLoop [S; N; L: LoopedCondition[S]](
+    selfLoop: L;
+    n: N;
+    SK: typedesc[SkipStep[S, N]]
+  ): LoopedCondition[SK] =
+    selfLoop
+      .wrapSteps(
+        SK.step().read(),
+        stepper => SK.step().modify(stepper).map(SK.count().modify(i => i + 1))
+      ).focusOn(result.typeof().condition())
+      .modify(
+        (hasMore: Condition[SK]) =>
+          hasMore.`and`(
+            SK.count().read().map(count => count < n) as hasMore.typeof()
+          )
+      )
+
+  func buildResult [N; X: self.typeof()](self: X; n: N; S: typedesc): X =
+    self
+      .focusOn(X.initialStep())
+      .modify(
+        (initialStep: IO[S]) =>
+          initialStep.map(
+            (step: S) =>
+              self
+                .focusOn(X.loop().chain(Loop[S, T].loopedCondition()))
+                .read()
+                .buildSkipLoop(n, SkipStep[S, N])
+                .asReader(doNothing)
+                .map(SkipStep[S, N].step().read())
+                .run(step.skipStep(0.N))
+          )
+      )
+
+  self.buildResult(n, S)
+
 
 
 func takeWhile* [S; T](
@@ -212,10 +246,9 @@ func takeWhile* [S; T](
       .wrapSteps(
         TW.step().read(),
         stepper =>
-          TW
-            .step()
-            .modify(stepper)
-            .map(TW.step().read().map(generateTakeWhileStep))
+          TW.step().modify(stepper).map(
+            TW.step().read().map(generateTakeWhileStep)
+          )
         ,
         generateTakeWhileStep
       ).focusOn(result.typeof().condition())
@@ -379,3 +412,4 @@ when isMainModule:
         someArray.items().findFirst((i: int) => i == 10).isSome()
         someArray.items().findFirst((i: int) => i > 15).isNone()
         someArray.items().findFirst().get() == someArray[0]
+        someArray.items().skip(2u).findFirst().get() == someArray[2]
