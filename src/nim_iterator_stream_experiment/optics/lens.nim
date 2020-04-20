@@ -15,13 +15,13 @@ when isMainModule:
   import lens_test_common
   import ../monad/[io, reader]
 
-  import std/[os, strutils, unittest]
+  import std/[os, strutils, sugar, unittest]
 
 
 
   suite currentSourcePath().splitFile().name:
-    test "read: 'Street' name":
-      proc readTest (nameLens: Lens[Street, string]; street: Street) =
+    test """Reading a "Street"'s name through a lens should return its actual name.""":
+      proc doTest (nameLens: Lens[Street, string]; street: Street) =
         let
           expected = street.readName()
           sut = nameLens.read().run(street)
@@ -30,18 +30,18 @@ when isMainModule:
           sut == expected
 
 
-      readTest(Street.focusOnName(), street("aaBc01a", 1))
+      doTest(name(Street), street("aaBc01a", 1))
 
 
-    test "modify: 'Street' name":
+    test """Modifying a "Street"'s name through a lens should return a "Street" with the modified name and same number.""":
       func modifyName (name: string): string =
         name.toUpperAscii()
 
 
-      proc modifyTest (
+      proc doTest (
         nameLens: Lens[Street, string];
         street: Street;
-        modifier: Reader[string, string]
+        modifier: string -> string
       ) =
         let
           expected = street(street.readName().modifyName(), street.readNumber())
@@ -51,12 +51,12 @@ when isMainModule:
           sut == expected
 
 
-      modifyTest(Street.focusOnName(), street("aaBc01a", 15), modifyName)
+      doTest(name(Street), street("aaBc01a", 15), modifyName)
 
 
 
-    test "write: 'Street' name":
-      proc writeTest (
+    test """Writing a "Street"'s name through a lens should return a "Street" with the new name and same number.""":
+      proc doTest (
         nameLens: Lens[Street, string];
         street: Street;
         newName: string
@@ -72,4 +72,4 @@ when isMainModule:
           sut == expected
 
 
-      writeTest(Street.focusOnName(), street("abc", 0), "bca")
+      doTest(name(Street), street("abc", 0), "bca")
