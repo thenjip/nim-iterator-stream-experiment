@@ -26,7 +26,4 @@ func readNumber* (self: Street): Natural =
 
 
 func name* (X: typedesc[Street]): Lens[X, string] =
-  lens(
-    readName,
-    (self: X, name: self.name.typeof()) => name.street(self.number)
-  )
+  lens(readName, (self: X, name: X.name) => name.street(self.number))
