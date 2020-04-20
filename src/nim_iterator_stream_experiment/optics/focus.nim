@@ -20,16 +20,37 @@ func focusOn* [SR; R; W; SW](
 
 
 
-func read* [SR; R; W; SW](self: Focus[SR, R, W, SW]): R =
+proc read* [SR; R; W; SW](self: Focus[SR, R, W, SW]): R =
   self.lens.read().run(self.state)
 
 
-func write* [SR; R; W; SW](self: Focus[SR, R, W, SW]; value: W): SW =
+proc write* [SR; R; W; SW](self: Focus[SR, R, W, SW]; value: W): SW =
   self.lens.write(() => value).run(self.state)
 
 
-func modify* [SR; R; W; SW](self: Focus[SR, R, W, SW]; f: R -> W): SW =
+proc modify* [SR; R; W; SW](self: Focus[SR, R, W, SW]; f: R -> W): SW =
   self.lens.modify(f).run(self.state)
+
+
+
+proc read* [SR; R; W; SW](state: SR; lens: PLens[SR, R, W, SW]): R =
+  state.focusOn(lens).read()
+
+
+proc write* [SR; R; W; SW](
+  state: SR;
+  lens: PLens[SR, R, W, SW];
+  value: W
+): SW =
+  state.focusOn(lens).write(value)
+
+
+proc modify* [SR; R; W; SW](
+  state: SR;
+  lens: PLens[SR, R, W, SW];
+  f: R -> W
+): SW =
+  state.focusOn(lens).modify(f)
 
 
 
