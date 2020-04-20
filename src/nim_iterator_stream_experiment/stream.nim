@@ -1,30 +1,30 @@
 import loop
-import loop/[loopedcondition, loopsteps]
-import monad/[identity, io, optional, reader]
+import loop/[loopscope, loopsteps]
+import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
 import stream/[streamsteps]
-import utils/[convert, ignore, ifelse, predicate, unit, variables]
+import utils/[convert, ignore, ifelse, unit, variables]
 
 import std/[sugar]
 
 
 
 type
-  OnCloseCallBack* [T] = Reader[T, Unit]
+  OnCloseEvent* [T] = Reader[T, Unit]
 
   Stream* [S; T] = object
     initialStep: IO[S]
     loop: Loop[S, T]
-    closure: OnCloseCallBack[S]
+    onCloseEvent: OnCloseEvent[S]
 
 
 
 func startingAt* [S; T](
   loop: Loop[S, T];
   initialStep: IO[S];
-  closure: OnCloseCallBack[S]
+  onCloseEvent: OnCloseEvent[S]
 ): Stream[S, T] =
-  Stream[S, T](initialStep: initialStep, loop: loop, closure: closure)
+  Stream[S, T](initialStep: initialStep, loop: loop, onCloseEvent: onCloseEvent)
 
 
 func startingAt* [S; T](loop: Loop[S, T]; initialStep: IO[S]): Stream[S, T] =
@@ -36,7 +36,7 @@ func initialStep* [S; T](X: typedesc[Stream[S, T]]): Lens[X, IO[S]] =
   lens(
     (self: X) => self.initialStep,
     (self: X, initialStep: IO[S]) =>
-      self.loop.startingAt(initialStep, self.closure)
+      self.loop.startingAt(initialStep, self.onCloseEvent)
   )
 
 
@@ -47,7 +47,7 @@ func loop* [S; A](
   lens(
     (self: X) => self.loop,
     (self: X, loop: Loop[S, B]) =>
-      loop.startingAt(self.initialStep, self.closure)
+      loop.startingAt(self.initialStep, self.onCloseEvent)
   )
 
 
@@ -55,11 +55,11 @@ func loop* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Loop[S, T]] =
   X.loop(T)
 
 
-func closure* [S; T](X: typedesc[Stream[S, T]]): Lens[X, OnCloseCallBack[S]] =
+func onCloseEvent* [S; T](X: typedesc[Stream[S, T]]): Lens[X, OnCloseEvent[S]] =
   lens(
-    (self: X) => self.closure,
-    (self: X, closure: OnCloseCallBack[S]) =>
-      self.loop.startingAt(self.initialStep, self.closure)
+    (self: X) => self.onCloseEvent,
+    (self: X, event: OnCloseEvent[S]) =>
+      self.loop.startingAt(self.initialStep, event)
   )
 
 
@@ -84,43 +84,43 @@ func stepper* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]] =
 
 
 proc hasMore [S; T](self: Stream[S, T]; step: S): bool =
-  self.focusOn(self.typeof().condition()).read().test(step)
+  self.read(self.typeof().condition()).test(step)
 
 
 proc generate [S; T](self: Stream[S, T]; step: S): T =
-  self.focusOn(self.typeof().generator()).read().run(step)
+  self.read(self.typeof().generator()).run(step)
 
 
 proc nextStep [S; T](self: Stream[S, T]; step: S): S =
-  self.focusOn(self.typeof().stepper()).read().advance(step)
+  self.read(self.typeof().stepper()).run(step)
 
 
 proc run* [S](self: Stream[S, Unit]): Unit =
-  self.loop.run(self.initialStep.run()).apply(self.closure)
+  self.loop.run(self.initialStep).apply(self.onCloseEvent)
 
 
 
-func wrapSteps* [SA; SB; T](
+proc mapSteps* [SA; SB; T](
   self: Stream[SA, T];
   extractor: SB -> SA;
-  stepperBuilder: Stepper[SA] -> Stepper[SB];
-  initialStepWrapper: SA -> SB
+  stepperMapper: Stepper[SA] -> Stepper[SB];
+  initialStepMapper: SA -> SB
 ): Stream[SB, T] =
-  func buildResult (
+  proc buildResult (
     self: self.typeof();
     extractor: extractor.typeof();
-    stepperBuilder: stepperBuilder.typeof();
-    initialStepWrapper: initialStepWrapper.typeof()
+    stepperMapper: stepperMapper.typeof();
+    initialStepMapper: initialStepMapper.typeof()
   ): result.typeof() =
     self
       .loop
-      .wrapSteps(extractor, stepperBuilder)
+      .mapSteps(extractor, stepperMapper)
       .startingAt(
-        self.initialStep.map(initialStepWrapper),
-        extractor.map(self.closure)
+        self.initialStep.map(initialStepMapper),
+        extractor.map(self.onCloseEvent)
       )
 
-  self.buildResult(extractor, stepperBuilder, initialStepWrapper)
+  self.buildResult(extractor, stepperMapper, initialStepMapper)
 
 
 
@@ -136,7 +136,6 @@ func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
     S
       .isConsumed()
       .read()
-      .convert(Condition[S])
       .looped(alwaysFalse[S].map(singleStep))
       .generating((_: S) => item())
       .startingAt(() => true.singleStep())
@@ -146,14 +145,15 @@ func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
 
 
 func onClose* [S; T](self: Stream[S, T]; callBack: () -> Unit): Stream[S, T] =
-  self
-    .focusOn(self.typeof().closure())
-    .modify(closure => closure.map(_ => callBack.run()))
+  self.modify(
+    self.typeof().onCloseEvent(),
+    event => event.map(_ => callBack.run())
+  )
 
 
 
 func map* [S; A; B](self: Stream[S, A]; f: A -> B): Stream[S, B] =
-  self.focusOn(self.typeof().generator(B)).modify(gen => gen.map(f))
+  self.modify(self.typeof().generator(B), gen => gen.map(f))
 
 
 func filter* [S; T](
@@ -170,38 +170,32 @@ func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
     L: typedesc[LimitStep[S, N]]
   ): result.typeof() =
     self
-      .wrapSteps(
+      .mapSteps(
         L.step().read(),
-        stepper =>
-          L.step().modify(stepper).map(L.count().modify(count => count + 1.N))
-        ,
+        stepper => L.step().modify(stepper).map(L.count().modify(i => i + 1.N)),
         step => step.limitStep(0.N)
-      ).focusOn(result.typeof().condition())
-      .modify(
-        (hasMore: Condition[L]) =>
-          hasMore
-            .`and`(L.count().read().map(count => count < n) as hasMore.typeof())
+      ).modify(
+        result.typeof().condition(),
+        hasMore => hasMore and L.count().read().map(count => count < n)
       )
 
   self.buildResult(n, LimitStep[S, N])
 
 
 func skip* [S; T; N: SomeUnsignedInt](self: Stream[S, T]; n: N): Stream[S, T] =
-  func buildSkipLoop [S; N; L: LoopedCondition[S]](
-    selfLoop: L;
+  func buildSkipLoopScope [S; N; L: LoopScope[S]](
+    selfLoopScope: L;
     n: N;
     SK: typedesc[SkipStep[S, N]]
-  ): LoopedCondition[SK] =
-    selfLoop
-      .wrapSteps(
+  ): LoopScope[SK] =
+    selfLoopScope
+      .mapSteps(
         SK.step().read(),
-        stepper => SK.step().modify(stepper).map(SK.count().modify(i => i + 1))
-      ).focusOn(result.typeof().condition())
-      .modify(
-        (hasMore: Condition[SK]) =>
-          hasMore.`and`(
-            SK.count().read().map(count => count < n) as hasMore.typeof()
-          )
+        (stepper: Stepper[S]) =>
+          SK.step().modify(stepper).map(SK.count().modify(i => i + 1.N))
+      ).modify(
+        result.typeof().condition(),
+        hasMore => hasMore and SK.count().read().map(count => count < n)
       )
 
   func buildResult [N; X: self.typeof()](self: X; n: N; S: typedesc): X =
@@ -210,15 +204,14 @@ func skip* [S; T; N: SomeUnsignedInt](self: Stream[S, T]; n: N): Stream[S, T] =
         initialStep.map(
           (step: S) =>
             self
-              .focusOn(X.loop().chain(Loop[S, T].loopedCondition()))
-              .read()
-              .buildSkipLoop(n, SkipStep[S, N])
+              .read(X.loop().chain(Loop[S, T].loopScope()))
+              .buildSkipLoopScope(n, SkipStep[S, N])
               .asReader(doNothing)
               .map(SkipStep[S, N].step().read())
-              .run(step.skipStep(0.N))
+              .run(skipStep(step, 0.N))
         )
 
-    self.focusOn(X.initialStep()).modify(skipSteps)
+    self.modify(X.initialStep(), skipSteps)
 
   self.buildResult(n, S)
 
@@ -226,34 +219,24 @@ func skip* [S; T; N: SomeUnsignedInt](self: Stream[S, T]; n: N): Stream[S, T] =
 
 func takeWhile* [S; T](
   self: Stream[S, T];
-  condition: Predicate[T]
+  predicate: Predicate[T]
 ): Stream[TakeWhileStep[S, T], T] =
-  let generateTakeWhileStep =
+  let generateWrappedStep =
     (step: S) =>
       step.takeWhileStep(
         self.hasMore(step).ifElse(
-          () => self.generate(step).toSome().filter(condition),
+          () => self.generate(step).toSome().filter(predicate),
           toNone[T]
         )
       )
 
-  func buildResult [S; T; X: self.typeof()](
-    self: X;
-    TW: typedesc[TakeWhileStep[S, T]]
-  ): Stream[TW, T] =
-    self
-      .wrapSteps(
-        TW.step().read(),
-        stepper =>
-          TW.step().modify(stepper).map(
-            TW.step().read().map(generateTakeWhileStep)
-          )
-        ,
-        generateTakeWhileStep
-      ).focusOn(result.typeof().condition())
-      .write(TW.item().read().map(isSome).convert(Condition[TW]))
-
-  self.buildResult(TakeWhileStep[S, T])
+  self
+    .loop
+    .takeWhile(predicate)
+    .startingAt(
+      self.initialStep.map(generateWrappedStep),
+      TakeWhileStep[S, T].step().read().map(self.onCloseEvent)
+    )
 
 
 
@@ -261,14 +244,14 @@ func dropWhile* [S; T](
   self: Stream[S, T];
   condition: Predicate[T]
 ): Stream[S, T] =
-  func buildDropLoop [S; T; L: LoopedCondition[S]](
-    selfLoop: L;
+  func buildDropLoopScope [S; T; L: LoopScope[S]](
+    selfLoopScope: L;
     generator: Generator[S, T];
     condition: condition.typeof()
   ): L =
-    selfLoop.focusOn(L.condition()).modify(
-      (hasMore: Condition[S]) =>
-        hasMore.`and`(generator.map(condition) as hasMore.typeof())
+    selfLoopScope.modify(
+      L.condition(),
+      hasMore => hasMore and generator.map(condition)
     )
 
   func buildResult [X: self.typeof()](
@@ -276,13 +259,13 @@ func dropWhile* [S; T](
     condition: condition.typeof();
     S: typedesc
   ): X =
-    self.focusOn(X.initialStep()).modify(
-      (initialStep: IO[S]) =>
+    self.modify(
+      X.initialStep(),
+      (initialStep: self.initialStep.typeof()) =>
         initialStep.map(
           self
-            .focusOn(X.loop().chain(Loop[S, T].loopedCondition()))
-            .read()
-            .buildDropLoop(self.focusOn(X.generator()).read(), condition)
+            .read(X.loop().chain(Loop[S, T].loopScope()))
+            .buildDropLoopScope(self.read(X.generator()), condition)
             .asReader()
         )
     )
@@ -312,8 +295,7 @@ proc reduceIfNotEmpty* [S; T; R](
   let reduceOnNextStep =
     (step: S) =>
       self
-        .focusOn(self.typeof().initialStep())
-        .write(() => self.nextStep(step))
+        .write(self.typeof().initialStep(), () => self.nextStep(step))
         .reduce(reducer, initialResult.map(r => r.reducer(self.generate(step))))
 
   self
@@ -353,7 +335,7 @@ proc findFirst* [S; T](
       self
         .hasMore(step)
         .ifElse(() => self.generate(step).toSome(), toNone)
-        .apply(found => self.closure.map(_ => found).run(step))
+        .apply(found => self.onCloseEvent.map(_ => found).run(step))
 
   self.dropWhile(not predicate).initialStep.map(findItem).run()
 
@@ -384,8 +366,7 @@ when isMainModule:
   suite currentSourcePath().splitFile().name:
     test "test":
       func indexes [I, T](a: array[I, T]): Stream[Natural, Natural] =
-        itself((i: Natural) => i < a.len())
-          .looped((i: Natural) => i + 1)
+        looped((i: Natural) => i < a.len(), i => i + 1)
           .generating(itself[Natural])
           .startingAt(() => 0)
 
