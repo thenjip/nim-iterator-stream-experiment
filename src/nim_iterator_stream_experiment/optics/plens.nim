@@ -48,7 +48,7 @@ func chain* [SR; R1; W1; SW; R2; W2](
   lens(
     self.read().map(other.read()),
     (state: SR, value: W2) =>
-      self.modify((r1: R1) => other.write(() => value).run(r1)).run(state)
+      self.modify(other.write(() => value)).run(state)
   )
 
 
