@@ -1,5 +1,7 @@
 import lens
 
+import std/[sugar]
+
 
 
 type
@@ -8,26 +10,23 @@ type
     number: Natural
 
 
+
 func street* (name: string; number: Natural): Street =
   Street(name: name, number: number)
 
 
-func readName* (street: Street): string =
-  street.name
+
+func readName* (self: Street): string =
+  self.name
 
 
-func writeName* (street: Street; name: string): Street =
-  street(name, street.number)
-
-
-func readNumber* (street: Street): Natural =
-  street.number
+func readNumber* (self: Street): Natural =
+  self.number
 
 
 
-func focusOnName* (T: typedesc[Street]): Lens[T, string] =
-  lens(readName, writeName)
-
-
-func focusOnName* [T: Street](): Lens[T, string] =
-  T.name()
+func name* (X: typedesc[Street]): Lens[X, string] =
+  lens(
+    readName,
+    (self: X, name: self.name.typeof()) => name.street(self.number)
+  )

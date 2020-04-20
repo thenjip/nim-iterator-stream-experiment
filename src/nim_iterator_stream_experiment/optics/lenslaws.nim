@@ -1,34 +1,101 @@
 import lens
-import ../monad/[io, reader]
+import ../monad/[reader]
 
-import std/[sugar]
+import std/[macros, sugar]
 
 
 
-template checkIdentityLaw* [S; T](lens: Lens[S, T]; expected: S): bool =
-  lens.read().flatMap((t: T) => lens.write(t.toIO())).run(expected) == expected
+type
+  IdentityLawSpec* [S] = tuple
+    expected: S
+
+  RetentionLawSpec* [S; T] = tuple
+    state: S
+    expected: T
+
+  DoubleWriteLawSpec* [S; T] = tuple
+    state: S
+    first: T
+    second: T
+
+  LensLawsSpec* [S; T] = tuple
+    identity: IdentityLawSpec[S]
+    retention: RetentionLawSpec[S, T]
+    doubleWrite: DoubleWriteLawSpec[S, T]
+
+
+
+template checkIdentityLaw* [S; T](
+  lens: Lens[S, T];
+  spec: IdentityLawSpec[S]
+): bool =
+  lens
+    .read()
+    .flatMap((t: T) => lens.write(() => t))
+    .run(spec.expected)
+    .`==`(spec.expected)
 
 
 template checkRetentionLaw* [S; T](
   lens: Lens[S, T];
-  state: S;
-  expected: T
-): bool =
-  lens.write(expected.toIO()).map(lens.read()).run(state) == expected
-
-
-template checkDoubleSetLaw* [S; T](
-  lens: Lens[S, T];
-  state: S;
-  firstValue: T;
-  secondValue: T
+  spec: RetentionLawSpec[S, T]
 ): bool =
   lens
-    .write(firstValue.toIO())
-    .map(lens.write(secondValue.toIO()))
+    .write(() => spec.expected)
     .map(lens.read())
-    .run(state)
-    .`==`(secondValue)
+    .run(spec.state)
+    .`==`(spec.expected)
+
+
+template checkDoubleWriteLaw* [S; T](
+  lens: Lens[S, T];
+  spec: DoubleWriteLawSpec[S, T]
+): bool =
+  lens
+    .write(() => spec.first)
+    .map(lens.write(() => spec.second))
+    .run(spec.state)
+    .`==`(lens.write(() => spec.second).run(spec.state))
+
+
+
+template checkLensLaws* [S; T](
+  lens: Lens[S, T];
+  spec: LensLawsSpec[S, T]
+): bool =
+  `==`(
+    (
+      identity: lens.checkIdentityLaw(spec.identity),
+      retention: lens.checkRetentionLaw(spec.retention),
+      doubleWrite: lens.checkDoubleWriteLaw(spec.doubleWrite)
+    ),
+    (identity: true, retention: true, doubleWrite: true)
+  )
+
+
+
+func identityLawSpec* [S](expected: S): IdentityLawSpec[S] =
+  (expected: expected)
+
+
+func retentionLawSpec* [S; T](state: S; expected: T): RetentionLawSpec[S, T] =
+  (state: state, expected: expected)
+
+
+func doubleWriteLawSpec* [S; T](
+  state: S;
+  first: T;
+  second: T
+): DoubleWriteLawSpec[S, T] =
+  (state: state, first: first, second: second)
+
+
+func lensLawsSpec* [S; T](
+  identity: IdentityLawSpec[S];
+  retention: RetentionLawSpec[S, T];
+  doubleWrite: DoubleWriteLawSpec[S, T]
+): LensLawsSpec[S, T] =
+  (identity: identity, retention: retention, doubleWrite: doubleWrite)
 
 
 
@@ -40,47 +107,54 @@ when isMainModule:
 
 
   suite currentSourcePath().splitFile().name:
-    test "checkIdentityLaw":
-      proc checkIdentityLawTest [S; T](lens: Lens[S, T]; expected: S) =
+    let testedLens = name(Street)
+
+
+
+    test """Using "checkIdentityLaw" in a unit test's "check" section should compile.""":
+      proc doTest [S; T](lens: Lens[S, T]; spec: IdentityLawSpec[S]) =
         check:
-          lens.checkIdentityLaw(expected)
+          lens.checkIdentityLaw(spec)
 
 
-      checkIdentityLawTest(Street.focusOnName(), street("abc", 751))
+      doTest(testedLens, identityLawSpec(street("abc", 751)))
 
 
 
-    test "checkRetentionLaw":
-      proc checkRetentionLawTest [S; T](
-        lens: Lens[S, T];
-        state: S;
-        expected: T
-      ) =
+    test """Using "checkRetentionLaw" in a unit test's "check" section should compile.""":
+      proc doTest [S; T](lens: Lens[S, T]; spec: RetentionLawSpec[S, T]) =
         check:
-          lens.checkRetentionLaw(state, expected)
+          lens.checkRetentionLaw(spec)
 
 
-      checkRetentionLawTest(Street.focusOnName(), street("2qfze26q", 9), "abc")
+      doTest(testedLens, retentionLawSpec(street("2qfze26q", 9), "abc"))
 
 
 
-    test "checkDoubleSetLaw":
-      proc checkDoubleSetLawTest [S; T](
-        lens: Lens[S, T];
-        state: S;
-        firstValue: T;
-        secondValue: T
-      ) =
-        require:
-          firstValue != secondValue
-
+    test """Using "checkDoubleWriteLaw" in a unit test's "check" section should compile.""":
+      proc doTest [S; T](lens: Lens[S, T]; spec: DoubleWriteLawSpec[S, T]) =
         check:
-          lens.checkDoubleSetLaw(state, firstValue, secondValue)
+          lens.checkDoubleWriteLaw(spec)
 
 
-      checkDoubleSetLawTest(
-        Street.focusOnName(),
-        street("abc", 13845),
-        "ABC",
-        "0123"
+      doTest(
+        testedLens,
+        doubleWriteLawSpec(street("abc", 13845), "ABC", "0123")
+      )
+
+
+
+    test """Using "checkLensLaws" in a unit test's "check" section should compile.""":
+      proc doTest [S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]) =
+        check:
+          lens.checkLensLaws(spec)
+
+
+      doTest(
+        testedLens,
+        lensLawsSpec(
+          identityLawSpec(street("t", 5)),
+          retentionLawSpec(street("A0", 79), "street"),
+          doubleWriteLawSpec(street("ac", 18996), "a", "b")
+        )
       )
