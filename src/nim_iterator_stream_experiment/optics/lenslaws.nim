@@ -25,6 +25,32 @@ type
 
 
 
+
+func identityLawSpec* [S](expected: S): IdentityLawSpec[S] =
+  (expected: expected)
+
+
+func retentionLawSpec* [S; T](state: S; expected: T): RetentionLawSpec[S, T] =
+  (state: state, expected: expected)
+
+
+func doubleWriteLawSpec* [S; T](
+  state: S;
+  first: T;
+  second: T
+): DoubleWriteLawSpec[S, T] =
+  (state: state, first: first, second: second)
+
+
+func lensLawsSpec* [S; T](
+  identity: IdentityLawSpec[S];
+  retention: RetentionLawSpec[S, T];
+  doubleWrite: DoubleWriteLawSpec[S, T]
+): LensLawsSpec[S, T] =
+  (identity: identity, retention: retention, doubleWrite: doubleWrite)
+
+
+
 template checkIdentityLaw* [S; T](
   lens: Lens[S, T];
   spec: IdentityLawSpec[S]
@@ -71,31 +97,6 @@ template checkLensLaws* [S; T](
     ),
     (identity: true, retention: true, doubleWrite: true)
   )
-
-
-
-func identityLawSpec* [S](expected: S): IdentityLawSpec[S] =
-  (expected: expected)
-
-
-func retentionLawSpec* [S; T](state: S; expected: T): RetentionLawSpec[S, T] =
-  (state: state, expected: expected)
-
-
-func doubleWriteLawSpec* [S; T](
-  state: S;
-  first: T;
-  second: T
-): DoubleWriteLawSpec[S, T] =
-  (state: state, first: first, second: second)
-
-
-func lensLawsSpec* [S; T](
-  identity: IdentityLawSpec[S];
-  retention: RetentionLawSpec[S, T];
-  doubleWrite: DoubleWriteLawSpec[S, T]
-): LensLawsSpec[S, T] =
-  (identity: identity, retention: retention, doubleWrite: doubleWrite)
 
 
 
