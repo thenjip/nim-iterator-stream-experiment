@@ -17,15 +17,4 @@ when isMainModule:
 
 
   suite currentSourcePath().splitFile().name:
-    test "itself: various types":
-      proc itselfTest [T](expected: T) =
-        let sut = expected.itself()
-
-        check:
-          sut == expected
-
-
-      itselfTest(outOfMemHook.unsafeAddr())
-      itselfTest(("a", 0, 0.0))
-      itselfTest(new IOError)
-      itselfTest('a')
+    discard
