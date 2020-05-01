@@ -25,12 +25,12 @@ proc run* [T](self: IO[T]): T =
 
 
 
-func flatMap* [A; B](self: IO[A]; f: A -> IO[B]): IO[B] =
-  self.chain(f).chain(run)
-
-
 func map* [A; B](self: IO[A]; f: A -> B): IO[B] =
-  self.flatMap((a: A) => (() => a.f()))
+  self.chain(f)
+
+
+func flatMap* [A; B](self: IO[A]; f: A -> IO[B]): IO[B] =
+  self.map(f).chain(run)
 
 
 
@@ -44,13 +44,51 @@ func bracket* [A; B](
 
 
 when isMainModule:
+  import lazymonadlaws
+
   import std/[os, unittest]
 
 
 
+  func lift [T](value: T): IO[T] =
+    value.toIO()
+
+
+  proc run [T](self: IO[T]; _: Unit): T =
+    self.run()
+
+
+
+  static:
+    doAssert(IO[char] is LazyMonad[char, Unit])
+
+
+
   suite currentSourcePath().splitFile().name:
+    test """"IO[T]" should obey the monad laws.""":
+      proc doTest [LT; LM; RT; AA; AB; AMA; AMB](
+        spec: MonadLawsSpec[LT, LM, Unit, RT, Unit, AA, AB, AMA, AMB, Unit]
+      ) =
+        check:
+          spec.checkMonadLaws()
+
+      doTest(
+        monadLawsSpec(
+          leftIdentitySpec(-5, i => toIO(-i), unit()),
+          rightIdentitySpec(() => newStringOfCap(10), unit()),
+          associativitySpec(
+            ('a', true),
+            t => (t[0], not t[1]).toIO(),
+            (t: (char, bool)) => t[0].`$`().len().toIO(),
+            unit()
+          )
+        )
+      )
+
+
+
     test "bracket: compute the string's length with final action":
-      proc bracketTest () =
+      proc doTest () =
         var afterExecuted = false
         let
           initial = "abc"
@@ -70,4 +108,4 @@ when isMainModule:
           afterExecuted
 
 
-      bracketTest()
+      doTest()
