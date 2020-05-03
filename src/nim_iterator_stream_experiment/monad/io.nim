@@ -45,8 +45,9 @@ func bracket* [A; B](
 
 when isMainModule:
   import lazymonadlaws
+  import ../utils/[proctypes]
 
-  import std/[os, unittest]
+  import std/[os, sequtils, unittest]
 
 
 
@@ -72,6 +73,7 @@ when isMainModule:
         check:
           spec.checkMonadLaws()
 
+
       doTest(
         monadLawsSpec(
           leftIdentitySpec(-5, i => toIO(-i), unit()),
@@ -84,6 +86,36 @@ when isMainModule:
           )
         )
       )
+
+    test """"IO[T]" without side effects should be compatible with compile time execution.""":
+      template doTest [T](
+        sut: static[proc (): IO[T] {.nimcall, noSideEffect.}];
+        expected: static T
+      ) =
+        const actual = sut().run()
+
+        check:
+          actual == expected
+
+
+      func expected1 (): int =
+        1
+
+      func sut1 (): IO[expected1.returnType()] =
+        expected1
+
+
+      func expected2 (): int =
+        toSeq(1 .. 10).foldl(a + b, 0)
+
+      func sut2 (): IO[expected2.returnType()] =
+        itself(() => 1 .. 10)
+          .map(slice => toSeq(slice.items()))
+          .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
+
+
+      doTest(sut1, expected1())
+      doTest(sut2, expected2())
 
 
 
