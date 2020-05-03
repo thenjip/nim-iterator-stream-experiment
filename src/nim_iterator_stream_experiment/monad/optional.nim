@@ -24,12 +24,13 @@ func toNone* (T: typedesc[SomePointer]): Optional[T] =
   Optional[T](value: nil)
 
 
-func toNone* (T: typedesc): Optional[T] =
+func toNone* (T: typedesc[not SomePointer]): Optional[T] =
   Optional[T](empty: true)
 
 
 func toNone* [T](): Optional[T] =
   T.toNone()
+
 
 
 func toSome* [T: SomePointer](value: T): Optional[T] =
@@ -51,6 +52,7 @@ func isNone* [T: not SomePointer](self: Optional[T]): bool =
   self.empty
 
 
+
 func isSome* [T](self: Optional[T]): bool =
   not self.isNone()
 
@@ -64,6 +66,7 @@ proc ifSome* [A; B](self: Optional[A]; then: A -> B; `else`: () -> B): B =
   self.isSome().ifElse(() => self.value.then(), `else`)
 
 
+
 proc flatMap* [A; B](self: Optional[A]; f: A -> Optional[B]): Optional[B] =
   self.ifSome(f, toNone[B])
 
@@ -72,8 +75,10 @@ proc map* [A; B](self: Optional[A]; f: A -> B): Optional[B] =
   self.flatMap(f.chain(toSome))
 
 
+
 func get* [T](self: Optional[T]): T {.raises: [Exception, ValueError].} =
   self.ifSome(itself, proc (): T = raise ValueError.newException(""))
+
 
 
 proc filter* [T](self: Optional[T]; predicate: T -> bool): Optional[T] =
@@ -101,7 +106,7 @@ when isMainModule:
 
 
 
-  template lazyCheck (checks: untyped): proc (): Unit =
+  template lazyCheck (checks: untyped): () -> Unit =
     (
       proc (): Unit =
         check:
@@ -181,11 +186,11 @@ when isMainModule:
 
         let sut =
           initialVal
-          .toSome()
-          .ifSome(
-            a => lazyCheck(a == initialVal).chain(_ => expected).run(),
-            () => unexpected
-          )
+            .toSome()
+            .ifSome(
+              a => lazyCheck(a == initialVal).chain(_ => expected).run(),
+              () => unexpected
+            )
 
         check:
           sut == expected
