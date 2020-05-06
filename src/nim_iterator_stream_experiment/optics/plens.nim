@@ -1,3 +1,19 @@
+##[
+  Polymorphic lenses from functional programming.
+
+  A lens lets one focus on a subpart of a whole (typically a data structure),
+  and manipulate that subpart while keeping the rest of the structure.
+
+  Lenses can be seen as the equivalent of properties in object-oriented
+  programming. However, lenses can be chained together to let one see further in
+  the focused structure.
+
+  Normal lenses let one modify a structure without changing its type.
+  Polymorphic lenses allow one to do so while changing its type.
+]##
+
+
+
 import ../monad/[reader]
 
 import std/[sugar]
