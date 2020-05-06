@@ -1,109 +1,124 @@
-from monadlaws import Monad
+##[
+  Utilities to check whether a type `M` obeys the monad laws.
+
+  A lazy monad builds computations lazily. The user decides when to run them.
+
+  In addition to the ``flatMap[A; B]`` procedure as required in
+  `monadlaws <monadlaws.html>`_, a ``run[A; R]`` one must exist too with the
+  signature: ``(M[A], R) -> A``.
+]##
+
+
+
 import ../utils/[chain]
 
 import std/[sugar]
 
 
 
-
 type
-  LazyMonad* [T; R] {.explain.} = concept m, type M of Monad[T]
+  LazyMonad* [T; R] = concept m
     m.run(R) is T
 
-  LeftIdentitySpec* [T; M; R] = tuple
-    initial: T
-    f: T -> M
-    runArg: R
-
-  RightIdentitySpec* [T; R] = tuple
-    expected: T
-    runArg: R
-
-  AssociativitySpec* [A; B; MA; MB; R] = tuple
+  LeftIdentitySpec* [A; MA; MB; R] = tuple
     initial: A
-    f: A -> MA
-    g: B -> MB
+    lift: A -> MA
+    f: A -> MB
     runArg: R
 
-  MonadLawsSpec* [LT; LM; LR; RT; RR; AA; AB; AMA; AMB; AR] = tuple
-    leftIdentity: LeftIdentitySpec[LT, LM, LR]
-    rightIdentity: RightIdentitySpec[RT, RR]
-    associativity: AssociativitySpec[AA, AB, AMA, AMB, AR]
+  RightIdentitySpec* [T; M; R] = tuple
+    expected: T
+    lift: T -> M
+    runArg: R
+
+  AssociativitySpec* [A; B; MA; MB; MC; R] = tuple
+    initial: A
+    lift: A -> MA
+    f: A -> MB
+    g: B -> MC
+    runArg: R
+
+  MonadLawsSpec* [LA; LMA; LMB; LR; RT; RM; RR; AA; AB; AMA; AMB; AMC; AR] =
+    tuple
+      leftIdentity: LeftIdentitySpec[LA, LMA, LMB, LR]
+      rightIdentity: RightIdentitySpec[RT, RM, RR]
+      associativity: AssociativitySpec[AA, AB, AMA, AMB, AMC, AR]
 
 
 
-func leftIdentitySpec* [T; M; R](
-  initial: T;
-  f: T -> M;
-  runArg: R
-): LeftIdentitySpec[T, M, R] =
-  (initial, f, runArg)
-
-
-func rightIdentitySpec* [T; R](
-  expected: T;
-  runArg: R
-): RightIdentitySpec[T, R] =
-  (expected, runArg)
-
-
-func associativitySpec* [A; B; MA; MB; R](
+func leftIdentitySpec* [A; MA; MB; R](
   initial: A;
-  f: A -> MA;
-  g: B -> MB;
+  lift: A -> MA;
+  f: A -> MB;
   runArg: R
-): AssociativitySpec[A, B, MA, MB, R] =
-  (initial, f, g, runArg)
+): LeftIdentitySpec[A, MA, MB, R] =
+  (initial, lift, f, runArg)
 
 
-func monadLawsSpec* [LT; LM; LR; RT; RR; AA; AB; AMA; AMB; AR](
-  leftIdentity: LeftIdentitySpec[LT, LM, LR];
-  rightIdentity: RightIdentitySpec[RT, RR];
-  associativity: AssociativitySpec[AA, AB, AMA, AMB, AR]
-): MonadLawsSpec[LT, LM, LR, RT, RR, AA, AB, AMA, AMB, AR] =
+func rightIdentitySpec* [T; M; R](
+  expected: T;
+  lift: T -> M;
+  runArg: R
+): RightIdentitySpec[T, M, R] =
+  (expected, lift, runArg)
+
+
+func associativitySpec* [A; B; MA; MB; MC; R](
+  initial: A;
+  lift: A -> MA;
+  f: A -> MB;
+  g: B -> MC;
+  runArg: R
+): AssociativitySpec[A, B, MA, MB, MC, R] =
+  (initial, lift, f, g, runArg)
+
+
+func monadLawsSpec* [LA; LMA; LMB; LR; RT; RM; RR; AA; AB; AMA; AMB; AMC; AR](
+  leftIdentity: LeftIdentitySpec[LA, LMA, LMB, LR];
+  rightIdentity: RightIdentitySpec[RT, RM, RR];
+  associativity: AssociativitySpec[AA, AB, AMA, AMB, AMC, AR]
+): MonadLawsSpec[LA, LMA, LMB, LR, RT, RM, RR, AA, AB, AMA, AMB, AMC, AR] =
   (leftIdentity, rightIdentity, associativity)
 
 
 
-template checkLeftIdentity* [T; M; R](spec: LeftIdentitySpec[T, M, R]): bool =
+template checkLeftIdentity* [A; MA; MB; R](
+  spec: LeftIdentitySpec[A, MA, MB, R]
+): bool =
   spec
-    .initial
-    .lift()
+    .lift(spec.initial)
     .flatMap(spec.f)
     .run(spec.runArg)
     .`==`(spec.f(spec.initial).run(spec.runArg))
 
 
 
-template checkRightIdentity* [T, R](spec: RightIdentitySpec[T, R]): bool =
+template checkRightIdentity* [T; M; R](spec: RightIdentitySpec[T, M, R]): bool =
   spec
-    .expected
-    .lift()
-    .flatMap(lift[T])
+    .lift(spec.expected)
+    .flatMap(spec.lift)
     .run(spec.runArg)
-    .`==`(spec.expected.lift().run(spec.runArg))
+    .`==`(spec.lift(spec.expected).run(spec.runArg))
 
 
-template checkAssociativity* [A; B; MA; MB; R](
-  spec: AssociativitySpec[A, B, MA, MB, R]
+template checkAssociativity* [A; B; MA; MB; MC; R](
+  spec: AssociativitySpec[A, B, MA, MB, MC, R]
 ): bool =
   spec
-    .initial
-    .lift()
+    .lift(spec.initial)
     .flatMap(spec.f)
     .flatMap(spec.g)
     .run(spec.runArg)
     .`==`(
       spec
-        .initial
-        .lift()
+        .lift(spec.initial)
         .flatMap(spec.f.chain(m => m.flatMap(spec.g)))
         .run(spec.runArg)
     )
 
 
-template checkMonadLaws* [LT; LM; LR; RT; RR; AA; AB; AMA; AMB; AR](
-  spec: MonadLawsSpec[LT, LM, LR, RT, RR, AA, AB, AMA, AMB, AR]
+template checkMonadLaws* [LA; LMA; LMB; LR; RT; RM; RR; AA; AB; AMA; AMB; AMC; AR](
+  spec: MonadLawsSpec[LA, LMA, LMB, LR, RT, RM, RR, AA, AB, AMA, AMB, AMC, AR]
 ): bool =
   `==`(
     (
