@@ -54,10 +54,17 @@ func local* [S; T](self: Reader[S, T]; f: S -> S): Reader[S, T] =
 
 
 when isMainModule:
-  import io
+  import io, lazymonadlaws
   import ../utils/[unit]
 
-  import std/[os, unittest]
+  import std/[os, sequtils, unittest]
+
+
+
+  static:
+    doAssert(
+      Reader[cuint, ref NilAccessError] is LazyMonad[ref NilAccessError, cuint]
+    )
 
 
 
@@ -71,68 +78,60 @@ when isMainModule:
 
 
   suite currentSourcePath().splitFile().name:
-    test "ask":
-      proc askTest [S](expected: S) =
+    test """"Reader[S, T]" should obey the monad laws.""":
+      proc doTest [LA; LMA; LMB; LR; RT; RM; RR; AA; AB; AMA; AMB; AMC; AR](
+        spec: MonadLawsSpec[LA, LMA, LMB, LR, RT, RM, RR, AA, AB, AMA, AMB, AMC, AR]
+      ) =
+        check:
+          spec.checkMonadLaws()
+
+
+      doTest(
+        monadLawsSpec(
+          leftIdentitySpec(
+            @["a", "abc", "012"],
+            a => a.toReader(Unit),
+            s => s.foldl(a + b.len().uint, 0u).toReader(Unit),
+            unit()
+          ),
+          rightIdentitySpec({0..9}, a => a.toReader(cfloat), 165.8),
+          associativitySpec(
+            ([0, 7], 'a'),
+            a => a.toReader(string),
+            t => toReader(t[0].foldl(a + b, 0) + t[1].ord(), string),
+            (i: int) => i.`mod`(2).toReader(string),
+            "0123"
+          )
+        )
+      )
+
+
+
+    test """"S.ask()" or "ask[S]" should return a "Reader[S, S]" that returns the passed argument.""":
+      proc doTest [S](expected: S) =
         let
           sut1 = S.ask()
           sut2 = ask[S]()
 
         check:
-          expected.sut1() == expected
-          expected.sut2() == expected
+          sut1.run(expected) == expected
+          sut2.run(expected) == expected
 
 
-      askTest(@[new string])
-      askTest({0: 'a'})
+      doTest(@[new string])
+      doTest({0: 'a'})
 
 
 
-    test "toReader":
-      proc toReaderTest [S; T](expected: T; state: S) =
-        let
-          sut1 = expected.toReader(S)
-          sut2 = expected.toReader[:S, T]()
+    test """"S.ask()" should give access to the read state when using "flatMap".""":
+      proc doTest [S; T](initial: Reader[S, T]; expected: S) =
+        let sut = initial.flatMap((_: T) => S.ask())
 
         check:
-          state.sut1() == expected
-          state.sut2() == expected
+          sut.run(expected) == expected
 
 
-      toReaderTest(0, "")
-
-
-
-    test "flatMap":
-      proc flatMapTest [A; B](initial: A; expected: B; S: typedesc) =
-        let sut =
-          initial
-          .toReader(S)
-          .flatMap(
-            (a: A) =>
-              lazyCheck(a == initial).map(_ => expected.toReader(S)).run()
-          ).run(S.default())
-
-        check:
-          sut == expected
-
-
-      flatMapTest(0, "a", seq[int32])
-
-
-
-    test "map":
-      proc mapTest [A; B](initial: A; expected: B; S: typedesc) =
-        let sut =
-          initial
-          .toReader(S)
-          .map(a => lazyCheck(a == initial).map(_ => expected).run())
-          .run(S.default())
-
-        check:
-          sut == expected
-
-
-      mapTest(0, () => 9u, array[0 .. 10, (string, uint)])
+      doTest((s: string) => s.len(), "abc")
 
 
 
@@ -144,7 +143,7 @@ when isMainModule:
           .map(s => lazyCheck(s == expectedState).map(_ => a).run())
 
 
-      proc localTest [S; T](
+      proc doTest [S; T](
         expectedVal: T;
         initialState: S;
         modifiedState: S;
@@ -164,4 +163,4 @@ when isMainModule:
           initialState.sut() == expectedVal
 
 
-      localTest(0, "a", "ab", s => s & "b")
+      doTest(0, "a", "ab", s => s & "b")

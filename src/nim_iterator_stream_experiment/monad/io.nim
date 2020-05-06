@@ -1,13 +1,17 @@
+##[
+  The IO monad from Haskell.
+
+  It lets one build a computation that does not need a parameter.
+  It can also be used as a wrapper for computations that interact with external
+  resources such as memory management, FFI, I/O streams, etc. .
+]##
+
+
+
 import identity
 import ../utils/[chain, unit]
 
 import std/[sugar]
-
-
-
-##[
-  The IO monad from Haskell.
-]##
 
 
 
@@ -34,11 +38,7 @@ func flatMap* [A; B](self: IO[A]; f: A -> IO[B]): IO[B] =
 
 
 
-func bracket* [A; B](
-  before: IO[A];
-  between: A -> B;
-  after: A -> Unit
-): IO[B] =
+func bracket* [A; B](before: IO[A]; between: A -> B; after: A -> Unit): IO[B] =
   before.map(a => a.between().apply(b => a.after().apply(_ => b)))
 
 
@@ -51,24 +51,20 @@ when isMainModule:
 
 
 
-  func lift [T](value: T): IO[T] =
-    value.toIO()
-
-
   proc run [T](self: IO[T]; _: Unit): T =
     self.run()
 
 
 
   static:
-    doAssert(IO[char] is LazyMonad[char, Unit])
+    doAssert(IO[byte] is LazyMonad[byte, Unit])
 
 
 
   suite currentSourcePath().splitFile().name:
     test """"IO[T]" should obey the monad laws.""":
-      proc doTest [LT; LM; RT; AA; AB; AMA; AMB](
-        spec: MonadLawsSpec[LT, LM, Unit, RT, Unit, AA, AB, AMA, AMB, Unit]
+      proc doTest [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
+        spec: MonadLawsSpec[LA, LMA, LMB, Unit, RT, RM, Unit, AA, AB, AMA, AMB, AMC, Unit]
       ) =
         check:
           spec.checkMonadLaws()
@@ -76,16 +72,19 @@ when isMainModule:
 
       doTest(
         monadLawsSpec(
-          leftIdentitySpec(-5, i => toIO(-i), unit()),
-          rightIdentitySpec(() => newStringOfCap(10), unit()),
+          leftIdentitySpec(-5, toIO, i => toIO(-i), unit()),
+          rightIdentitySpec(() => newStringOfCap(10), toIO, unit()),
           associativitySpec(
             ('a', true),
+            toIO,
             t => (t[0], not t[1]).toIO(),
             (t: (char, bool)) => t[0].`$`().len().toIO(),
             unit()
           )
         )
       )
+
+
 
     test """"IO[T]" without side effects should be compatible with compile time execution.""":
       template doTest [T](
