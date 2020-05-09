@@ -6,46 +6,46 @@ import std/[macros, sugar]
 
 
 type
-  IdentityLawSpec* [S] = tuple
+  IdentitySpec* [S] = tuple
     expected: S
 
-  RetentionLawSpec* [S; T] = tuple
+  RetentionSpec* [S; T] = tuple
     state: S
     expected: T
 
-  DoubleWriteLawSpec* [S; T] = tuple
+  DoubleWriteSpec* [S; T] = tuple
     state: S
     first: T
     second: T
 
   LensLawsSpec* [S; T] = tuple
-    identity: IdentityLawSpec[S]
-    retention: RetentionLawSpec[S, T]
-    doubleWrite: DoubleWriteLawSpec[S, T]
+    identity: IdentitySpec[S]
+    retention: RetentionSpec[S, T]
+    doubleWrite: DoubleWriteSpec[S, T]
 
 
 
 
-func identityLawSpec* [S](expected: S): IdentityLawSpec[S] =
+func identitySpec* [S](expected: S): IdentitySpec[S] =
   (expected: expected)
 
 
-func retentionLawSpec* [S; T](state: S; expected: T): RetentionLawSpec[S, T] =
+func retentionSpec* [S; T](state: S; expected: T): RetentionSpec[S, T] =
   (state: state, expected: expected)
 
 
-func doubleWriteLawSpec* [S; T](
+func doubleWriteSpec* [S; T](
   state: S;
   first: T;
   second: T
-): DoubleWriteLawSpec[S, T] =
+): DoubleWriteSpec[S, T] =
   (state: state, first: first, second: second)
 
 
 func lensLawsSpec* [S; T](
-  identity: IdentityLawSpec[S];
-  retention: RetentionLawSpec[S, T];
-  doubleWrite: DoubleWriteLawSpec[S, T]
+  identity: IdentitySpec[S];
+  retention: RetentionSpec[S, T];
+  doubleWrite: DoubleWriteSpec[S, T]
 ): LensLawsSpec[S, T] =
   (identity: identity, retention: retention, doubleWrite: doubleWrite)
 
@@ -53,7 +53,7 @@ func lensLawsSpec* [S; T](
 
 template checkIdentityLaw* [S; T](
   lens: Lens[S, T];
-  spec: IdentityLawSpec[S]
+  spec: IdentitySpec[S]
 ): bool =
   lens
     .read()
@@ -64,7 +64,7 @@ template checkIdentityLaw* [S; T](
 
 template checkRetentionLaw* [S; T](
   lens: Lens[S, T];
-  spec: RetentionLawSpec[S, T]
+  spec: RetentionSpec[S, T]
 ): bool =
   lens
     .write(() => spec.expected)
@@ -75,7 +75,7 @@ template checkRetentionLaw* [S; T](
 
 template checkDoubleWriteLaw* [S; T](
   lens: Lens[S, T];
-  spec: DoubleWriteLawSpec[S, T]
+  spec: DoubleWriteSpec[S, T]
 ): bool =
   lens
     .write(() => spec.first)
@@ -113,34 +113,34 @@ when isMainModule:
 
 
     test """Using "checkIdentityLaw" in a unit test's "check" section should compile.""":
-      proc doTest [S; T](lens: Lens[S, T]; spec: IdentityLawSpec[S]) =
+      proc doTest [S; T](lens: Lens[S, T]; spec: IdentitySpec[S]) =
         check:
           lens.checkIdentityLaw(spec)
 
 
-      doTest(testedLens, identityLawSpec(street("abc", 751)))
+      doTest(testedLens, identitySpec(street("abc", 751)))
 
 
 
     test """Using "checkRetentionLaw" in a unit test's "check" section should compile.""":
-      proc doTest [S; T](lens: Lens[S, T]; spec: RetentionLawSpec[S, T]) =
+      proc doTest [S; T](lens: Lens[S, T]; spec: RetentionSpec[S, T]) =
         check:
           lens.checkRetentionLaw(spec)
 
 
-      doTest(testedLens, retentionLawSpec(street("2qfze26q", 9), "abc"))
+      doTest(testedLens, retentionSpec(street("2qfze26q", 9), "abc"))
 
 
 
     test """Using "checkDoubleWriteLaw" in a unit test's "check" section should compile.""":
-      proc doTest [S; T](lens: Lens[S, T]; spec: DoubleWriteLawSpec[S, T]) =
+      proc doTest [S; T](lens: Lens[S, T]; spec: DoubleWriteSpec[S, T]) =
         check:
           lens.checkDoubleWriteLaw(spec)
 
 
       doTest(
         testedLens,
-        doubleWriteLawSpec(street("abc", 13845), "ABC", "0123")
+        doubleWriteSpec(street("abc", 13845), "ABC", "0123")
       )
 
 
@@ -154,8 +154,8 @@ when isMainModule:
       doTest(
         testedLens,
         lensLawsSpec(
-          identityLawSpec(street("t", 5)),
-          retentionLawSpec(street("A0", 79), "street"),
-          doubleWriteLawSpec(street("ac", 18996), "a", "b")
+          identitySpec(street("t", 5)),
+          retentionSpec(street("A0", 79), "street"),
+          doubleWriteSpec(street("ac", 18996), "a", "b")
         )
       )

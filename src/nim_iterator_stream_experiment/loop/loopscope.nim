@@ -1,3 +1,10 @@
+##[
+  A structure that encloses a looped computation between a condition and a
+  stepper.
+]##
+
+
+
 import ../monad/[predicate, reader]
 import ../optics/[focus, lens]
 import ../utils/[convert, ignore, unit, variables]
@@ -49,21 +56,22 @@ func stepper* [S](X: typedesc[LoopScope[S]]): Lens[X, Stepper[S]] =
 
 
 
-proc run* [S](self: LoopScope[S]; initial: () -> S; body: S -> Unit): S =
-  result = initial()
+proc run* [S](self: LoopScope[S]; initial: S; body: S -> Unit): S =
+  result = initial
 
   while self.condition.test(result):
     body.run(result).ignore()
     result.modify(self.stepper).ignore()
 
 
-proc run* [S](self: LoopScope[S]; initial: () -> S): S =
+proc run* [S](self: LoopScope[S]; initial: S): S =
+  ## Runs the loop while doing nothing in its body.
   self.run(initial, doNothing)
 
 
 
 func asReader* [S](self: LoopScope[S]; body: S -> Unit): Reader[S, S] =
-  (initial: S) => self.run(() => initial, body)
+  (initial: S) => self.run(initial, body)
 
 
 func asReader* [S](self: LoopScope[S]): Reader[S, S] =
@@ -76,17 +84,10 @@ proc mapSteps* [SA; SB](
   conditionMapper: Condition[SA] -> Condition[SB];
   stepperMapper: Stepper[SA] -> Stepper[SB]
 ): LoopScope[SB] =
-  proc buildResult [X: self.typeof()](
-    self: X;
-    conditionMapper: conditionMapper.typeof();
-    stepperMapper: stepperMapper.typeof()
-  ): result.typeof() =
-    self
-      .read(X.condition())
-      .conditionMapper()
-      .looped(self.read(X.stepper()).stepperMapper())
-
-  self.buildResult(conditionMapper, stepperMapper)
+  self
+    .read(self.typeof().condition())
+    .conditionMapper()
+    .looped(self.read(self.typeof().stepper()).stepperMapper())
 
 
 proc mapSteps* [SA; SB](
@@ -94,10 +95,7 @@ proc mapSteps* [SA; SB](
   extractor: SB -> SA;
   stepperMapper: Stepper[SA] -> Stepper[SB]
 ): LoopScope[SB] =
-  self.mapSteps(
-    (condition: Condition[SA]) => extractor.map(condition),
-    stepperMapper
-  )
+  self.mapSteps(condition => extractor.map(condition), stepperMapper)
 
 
 proc mapSteps* [SA; SB](
@@ -124,9 +122,7 @@ when isMainModule:
 
   suite currentSourcePath().splitFile().name:
     test """"LoopScope[S].condition()" should return a lens that obeys the lens laws.""":
-      proc doTest [S](
-        spec: LensLawsSpec[LoopScope[S], Condition[S]]
-      ) =
+      proc doTest [S](spec: LensLawsSpec[LoopScope[S], Condition[S]]) =
         check:
           LoopScope[S].condition().checkLensLaws(spec)
 
@@ -137,9 +133,9 @@ when isMainModule:
         proc doRun (S: typedesc[loopScope.typeof().S]) =
           doTest(
             lensLawsSpec(
-              identityLawSpec(loopScope),
-              retentionLawSpec(loopScope, condition((i: S) => i < 100)),
-              doubleWriteLawSpec(
+              identitySpec(loopScope),
+              retentionSpec(loopScope, condition((i: S) => i < 100)),
+              doubleWriteSpec(
                 loopScope,
                 condition((i: S) => i > 5),
                 (i: S) => i != 7
@@ -166,9 +162,9 @@ when isMainModule:
         proc doRun (S: typedesc[loopScope.typeof().S]) =
           doTest(
             lensLawsSpec(
-              identityLawSpec(loopScope),
-              retentionLawSpec(loopScope, stepper((c: S) => c.pred())),
-              doubleWriteLawSpec(loopScope, stepper((c: S) => '0'), itself[S])
+              identitySpec(loopScope),
+              retentionSpec(loopScope, stepper((c: S) => c.pred())),
+              doubleWriteSpec(loopScope, stepper((c: S) => '0'), itself[S])
             )
           )
 
@@ -184,7 +180,7 @@ when isMainModule:
         let sut = looped((i: N) => i < expected, i => i + 1.N)
 
         check:
-          sut.run(() => 0.N, doNothing) == expected
+          sut.run(0.N, doNothing) == expected
 
 
       doTest(100)
@@ -202,7 +198,7 @@ when isMainModule:
         let sut = looped((i: I) => i < expected.len(), i => i.succ())
 
         sut
-          .run(() => expected.low(), proc (i: I): Unit = copy[i] = expected[i])
+          .run(expected.low(), proc (i: I): Unit = copy[i] = expected[i])
           .ignore()
 
         check:
