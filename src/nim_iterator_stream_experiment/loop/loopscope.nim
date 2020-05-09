@@ -175,7 +175,7 @@ when isMainModule:
 
 
 
-    test """Using "sut.run(initial, body)" to count up to "expected" starting at 0 should return "expected".""":
+    test """Using "sut.run(0, doNothing)" to count up to "expected" should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: N) =
         let sut = looped((i: N) => i < expected, i => i + 1.N)
 
@@ -191,7 +191,7 @@ when isMainModule:
 
 
 
-    test """Using "sut.run(initial, body)" to copy an array into another should return an array equal to the original.""":
+    test """Using "sut.run(initial, body)" to copy an array should return an array equal to the original.""":
       proc doTest [I: Ordinal, T](expected: array[I, T]) =
         var copy: expected.typeof()
 
