@@ -1,8 +1,20 @@
-import std/[macros, sugar]
+import std/[macros]
 
 
 
-proc call* [T](p: () -> T): T =
+proc call* [T](p: proc (): T {.nimcall.}): T =
+  p()
+
+
+proc call* [T](p: proc (): T {.closure.}): T =
+  p()
+
+
+proc call* (p: proc () {.nimcall.}) =
+  p()
+
+
+proc call* (p: proc () {.closure.}) =
   p()
 
 
@@ -15,22 +27,11 @@ macro call* (p: proc; arg1: untyped; remaining: varargs[untyped]): untyped =
 
 
 when isMainModule:
-  import std/[os, unittest]
+  import std/[os, sugar, unittest]
 
 
 
   suite currentSourcePath().splitFile().name:
-    test "call: 0 arguments":
-      proc doTest [T](sut: () -> T) =
-        check:
-          sut.call() == sut()
-
-
-      doTest(() => 156)
-      doTest(() => "a")
-
-
-
     test "call: 1 argument":
       proc doTest [A; B](sut: A -> B; arg: A) =
         check:
