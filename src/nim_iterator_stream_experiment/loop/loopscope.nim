@@ -5,9 +5,9 @@
 
 
 
-import ../monad/[predicate, reader]
+import ../monad/[optional, predicate, reader]
 import ../optics/[focus, lens]
-import ../utils/[convert, ignore, unit, variables]
+import ../utils/[convert, ignore, partialprocs, unit, variables]
 
 import std/[sugar]
 
@@ -16,6 +16,10 @@ import std/[sugar]
 type
   Condition* [T] = Predicate[T]
   Stepper* [S] = Reader[S, S]
+
+  RunOnceResult* [S; T] = tuple
+    step: S
+    item: Optional[T]
 
   LoopScope* [S] = object
     condition: Condition[S]
@@ -29,6 +33,11 @@ func condition* [T](predicate: Predicate[T]): Condition[T] =
 
 func stepper* [S](reader: Reader[S, S]): Stepper[S] =
   reader
+
+
+
+func runOnceResult* [S; T](step: S; item: Optional[T]): RunOnceResult[S, T] =
+  (step, item)
 
 
 
@@ -71,11 +80,27 @@ proc run* [S](self: LoopScope[S]; initial: S): S =
 
 
 func asReader* [S](self: LoopScope[S]; body: S -> Unit): Reader[S, S] =
-  (initial: S) => self.run(initial, body)
+  partial(self.run(?:S, body))
 
 
 func asReader* [S](self: LoopScope[S]): Reader[S, S] =
   self.asReader(doNothing)
+
+
+
+proc runOnce* [S; T](
+  self: LoopScope[S];
+  start: S;
+  body: S -> T
+): RunOnceResult[S, T] =
+  self.condition.test(start).ifElse(
+    () =>
+      body.run(start).apply(
+        (item: T) => runOnceResult(self.stepper.run(start), item.toSome())
+      )
+    ,
+    () => runOnceResult(start, T.toNone())
+  )
 
 
 
@@ -95,7 +120,7 @@ proc mapSteps* [SA; SB](
   extractor: SB -> SA;
   stepperMapper: Stepper[SA] -> Stepper[SB]
 ): LoopScope[SB] =
-  self.mapSteps(condition => extractor.map(condition), stepperMapper)
+  self.mapSteps(partial(extractor.map(?:Condition[SA])), stepperMapper)
 
 
 proc mapSteps* [SA; SB](
@@ -108,7 +133,7 @@ proc mapSteps* [SA; SB](
 
 
 func breakIf* [S](self: LoopScope[S]; isBroken: Predicate[S]): LoopScope[S] =
-  self.modify(self.typeof().condition(), hasMore => hasMore and not isBroken)
+  self.modify(self.typeof().condition(), partial(?_ and not isBroken))
 
 
 
