@@ -1,4 +1,5 @@
 import reader
+import ../utils/[partialprocs]
 
 import std/[sugar]
 
@@ -15,7 +16,7 @@ func test* [T](self: Predicate[T]; value: T): bool =
 
 
 func `not`* [T](self: Predicate[T]): Predicate[T] =
-  self.map(test => not test)
+  self.map(partial(not ?_))
 
 
 func `and`* [T](self, then: Predicate[T]): Predicate[T] =
