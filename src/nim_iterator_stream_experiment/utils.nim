@@ -1,8 +1,8 @@
-import utils/[chain, convert, default, ifelse, ignore, lambda, unit]
+import utils/[chain, convert, default, ifelse, ignore, unit]
 
 
 
-export chain, convert, default, ifelse, ignore, lambda, unit
+export chain, convert, default, ifelse, ignore, unit
 
 
 
