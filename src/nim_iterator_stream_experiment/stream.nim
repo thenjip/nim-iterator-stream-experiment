@@ -3,17 +3,18 @@ import loop/[loopscope, loopsteps]
 import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
 import stream/[streamsteps]
-import utils/[convert, ignore, ifelse, unit, variables]
+import utils/[convert, ignore, ifelse, operators, partialprocs, unit, variables]
 
 import std/[sugar]
 
 
 
 type
+  Initializer* [T] = IO[T]
   OnCloseEvent* [T] = Reader[T, Unit]
 
   Stream* [S; T] = object
-    initialStep: IO[S]
+    initialStep: Initializer[S]
     loop: Loop[S, T]
     onCloseEvent: OnCloseEvent[S]
 
@@ -21,22 +22,33 @@ type
 
 func startingAt* [S; T](
   loop: Loop[S, T];
-  initialStep: IO[S];
+  initialStep: Initializer[S];
   onCloseEvent: OnCloseEvent[S]
 ): Stream[S, T] =
   Stream[S, T](initialStep: initialStep, loop: loop, onCloseEvent: onCloseEvent)
 
 
-func startingAt* [S; T](loop: Loop[S, T]; initialStep: IO[S]): Stream[S, T] =
+func startingAt* [S; T](
+  loop: Loop[S, T];
+  initialStep: Initializer[S]
+): Stream[S, T] =
   loop.startingAt(initialStep, doNothing[S])
 
 
 
-func initialStep* [S; T](X: typedesc[Stream[S, T]]): Lens[X, IO[S]] =
+func initialStep* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Initializer[S]] =
   lens(
     (self: X) => self.initialStep,
-    (self: X, initialStep: IO[S]) =>
+    (self: X, initialStep: Initializer[S]) =>
       self.loop.startingAt(initialStep, self.onCloseEvent)
+  )
+
+
+func onCloseEvent* [S; T](X: typedesc[Stream[S, T]]): Lens[X, OnCloseEvent[S]] =
+  lens(
+    (self: X) => self.onCloseEvent,
+    (self: X, event: OnCloseEvent[S]) =>
+      self.loop.startingAt(self.initialStep, event)
   )
 
 
@@ -55,12 +67,8 @@ func loop* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Loop[S, T]] =
   X.loop(T)
 
 
-func onCloseEvent* [S; T](X: typedesc[Stream[S, T]]): Lens[X, OnCloseEvent[S]] =
-  lens(
-    (self: X) => self.onCloseEvent,
-    (self: X, event: OnCloseEvent[S]) =>
-      self.loop.startingAt(self.initialStep, event)
-  )
+func scope* [S; T](X: typedesc[Stream[S, T]]): Lens[X, LoopScope[S]] =
+  X.loop().chain(Loop[S, T].scope())
 
 
 func condition* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Condition[S]] =
@@ -96,7 +104,7 @@ proc nextStep [S; T](self: Stream[S, T]; step: S): S =
 
 
 proc run* [S](self: Stream[S, Unit]): Unit =
-  self.loop.run(self.initialStep).apply(self.onCloseEvent)
+  self.loop.run(self.initialStep.run()).apply(self.onCloseEvent)
 
 
 
@@ -172,48 +180,50 @@ func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
     self
       .mapSteps(
         L.step().read(),
-        stepper => L.step().modify(stepper).map(L.count().modify(i => i + 1.N)),
-        step => step.limitStep(0.N)
+        stepper =>
+          L.step().modify(stepper).map(L.count().modify(partial(?_ + 1)))
+        ,
+        partial(limitStep(?:S, 0.N))
       ).modify(
         result.typeof().condition(),
-        hasMore => hasMore and L.count().read().map(count => count < n)
+        partial(?_ and L.count().read().map(partial(?_ < n)))
       )
 
   self.buildResult(n, LimitStep[S, N])
 
 
-func skip* [S; T; N: SomeUnsignedInt](self: Stream[S, T]; n: N): Stream[S, T] =
-  func buildSkipLoopScope [S; N; L: LoopScope[S]](
-    selfLoopScope: L;
+func skip* [S; T; N: SomeUnsignedInt](
+  self: Stream[S, T];
+  n: N
+): IO[Stream[S, T]] =
+  let readStep = SkipStep[S, N].step().read()
+
+  func buildSkipLoopScope [S; N](
+    scope: LoopScope[S];
     n: N;
     SK: typedesc[SkipStep[S, N]]
   ): LoopScope[SK] =
-    selfLoopScope
-      .mapSteps(
-        SK.step().read(),
-        (stepper: Stepper[S]) =>
-          SK.step().modify(stepper).map(SK.count().modify(i => i + 1.N))
-      ).modify(
-        result.typeof().condition(),
-        hasMore => hasMore and SK.count().read().map(count => count < n)
-      )
+    scope.mapSteps(
+      (hasMore: Condition[S]) =>
+        readStep.map(hasMore) and SK.count().read().map(partial(?_ < n))
+      ,
+      (stepper: Stepper[S]) =>
+        SK.step().modify(stepper).map(SK.count().modify(partial(?_ + 1)))
+    )
 
-  func buildResult [N; X: self.typeof()](self: X; n: N; S: typedesc): X =
-    let skipSteps =
-      (initialStep: self.initialStep.typeof()) =>
-        initialStep.map(
-          (step: S) =>
+  () =>
+    self.modify(
+      self.typeof().initialStep(),
+      (start: Initializer[S]) =>
+        start
+          .map(partial(skipStep(?::S, 0.N)))
+          .map(
             self
-              .read(X.loop().chain(Loop[S, T].loopScope()))
+              .read(self.typeof().scope())
               .buildSkipLoopScope(n, SkipStep[S, N])
-              .asReader(doNothing)
-              .map(SkipStep[S, N].step().read())
-              .run(skipStep(step, 0.N))
-        )
-
-    self.modify(X.initialStep(), skipSteps)
-
-  self.buildResult(n, S)
+              .asReader()
+          ).map(readStep)
+    )
 
 
 
@@ -221,68 +231,40 @@ func takeWhile* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
 ): Stream[TakeWhileStep[S, T], T] =
-  let generateWrappedStep =
-    (step: S) =>
-      step.takeWhileStep(
-        self.hasMore(step).ifElse(
-          () => self.generate(step).toSome().filter(predicate),
-          toNone[T]
-        )
-      )
+  let twLoop = self.loop.takeWhile(predicate)
 
-  self
-    .loop
-    .takeWhile(predicate)
-    .startingAt(
-      self.initialStep.map(generateWrappedStep),
-      TakeWhileStep[S, T].step().read().map(self.onCloseEvent)
-    )
-
+  twLoop.startingAt(
+    self
+      .initialStep
+      .map(partial(takeWhileStep(?:S, T.toNone())))
+      .map(twLoop.read(twLoop.typeof().stepper()))
+    ,
+    twLoop.typeof().S.step().read().map(self.onCloseEvent)
+  )
 
 
 func dropWhile* [S; T](
   self: Stream[S, T];
-  condition: Predicate[T]
-): Stream[S, T] =
-  func buildDropLoopScope [S; T; L: LoopScope[S]](
-    selfLoopScope: L;
-    generator: Generator[S, T];
-    condition: condition.typeof()
-  ): L =
-    selfLoopScope.modify(
-      L.condition(),
-      hasMore => hasMore and generator.map(condition)
-    )
-
-  func buildResult [X: self.typeof()](
-    self: X;
-    condition: condition.typeof();
-    S: typedesc
-  ): X =
+  predicate: Predicate[T]
+): IO[Stream[S, T]] =
+  () =>
     self.modify(
-      X.initialStep(),
-      (initialStep: self.initialStep.typeof()) =>
-        initialStep.map(
-          self
-            .read(X.loop().chain(Loop[S, T].loopScope()))
-            .buildDropLoopScope(self.read(X.generator()), condition)
-            .asReader()
-        )
+      self.typeof().initialStep(),
+      (start: Initializer[S]) =>
+        self.loop.dropWhile(predicate).run(start.run()).toIO()
     )
-
-  self.buildResult(condition, S)
 
 
 
 proc reduce* [S; T; R](
   self: Stream[S, T];
   reducer: (reduction: R, item: T) -> R;
-  initialResult: () -> R
+  initialResult: R
 ): R =
-  var reduction = initialResult.run()
+  var reduction = initialResult
 
   self
-    .map(item => reduction.modify(r => r.reducer(item)).doNothing())
+    .map(item => reduction.modify(partial(reducer(?_, item))).doNothing())
     .run()
     .apply(_ => reduction.read())
 
@@ -290,31 +272,31 @@ proc reduce* [S; T; R](
 proc reduceIfNotEmpty* [S; T; R](
   self: Stream[S, T];
   reducer: (reduction: R, item: T) -> R;
-  initialResult: () -> R
+  initialResult: R
 ): Optional[R] =
   let reduceOnNextStep =
     (step: S) =>
       self
         .write(self.typeof().initialStep(), () => self.nextStep(step))
-        .reduce(reducer, initialResult.map(r => r.reducer(self.generate(step))))
+        .reduce(reducer, initialResult.reducer(self.generate(step)))
 
   self
     .initialStep
     .map(
-      (initialStep: S) =>
+      (initial: S) =>
         self
-          .hasMore(initialStep)
-          .ifElse(() => initialStep.reduceOnNextStep().toSome(), toNone[R])
+          .hasMore(initial)
+          .ifElse(() => initial.reduceOnNextStep().toSome(), toNone[R])
     ).run()
 
 
 proc forEach* [S; T](self: Stream[S, T]; action: T -> Unit): Unit =
-  self.map(action).reduce((u: Unit, _: Unit) => u, () => unit())
+  self.map(action).reduce((u: Unit, _: Unit) => u, unit())
 
 
 
 proc sum* [S; N](self: Stream[S, N]): N =
-  self.reduce((sum: N, item: N) => convert(sum + item, N), () => 0.N)
+  self.reduce(plus, 0.N)
 
 
 proc count* [S; T](self: Stream[S, T]; N: typedesc): N =
@@ -337,7 +319,7 @@ proc findFirst* [S; T](
         .ifElse(() => self.generate(step).toSome(), toNone)
         .apply(found => self.onCloseEvent.map(_ => found).run(step))
 
-  self.dropWhile(not predicate).initialStep.map(findItem).run()
+  self.dropWhile(not predicate).run().initialStep.map(findItem).run()
 
 
 proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
@@ -364,15 +346,18 @@ when isMainModule:
 
 
   suite currentSourcePath().splitFile().name:
-    test "test":
-      func indexes [I, T](a: array[I, T]): Stream[Natural, Natural] =
-        looped((i: Natural) => i < a.len(), i => i + 1)
+    func indexes [I, T](a: array[I, T]): Stream[Natural, Natural] =
+        partial(?:Natural < a.len())
+          .looped(partial(?_ + 1))
           .generating(itself[Natural])
           .startingAt(() => 0)
 
-      func items [I, T](a: array[I, T]): Stream[Natural, T] =
-        a.indexes().map(i => a[i])
+    func items [I, T](a: array[I, T]): Stream[Natural, T] =
+      a.indexes().map(i => a[i])
 
+
+
+    test "test":
       let someArray = [0, 1, 3, 10]
 
       check:
@@ -393,20 +378,20 @@ when isMainModule:
         someArray
           .indexes()
           .onClose(() => unit())
-          .reduceIfNotEmpty((count: int, _: Natural) => count + 1, () => 0)
+          .reduceIfNotEmpty((count: int, _: Natural) => count + 1, 0)
           .isSome()
 
       check:
         someArray.items().takeWhile((i: int) => i < 5).count(uint) == 3u
 
       check:
-        someArray.items().dropWhile((i: int) => i <= 1).count(uint) == 2u
+        someArray.items().dropWhile((i: int) => i <= 1).run().count(uint) == 2u
 
       check:
         someArray.items().findFirst((i: int) => i == 10).isSome()
         someArray.items().findFirst((i: int) => i > 15).isNone()
         someArray.items().findFirst().get() == someArray[0]
-        someArray.items().skip(2u).findFirst().get() == someArray[2]
+        someArray.items().skip(2u).run().findFirst().get() == someArray[2]
 
       check:
         someArray.items().any((i: int) => i > 0)
