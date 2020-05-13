@@ -1,7 +1,7 @@
 import loop/[loopscope, loopsteps]
 import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
-import utils/[convert, unit]
+import utils/[convert, partialprocs, unit]
 
 import std/[sugar]
 
@@ -11,23 +11,28 @@ type
   Generator* [S; T] = Reader[S, T]
 
   Loop* [S; T] = object
-    loopScope: LoopScope[S]
+    scope: LoopScope[S]
     generator: Generator[S, T]
 
 
 
+func generator* [S; T](g: Reader[S, T]): Generator[S, T] =
+  g
+
+
+
 func generating* [S; T](
-  loopScope: LoopScope[S];
+  scope: LoopScope[S];
   generator: Generator[S, T]
 ): Loop[S, T] =
-  Loop[S, T](loopScope: loopScope, generator: generator)
+  Loop[S, T](scope: scope, generator: generator)
 
 
 
-func loopScope* [S; T](X: typedesc[Loop[S, T]]): Lens[X, LoopScope[S]] =
+func scope* [S; T](X: typedesc[Loop[S, T]]): Lens[X, LoopScope[S]] =
   lens(
-    (self: X) => self.loopScope,
-    (self: X, loopScope: LoopScope[S]) => loopScope.generating(self.generator)
+    (self: X) => self.scope,
+    (self: X, scope: LoopScope[S]) => scope.generating(self.generator)
   )
 
 
@@ -37,8 +42,7 @@ func generator* [S; A](
 ): PLens[X, Generator[S, A], Generator[S, B], Loop[S, B]] =
   lens(
     (self: X) => self.generator,
-    (self: X, generator: Generator[S, B]) =>
-      self.loopScope.generating(generator)
+    (self: X, generator: Generator[S, B]) => self.scope.generating(generator)
   )
 
 
@@ -47,11 +51,11 @@ func generator* [S; T](X: typedesc[Loop[S, T]]): Lens[X, Generator[S, T]] =
 
 
 func condition* [S; T](X: typedesc[Loop[S, T]]): Lens[X, Condition[S]] =
-  X.loopScope().chain(LoopScope[S].condition())
+  X.scope().chain(LoopScope[S].condition())
 
 
 func stepper* [S; T](X: typedesc[Loop[S, T]]): Lens[X, Stepper[S]] =
-  X.loopScope().chain(LoopScope[S].stepper())
+  X.scope().chain(LoopScope[S].stepper())
 
 
 
@@ -61,7 +65,7 @@ proc mapSteps* [SA; SB; T](
   stepperMapper: Stepper[SA] -> Stepper[SB]
 ): Loop[SB, T] =
   self
-    .loopScope
+    .scope
     .mapSteps(extractor, stepperMapper)
     .generating(extractor.map(self.generator))
 
@@ -92,17 +96,24 @@ func infiniteLoop* [S; T](
 
 
 
-proc run* [S](self: Loop[S, Unit]; initial: () -> S): S =
-  self.loopScope.run(initial, self.generator)
+proc run* [S](self: Loop[S, Unit]; initial: S): S =
+  self.scope.run(initial, self.generator)
+
 
 
 func asReader* [S](self: Loop[S, Unit]): Reader[S, S] =
-  (initial: S) => self.run(initial)
+  self.scope.asReader(self.generator)
+
+
+
+proc runOnce* [S; T](self: Loop[S, T]; start: S): RunOnceResult[S, T] =
+  self.scope.runOnce(start, self.generator)
 
 
 
 func map* [S; A; B](self: Loop[S, A]; f: A -> B): Loop[S, B] =
-  self.loopScope.generating(self.generator.map(f))
+  self.scope.generating(self.generator.map(f))
+
 
 
 func takeWhile* [S; T](
@@ -117,34 +128,106 @@ func takeWhile* [S; T](
     let
       readStep = TW.step().read()
       readItem = TW.item().read()
-      generateWrappedStep =
-        (step: S) =>
-          step.takeWhileStep(
-            self.read(X.condition()).test(step).ifElse(
-              () => self.generator.run(step).toSome().filter(predicate),
-              toNone[T]
-            )
-          )
 
     self
       .mapSteps(
         readStep,
-        (stepper: Stepper[S]) => readStep.map(stepper).map(generateWrappedStep)
+        (_: Stepper[S]) =>
+          readStep
+            .map(partial(self.runOnce(?_)))
+            .map(
+              (generated: RunOnceResult[S, T]) =>
+                takeWhileStep(generated.step, generated.item.filter(predicate))
+            )
       ).write(result.typeof().condition(), readItem.map(isSome))
       .write(result.typeof().generator(), readItem.map(get))
 
   self.buildResult(predicate, TakeWhileStep[S, T])
 
 
+func dropWhile* [S; T](
+  self: Loop[S, T];
+  predicate: Predicate[T]
+): Reader[S, S] =
+  self
+    .scope
+    .modify(
+      self.scope.typeof().condition(),
+      partial(?_ and self.generator.map(predicate))
+    ).asReader()
+
+
 
 when isMainModule:
+  import optics/[lenslaws]
   import utils/[ignore]
 
-  import std/[os, unittest]
+  import std/[os, sequtils, unittest]
 
 
 
   suite currentSourcePath().splitFile().name:
+    test """"Loop[S, T].scope()" should return a lens that obeys the lens laws.""":
+      proc doTest [S; T](spec: LensLawsSpec[Loop[S, T], LoopScope[S]]) =
+        check:
+          Loop[S, T].scope().checkLensLaws(spec)
+
+
+      proc runTest1 () =
+        let loop = infiniteLoop((_: Unit) => 14u64, itself[Unit].stepper())
+
+        proc doRun (S: typedesc[loop.typeof().S]) =
+          doTest(
+            lensLawsSpec(
+              identitySpec(loop),
+              retentionSpec(loop, alwaysFalse[S].looped(itself)),
+              doubleWriteSpec(
+                loop,
+                alwaysFalse[S].looped(itself),
+                alwaysTrue[S].looped(itself)
+              )
+            )
+          )
+
+        doRun(loop.typeof().S)
+
+
+      runTest1()
+
+
+
+    test """"Loop[S, T].generator()" should return a lens that obeys the lens laws.""":
+      proc doTest [S; T](spec: LensLawsSpec[Loop[S, T], Generator[S, T]]) =
+        check:
+          Loop[S, T].generator().checkLensLaws(spec)
+
+
+      proc runTest1 () =
+        let loop = seq[Unit].emptyLoop()
+
+        proc doRun (
+          S: typedesc[loop.typeof().S];
+          T: typedesc[loop.typeof().T]
+        ) =
+          doTest(
+            lensLawsSpec(
+              identitySpec(loop),
+              retentionSpec(loop, generator((_: S) => unit().repeat(5))),
+              doubleWriteSpec(
+                loop,
+                generator((_: S) => @[].T),
+                (_: S) => @[unit()]
+              )
+            )
+          )
+
+        doRun(loop.typeof().S, loop.typeof().T)
+
+
+      runTest1()
+
+
+
     test "test":
       int
         .emptyLoop()
@@ -152,8 +235,8 @@ when isMainModule:
         .apply(
           loop =>
             loop.modify(
-              loop.typeof().loopScope(),
-              loopedCond => loopedCond.breakIf(alwaysFalse[ZeroStep])
+              loop.typeof().scope(),
+              scope => scope.breakIf(alwaysFalse[ZeroStep])
             )
-        ).run(zeroStep)
+        ).run(zeroStep())
         .ignore()
