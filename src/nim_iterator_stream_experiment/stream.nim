@@ -3,7 +3,17 @@ import loop/[loopscope, loopsteps]
 import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
 import stream/[streamsteps]
-import utils/[convert, ignore, ifelse, operators, partialprocs, unit, variables]
+import
+  utils/[
+    convert,
+    ignore,
+    ifelse,
+    lambda,
+    operators,
+    partialprocs,
+    unit,
+    variables
+  ]
 
 import std/[sugar]
 
@@ -146,7 +156,7 @@ func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
       .read()
       .looped(alwaysFalse[S].map(singleStep))
       .generating((_: S) => item())
-      .startingAt(() => true.singleStep())
+      .startingAt(() => singleStep(true))
 
   item.buildResult(SingleStep)
 
@@ -211,8 +221,8 @@ func skip* [S; T; N: SomeUnsignedInt](
         SK.step().modify(stepper).map(SK.count().modify(partial(?_ + 1)))
     )
 
-  () =>
-    self.modify(
+  self
+    .modify(
       self.typeof().initialStep(),
       (start: Initializer[S]) =>
         start
@@ -223,7 +233,7 @@ func skip* [S; T; N: SomeUnsignedInt](
               .buildSkipLoopScope(n, SkipStep[S, N])
               .asReader()
           ).map(readStep)
-    )
+    ).lambda()
 
 
 
@@ -247,12 +257,12 @@ func dropWhile* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
 ): IO[Stream[S, T]] =
-  () =>
-    self.modify(
+  self
+    .modify(
       self.typeof().initialStep(),
-      (start: Initializer[S]) =>
-        self.loop.dropWhile(predicate).run(start.run()).toIO()
-    )
+      partial(map(?: Initializer[S], self.loop.dropWhile(predicate).map(toIO)))
+        .map(run)
+    ).lambda()
 
 
 
@@ -284,9 +294,10 @@ proc reduceIfNotEmpty* [S; T; R](
     .initialStep
     .map(
       (initial: S) =>
-        self
-          .hasMore(initial)
-          .ifElse(() => initial.reduceOnNextStep().toSome(), toNone[R])
+        self.hasMore(initial).ifElse(
+          () => initial.reduceOnNextStep().toSome(),
+          toNone[R]
+        )
     ).run()
 
 

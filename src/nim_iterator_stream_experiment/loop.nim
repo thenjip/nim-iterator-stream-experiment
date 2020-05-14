@@ -149,10 +149,10 @@ func dropWhile* [S; T](
   self: Loop[S, T];
   predicate: Predicate[T]
 ): Reader[S, S] =
-  self
-    .scope
-    .modify(
-      self.scope.typeof().condition(),
+  let scope = self.scope
+
+  scope
+    .modify(scope.typeof().condition(),
       partial(?_ and self.generator.map(predicate))
     ).asReader()
 
