@@ -1,11 +1,3 @@
-import nim_iterator_stream_experiment/[identity, optional, stream, unit, utils]
-
-
-
-export identity, optional, stream, unit, utils
-
-
-
 when isMainModule:
   import std/[os, strformat, sequtils, strutils]
 
