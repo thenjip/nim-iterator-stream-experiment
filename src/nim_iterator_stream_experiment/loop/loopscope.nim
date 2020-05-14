@@ -7,7 +7,7 @@
 
 import ../monad/[optional, predicate, reader]
 import ../optics/[focus, lens]
-import ../utils/[convert, ignore, partialprocs, unit, variables]
+import ../utils/[convert, ignore, lambda, partialprocs, unit, variables]
 
 import std/[sugar]
 
@@ -94,10 +94,10 @@ proc runOnce* [S; T](
   body: S -> T
 ): RunOnceResult[S, T] =
   self.condition.test(start).ifElse(
-    () =>
-      body.run(start).apply(
-        (item: T) => runOnceResult(self.stepper.run(start), item.toSome())
-      )
+    body
+      .run(start)
+      .apply((item: T) => runOnceResult(self.stepper.run(start), item.toSome()))
+      .lambda()
     ,
     () => runOnceResult(start, T.toNone())
   )
