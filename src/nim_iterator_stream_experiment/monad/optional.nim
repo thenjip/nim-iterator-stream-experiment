@@ -1,29 +1,40 @@
-import chain, identity, utils
+##[
+  The `Optional[T]` monad.
+
+  This is another implementation of the `Option`/`Maybe` type, but with only
+  pure functional programming.
+]##
+
+
+
+import identity
+import ../utils/[chain, ifelse]
 
 import std/[sugar]
 
 
 
 type
-  SomePointer* = ref or ptr or pointer or cstring or proc
+  Nilable* = concept var x
+    x = nil
 
   Optional* [T] = object
-    when T is SomePointer:
+    when T is Nilable:
       value: T
     else:
       case empty: bool
         of true:
           discard
-        of false:
+        else:
           value: T
 
 
 
-func toNone* (T: typedesc[SomePointer]): Optional[T] =
+func toNone* (T: typedesc[Nilable]): Optional[T] =
   Optional[T](value: nil)
 
 
-func toNone* (T: typedesc): Optional[T] =
+func toNone* (T: typedesc[not Nilable]): Optional[T] =
   Optional[T](empty: true)
 
 
@@ -31,23 +42,25 @@ func toNone* [T](): Optional[T] =
   T.toNone()
 
 
-func toSome* [T: SomePointer](value: T): Optional[T] =
+
+func toSome* [T: Nilable](value: T): Optional[T] =
   assert(not value.isNil())
 
   Optional[T](value: value)
 
 
-func toSome* [T: not SomePointer](value: T): Optional[T] =
+func toSome* [T: not Nilable](value: T): Optional[T] =
   Optional[T](empty: false, value: value)
 
 
 
-func isNone* [T: SomePointer](self: Optional[T]): bool =
+func isNone* [T: Nilable](self: Optional[T]): bool =
   self.value.isNil()
 
 
-func isNone* [T: not SomePointer](self: Optional[T]): bool =
+func isNone* [T: not Nilable](self: Optional[T]): bool =
   self.empty
+
 
 
 func isSome* [T](self: Optional[T]): bool =
@@ -63,6 +76,7 @@ proc ifSome* [A; B](self: Optional[A]; then: A -> B; `else`: () -> B): B =
   self.isSome().ifElse(() => self.value.then(), `else`)
 
 
+
 proc flatMap* [A; B](self: Optional[A]; f: A -> Optional[B]): Optional[B] =
   self.ifSome(f, toNone[B])
 
@@ -71,8 +85,10 @@ proc map* [A; B](self: Optional[A]; f: A -> B): Optional[B] =
   self.flatMap(f.chain(toSome))
 
 
+
 func get* [T](self: Optional[T]): T {.raises: [Exception, ValueError].} =
   self.ifSome(itself, proc (): T = raise ValueError.newException(""))
+
 
 
 proc filter* [T](self: Optional[T]; predicate: T -> bool): Optional[T] =
@@ -93,13 +109,14 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 
 when isMainModule:
-  import io, unit
+  import io, monadlaws
+  import ../utils/[ignore, unit]
 
   import std/[os, unittest]
 
 
 
-  template lazyCheck (checks: untyped): proc (): Unit =
+  template lazyCheck (checks: untyped): () -> Unit =
     (
       proc (): Unit =
         check:
@@ -109,8 +126,8 @@ when isMainModule:
 
 
   suite currentSourcePath().splitFile().name:
-    test "toSome: not SomePointer":
-      proc toSomeNotSomePtrTest [T: not SomePointer](expectedVal: T) =
+    test "toSome: not Nilable":
+      proc doTest [T: not Nilable](expectedVal: T) =
         let
           expected = Optional[T](empty: false, value: expectedVal)
           sut = expectedVal.toSome()
@@ -119,14 +136,14 @@ when isMainModule:
           sut == expected
 
 
-      toSomeNotSomePtrTest(1)
-      toSomeNotSomePtrTest(@[0])
-      toSomeNotSomePtrTest("a")
+      doTest(1)
+      doTest(@[0])
+      doTest("a")
 
 
 
-    test "toSome: SomePointer":
-      proc toSomeSomePtrTest [T: SomePointer](expectedVal: T) =
+    test "toSome: Nilable":
+      proc doTest [T: Nilable](expectedVal: T) =
         let
           expected = Optional[T](value: expectedVal)
           sut = expectedVal.toSome()
@@ -135,14 +152,14 @@ when isMainModule:
           sut == expected
 
 
-      toSomeSomePtrTest("a".cstring)
-      toSomeSomePtrTest(() => -1)
-      toSomeSomePtrTest(ArithmeticError.newException(""))
+      doTest("a".cstring)
+      doTest(() => -1)
+      doTest(ArithmeticError.newException(""))
 
 
 
-    test "toNone: not SomePointer":
-      proc toNoneNotSomePtrTest (T: typedesc[not SomePointer]) =
+    test "toNone: not Nilable":
+      proc doTest (T: typedesc[not Nilable]) =
         let
           expected = Optional[T](empty: true)
           sut = T.toNone()
@@ -151,13 +168,13 @@ when isMainModule:
           sut == expected
 
 
-      toNoneNotSomePtrTest(set[char])
-      toNoneNotSomePtrTest({'a': 0}.typeof())
+      doTest(set[char])
+      doTest({'a': 0}.typeof())
 
 
 
-    test "toNone: SomePointer":
-      proc toNoneSomePtrTest (T: typedesc[SomePointer]) =
+    test "toNone: Nilable":
+      proc doTest (T: typedesc[Nilable]) =
         let
           expected = Optional[T](value: nil)
           sut = T.toNone()
@@ -166,36 +183,64 @@ when isMainModule:
           sut == expected
 
 
-      toNoneSomePtrTest(pointer)
-      toNoneSomePtrTest(ref RootObj)
-      toNoneSomePtrTest(() -> void)
+      doTest(pointer)
+      doTest(ref RootObj)
+      doTest(() -> void)
+
+
+
+    test """"Optional[T]" should obey the monad laws.""":
+      proc doTest [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
+        spec: MonadLawsSpec[LA, LMA, LMB, RT, RM, AA, AB, AMA, AMB, AMC]
+      ) =
+        check:
+          spec.checkMonadLaws()
+
+
+      doTest(
+        monadLawsSpec(
+          leftIdentitySpec(NaN, toSome, _ => float32.toNone()),
+          ["".cstring, nil]
+            .apply(
+              initial =>
+                rightIdentitySpec(initial, _ => initial.typeof().toNone())
+            )
+          ,
+          associativitySpec(
+            69,
+            toSome,
+            (i) => toSome(i - 5),
+            (i: int) => i.`$`().toSome()
+          )
+        )
+      )
 
 
 
     test "ifSome: with some":
-      proc ifSomeWithSomeTest [A; B](initialVal: A; expected, unexpected: B) =
+      proc doTest [A; B](initialVal: A; expected, unexpected: B) =
         require:
           expected != unexpected
 
         let sut =
           initialVal
-          .toSome()
-          .ifSome(
-            a => lazyCheck(a == initialVal).chain(_ => expected).run(),
-            () => unexpected
-          )
+            .toSome()
+            .ifSome(
+              a => lazyCheck(a == initialVal).chain(_ => expected).run(),
+              () => unexpected
+            )
 
         check:
           sut == expected
 
 
-      ifSomeWithSomeTest(['a'], 0, 1)
-      ifSomeWithSomeTest("a", () => 0, () => 0)
+      doTest(['a'], 0, 1)
+      doTest("a", () => 0, () => 0)
 
 
 
     test "ifSome: with none":
-      proc ifSomeWithNoneTest [B](A: typedesc; expected, unexpected: B) =
+      proc doTest [B](A: typedesc; expected, unexpected: B) =
         require:
           expected != unexpected
 
@@ -205,13 +250,13 @@ when isMainModule:
           sut == expected
 
 
-      ifSomeWithNoneTest(uint16, "a", "b")
-      ifSomeWithNoneTest(seq[int], false, true)
+      doTest(uint16, "a", "b")
+      doTest(seq[int], false, true)
 
 
 
     test "ifNone: with some":
-      proc ifNoneWithSomeTest [A; B](initialVal: A; expected, unexpected: B) =
+      proc doTest [A; B](initialVal: A; expected, unexpected: B) =
         require:
           expected != unexpected
 
@@ -227,12 +272,12 @@ when isMainModule:
           sut == expected
 
 
-      ifNoneWithSomeTest("a", 'a', 'b')
+      doTest("a", 'a', 'b')
 
 
 
     test "ifNone: with none":
-      proc ifNoneWithNoneTest [B](A: typedesc; expected, unexpected: B) =
+      proc doTest [B](A: typedesc; expected, unexpected: B) =
         require:
           expected != unexpected
 
@@ -242,34 +287,34 @@ when isMainModule:
           sut == expected
 
 
-      ifNoneWithNoneTest(cfloat, -1, 6)
+      doTest(cfloat, -1, 6)
 
 
 
     test "get: with some":
-      proc getWithSomeTest [T](expected: T) =
+      proc doTest [T](expected: T) =
         let sut = expected.toSome().get()
 
         check:
           sut == expected
 
 
-      getWithSomeTest(["a", "b"])
+      doTest(["a", "b"])
 
 
 
     test "get: with none":
-      proc getWithNoneTest (T: typedesc) =
+      proc doTest (T: typedesc) =
         expect ValueError:
           T.toNone().get().ignore()
 
 
-      getWithNoneTest(int)
+      doTest(int)
 
 
 
     test "flatMap: with some":
-      proc flatMapWithSomeTest [A; B](initialVal: A; expectedVal: B) =
+      proc doTest [A; B](initialVal: A; expectedVal: B) =
         let
           expected = expectedVal.toSome()
           sut =
@@ -286,12 +331,12 @@ when isMainModule:
           sut == expected
 
 
-      flatMapWithSomeTest(0, 'a')
+      doTest(0, 'a')
 
 
 
     test "flatMap: with none":
-      proc flatMapWithNoneTest [B](A: typedesc; unexpectedVal: B) =
+      proc doTest [B](A: typedesc; unexpectedVal: B) =
         let
           expected = B.toNone()
           sut = A.toNone().flatMap((_: A) => unexpectedVal.toSome())
@@ -300,12 +345,12 @@ when isMainModule:
           sut == expected
 
 
-      flatMapWithNoneTest(string, () => 0.0)
+      doTest(string, () => 0.0)
 
 
 
     test "map: with some":
-      proc mapWithSomeTest [A; B](initialVal: A; expectedVal: B) =
+      proc doTest [A; B](initialVal: A; expectedVal: B) =
         let
           expected = expectedVal.toSome()
           sut =
@@ -317,12 +362,12 @@ when isMainModule:
           sut == expected
 
 
-      mapWithSomeTest(2.toBiggestFloat(), {0})
+      doTest(2.toBiggestFloat(), {0})
 
 
 
     test "map: with none":
-      proc mapWithNoneTest [B](A: typedesc; unexpectedVal: B) =
+      proc doTest [B](A: typedesc; unexpectedVal: B) =
         let
           expected = B.toNone()
           sut = A.toNone().map(_ => unexpectedVal)
@@ -331,12 +376,12 @@ when isMainModule:
           sut == expected
 
 
-      mapWithNoneTest(float32, 'a')
+      doTest(float32, 'a')
 
 
 
     test "filter: some -> some":
-      proc filterSomeSomeTest [T](val: T; predicate: T -> bool) =
+      proc doTest [T](val: T; predicate: T -> bool) =
         require:
           val.predicate()
 
@@ -348,12 +393,12 @@ when isMainModule:
           sut == expected
 
 
-      filterSomeSomeTest(86, i => i > 80)
+      doTest(86, i => i > 80)
 
 
 
     test "filter: some -> none":
-      proc filterSomeNoneTest [T](val: T; predicate: T -> bool) =
+      proc doTest [T](val: T; predicate: T -> bool) =
         require:
           not val.predicate()
 
@@ -365,12 +410,12 @@ when isMainModule:
           sut == expected
 
 
-        filterSomeNoneTest("", s => s.len() > 0)
+        doTest("", s => s.len() > 0)
 
 
 
     test "filter: none -> none":
-      proc filterNoneNoneTest (T: typedesc; predicate: T -> bool) =
+      proc doTest (T: typedesc; predicate: T -> bool) =
         let
           expected = T.toNone()
           sut = T.toNone().filter(predicate)
@@ -379,4 +424,4 @@ when isMainModule:
           sut == expected
 
 
-      filterNoneNoneTest(char, c => true)
+      doTest(char, c => true)
