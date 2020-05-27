@@ -2,6 +2,10 @@ proc plus* [T](x, y: T): T =
   x + y
 
 
+proc plus1* [T](x: T): T =
+  x.plus(1.T)
+
+
 proc minus* [T](x, y: T): T =
   x - y
 
