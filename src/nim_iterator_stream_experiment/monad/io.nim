@@ -8,7 +8,7 @@
 
 
 
-import identity
+import reader
 import ../utils/[chain, unit]
 
 import std/[sugar]
@@ -39,13 +39,13 @@ func flatMap* [A; B](self: IO[A]; f: A -> IO[B]): IO[B] =
 
 
 func bracket* [A; B](before: IO[A]; between: A -> B; after: A -> Unit): IO[B] =
-  before.map(a => a.between().apply(b => a.after().apply(_ => b)))
+  before.map(between.flatMap((b: B) => A.ask().map(after).map(_ => b)))
 
 
 
 when isMainModule:
   import lazymonadlaws
-  import ../utils/[proctypes]
+  import ../utils/[lambda, proctypes]
 
   import std/[os, sequtils, unittest]
 
@@ -90,11 +90,14 @@ when isMainModule:
       template doTest [T](
         sut: static[proc (): IO[T] {.nimcall, noSideEffect.}];
         expected: static T
-      ) =
-        const actual = sut().run()
+      ): proc () {.nimcall.} =
+        (
+          proc () =
+            const actual = sut().run()
 
-        check:
-          actual == expected
+            check:
+              actual == expected
+        )
 
 
       func expected1 (): int =
@@ -108,13 +111,13 @@ when isMainModule:
         toSeq(1 .. 10).foldl(a + b, 0)
 
       func sut2 (): IO[expected2.returnType()] =
-        itself(() => 1 .. 10)
+        lambda(1 .. 10)
           .map(slice => toSeq(slice.items()))
           .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
 
 
-      doTest(sut1, expected1())
-      doTest(sut2, expected2())
+      for t in [doTest(sut1, expected1()), doTest(sut2, expected2())]:
+        t()
 
 
 
