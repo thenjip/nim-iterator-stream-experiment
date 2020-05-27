@@ -1,5 +1,5 @@
 import identity
-import ../utils/[chain]
+import ../utils/[call, chain]
 
 import std/[sugar]
 
@@ -28,7 +28,7 @@ func toReader* [S; T](value: T): Reader[S, T] =
 
 
 proc run* [S; T](self: Reader[S, T]; state: S): T =
-  state.self()
+  self.call(state)
 
 
 
