@@ -6,7 +6,7 @@
 
 
 import ../monad/[optional, predicate, reader]
-import ../optics/[focus, lens]
+import ../optics/[focus, plens, lens]
 import ../utils/[convert, ignore, lambda, partialprocs, unit, variables]
 
 import std/[sugar]
@@ -17,7 +17,7 @@ type
   Condition* [T] = Predicate[T]
   Stepper* [S] = Reader[S, S]
 
-  RunOnceResult* [S; T] = tuple
+  RunOnceResult* [S; T] = object
     step: S
     item: Optional[T]
 
@@ -37,7 +37,34 @@ func stepper* [S](reader: Reader[S, S]): Stepper[S] =
 
 
 func runOnceResult* [S; T](step: S; item: Optional[T]): RunOnceResult[S, T] =
-  (step, item)
+  RunOnceResult[S, T](step: step, item: item)
+
+
+
+func step* [SA; T](
+  X: typedesc[RunOnceResult[SA, T]]; SB: typedesc
+): PLens[X, SA, SB, RunOnceResult[SB, T]] =
+  lens(
+    (self: X) => self.step,
+    (self: X, step: SB) => runOnceResult(step, self.item)
+  )
+
+
+func step* [S; T](X: typedesc[RunOnceResult[S, T]]): Lens[X, S] =
+  X.step(S)
+
+
+func item* [S; A](
+  X: typedesc[RunOnceResult[S, A]]; B: typedesc
+): PLens[X, Optional[A], Optional[B], RunOnceResult[S, B]] =
+  lens(
+    (self: X) => self.item,
+    (self: X, item: Optional[B]) => runOnceResult(self.step, item)
+  )
+
+
+func item* [S; T](X: typedesc[RunOnceResult[S, T]]): Lens[X, Optional[T]] =
+  X.item(T)
 
 
 
@@ -140,6 +167,7 @@ func breakIf* [S](self: LoopScope[S]; isBroken: Predicate[S]): LoopScope[S] =
 when isMainModule:
   import ../monad/[identity]
   import ../optics/[lenslaws]
+  import ../utils/[operators]
 
   import std/[os, unittest]
 
@@ -153,17 +181,17 @@ when isMainModule:
 
 
       proc runTest1 () =
-        let loopScope = looped((i: int32) => i < 53, i => i + 1)
+        let loopScope = partial(?:int32 < 53).looped(plus1)
 
-        proc doRun (S: typedesc[loopScope.typeof().S]) =
+        proc doRun (S: typedesc) =
           doTest(
             lensLawsSpec(
               identitySpec(loopScope),
-              retentionSpec(loopScope, condition((i: S) => i < 100)),
+              retentionSpec(loopScope, partial(?:S < 100) as Condition[S]),
               doubleWriteSpec(
                 loopScope,
-                condition((i: S) => i > 5),
-                (i: S) => i != 7
+                partial(?:S > 5) as Condition[S],
+                partial(?_ != 7)
               )
             )
           )
@@ -182,9 +210,9 @@ when isMainModule:
 
 
       proc runTest1 () =
-        let loopScope = looped((c: char) => c in {'a'..'z'}, c => c.succ())
+        let loopScope = partial(?:char in {'a'..'z'}).looped(c => c.succ())
 
-        proc doRun (S: typedesc[loopScope.typeof().S]) =
+        proc doRun (S: typedesc) =
           doTest(
             lensLawsSpec(
               identitySpec(loopScope),
@@ -202,7 +230,7 @@ when isMainModule:
 
     test """Using "sut.run(0, doNothing)" to count up to "expected" should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: N) =
-        let sut = looped((i: N) => i < expected, i => i + 1.N)
+        let sut = partial(?:N < expected).looped(plus1[N])
 
         check:
           sut.run(0.N, doNothing) == expected
@@ -220,7 +248,7 @@ when isMainModule:
       proc doTest [I: Ordinal, T](expected: array[I, T]) =
         var copy: expected.typeof()
 
-        let sut = looped((i: I) => i < expected.len(), i => i.succ())
+        let sut = partial(?:I < expected.len()).looped(i => i.succ())
 
         sut
           .run(expected.low(), proc (i: I): Unit = copy[i] = expected[i])
