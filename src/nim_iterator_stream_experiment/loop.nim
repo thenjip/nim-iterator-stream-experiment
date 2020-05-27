@@ -137,7 +137,10 @@ func takeWhile* [S; T](
             .map(partial(self.runOnce(?_)))
             .map(
               (generated: RunOnceResult[S, T]) =>
-                takeWhileStep(generated.step, generated.item.filter(predicate))
+                takeWhileStep(
+                  generated.read(generated.typeof().step()),
+                  generated.read(generated.typeof().item()).filter(predicate)
+                )
             )
       ).write(result.typeof().condition(), readItem.map(isSome))
       .write(result.typeof().generator(), readItem.map(get))
