@@ -1,5 +1,5 @@
+import ifelse, nimnodes
 import ../monad/[identity]
-import ifelse
 
 import std/[macros, sequtils, strformat, strutils, sugar, tables]
 
@@ -41,22 +41,6 @@ func newLambda* (
 ): NimNode =
   newProc(newEmptyNode(), returnType & params, body, nnkLambda, newEmptyNode())
 
-
-
-func low* (n: NimNode): Natural =
-  0
-
-
-func high* (n: NimNode): Natural =
-  n.len().pred()
-
-
-func firstChild* (n: NimNode): NimNode =
-  n[n.low()]
-
-
-func secondChild* (n: NimNode): NimNode =
-  n[n.low().succ()]
 
 
 func isUnderscore* (n: NimNode): bool =
