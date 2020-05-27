@@ -11,6 +11,7 @@ import
     lambda,
     operators,
     partialprocs,
+    reducer,
     unit,
     variables
   ]
@@ -165,13 +166,13 @@ func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
 func onClose* [S; T](self: Stream[S, T]; callBack: () -> Unit): Stream[S, T] =
   self.modify(
     self.typeof().onCloseEvent(),
-    event => event.map(_ => callBack.run())
+    partial(map(?_, _ => callBack.run()))
   )
 
 
 
 func map* [S; A; B](self: Stream[S, A]; f: A -> B): Stream[S, B] =
-  self.modify(self.typeof().generator(B), gen => gen.map(f))
+  self.modify(self.typeof().generator(B), partial(map(?_, f)))
 
 
 func filter* [S; T](
@@ -260,7 +261,7 @@ func dropWhile* [S; T](
   self
     .modify(
       self.typeof().initialStep(),
-      partial(map(?: Initializer[S], self.loop.dropWhile(predicate).map(toIO)))
+      partial(map(?:Initializer[S], self.loop.dropWhile(predicate).map(toIO)))
         .map(run)
     ).lambda()
 
@@ -268,27 +269,27 @@ func dropWhile* [S; T](
 
 proc reduce* [S; T; R](
   self: Stream[S, T];
-  reducer: (reduction: R, item: T) -> R;
+  reducer: Reducer[R, T];
   initialResult: R
 ): R =
   var reduction = initialResult
 
   self
-    .map(item => reduction.modify(partial(reducer(?_, item))).doNothing())
+    .map(item => reduction.modify(partial(reducer.run(?_, item))).doNothing())
     .run()
-    .apply(_ => reduction.read())
+    .ignore()
 
 
 proc reduceIfNotEmpty* [S; T; R](
   self: Stream[S, T];
-  reducer: (reduction: R, item: T) -> R;
+  reducer: Reducer[R, T];
   initialResult: R
 ): Optional[R] =
   let reduceOnNextStep =
     (step: S) =>
       self
         .write(self.typeof().initialStep(), () => self.nextStep(step))
-        .reduce(reducer, initialResult.reducer(self.generate(step)))
+        .reduce(reducer, reducer.run(initialResult, self.generate(step)))
 
   self
     .initialStep
@@ -307,7 +308,7 @@ proc forEach* [S; T](self: Stream[S, T]; action: T -> Unit): Unit =
 
 
 proc sum* [S; N](self: Stream[S, N]): N =
-  self.reduce(plus, 0.N)
+  self.reduce(plus[N], 0.N)
 
 
 proc count* [S; T](self: Stream[S, T]; N: typedesc): N =
@@ -323,14 +324,17 @@ proc findFirst* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
 ): Optional[T] =
-  let findItem =
-    (step: S) =>
-      self
-        .hasMore(step)
-        .ifElse(() => self.generate(step).toSome(), toNone)
-        .apply(found => self.onCloseEvent.map(_ => found).run(step))
-
-  self.dropWhile(not predicate).run().initialStep.map(findItem).run()
+  self
+    .dropWhile(not predicate)
+    .flatMap(
+      (self: self.typeof()) =>
+        self.initialStep.bracket(
+          partial(self.loop.runOnce(?:S))
+            .map(RunOnceResult[S, T].item().read())
+          ,
+          self.onCloseEvent
+        )
+    ).run()
 
 
 proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
@@ -352,7 +356,9 @@ proc none* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
 
 
 when isMainModule:
-  import std/[os, unittest]
+  import utils/[call, nimnodes]
+
+  import std/[macros, os, unittest]
 
 
 
@@ -408,3 +414,59 @@ when isMainModule:
         someArray.items().any((i: int) => i > 0)
         someArray.items().all((i: int) => i >= 0)
         someArray.items().none((i: int) => i < 0)
+
+
+
+    test """"Using "self.count(N)" to count the number of children in a NimNode "n" should return "n.len()".""":
+      type
+        NimNodeStep = object
+          i: Natural
+
+
+      func i [X: NimNodeStep](): Lens[X, Natural] =
+        lens((self: X) => self.i, (_: X, i: Natural) => NimNodeStep(i: i))
+
+
+      func indexes (n: NimNode): Stream[NimNodeStep, Natural] =
+        let
+          lens = i[NimNodeStep]()
+          readIndex = lens.read()
+
+        readIndex
+          .map(partial(?:Natural < n.len()))
+          .looped(lens.modify(plus1))
+          .generating(readIndex)
+          .startingAt(() => NimNodeStep(i: n.low()))
+
+
+      func children (n: NimNode): Stream[NimNodeStep, NimNode] =
+        n.indexes().map(i => n[i])
+
+
+      template doTest (n: NimNode; N: typedesc): proc () {.nimcall.} =
+        (
+          proc () =
+            const
+              actual = n.children().count(N)
+              expected = n.len().N
+
+            check:
+              actual == expected
+        )
+
+
+
+      for t in [
+        doTest(newEmptyNode(), Natural),
+        doTest(newStrLitNode("abc"), cuint),
+        doTest(
+          quote do:
+            let a = 0
+            var v = nil.cstring
+            v = "a"
+            echo(a + 1)
+          ,
+          uint
+        )
+      ]:
+        t.call()
