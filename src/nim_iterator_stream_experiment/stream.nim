@@ -277,7 +277,7 @@ proc reduce* [S; T; R](
   self
     .map(item => reduction.modify(partial(reducer.run(?_, item))).doNothing())
     .run()
-    .ignore()
+    .apply(_ => reduction)
 
 
 proc reduceIfNotEmpty* [S; T; R](
@@ -363,25 +363,26 @@ when isMainModule:
 
 
   suite currentSourcePath().splitFile().name:
-    func indexes [I, T](a: array[I, T]): Stream[Natural, Natural] =
-        partial(?:Natural < a.len())
-          .looped(partial(?_ + 1))
-          .generating(itself[Natural])
-          .startingAt(() => 0)
+    func indexes [T](s: seq[T]): Stream[Natural, Natural] =
+      partial(?:Natural < s.len())
+        .looped(plus1)
+        .generating(itself[Natural])
+        .startingAt(() => 0)
 
-    func items [I, T](a: array[I, T]): Stream[Natural, T] =
-      a.indexes().map(i => a[i])
+
+    func items [T](s: seq[T]): Stream[Natural, T] =
+      s.indexes().map(i => s[i])
 
 
 
     test "test":
-      let someArray = [0, 1, 3, 10]
+      let someSeq = @[0, 1, 3, 10]
 
       check:
-        someArray.indexes().count(Natural) == someArray.len()
+        someSeq.indexes().count(Natural) == someSeq.len()
 
-      someArray.indexes().forEach(proc (i: Natural): Unit = echo(i)).ignore()
-      someArray
+      someSeq.indexes().forEach(proc (i: Natural): Unit = echo(i)).ignore()
+      someSeq
         .items()
         .filter(alwaysTrue[int])
         .forEach(proc (i: Optional[int]): Unit = echo(i))
@@ -392,28 +393,28 @@ when isMainModule:
         singleItemStream(() => 0).limit(2u).count(uint) == 1u
 
       check:
-        someArray
+        someSeq
           .indexes()
           .onClose(() => unit())
           .reduceIfNotEmpty((count: int, _: Natural) => count + 1, 0)
           .isSome()
 
       check:
-        someArray.items().takeWhile((i: int) => i < 5).count(uint) == 3u
+        someSeq.items().takeWhile((i: int) => i < 5).count(uint) == 3u
 
       check:
-        someArray.items().dropWhile((i: int) => i <= 1).run().count(uint) == 2u
+        someSeq.items().dropWhile((i: int) => i <= 1).run().count(uint) == 2u
 
       check:
-        someArray.items().findFirst((i: int) => i == 10).isSome()
-        someArray.items().findFirst((i: int) => i > 15).isNone()
-        someArray.items().findFirst().get() == someArray[0]
-        someArray.items().skip(2u).run().findFirst().get() == someArray[2]
+        someSeq.items().findFirst((i: int) => i == 10).isSome()
+        someSeq.items().findFirst((i: int) => i > 15).isNone()
+        someSeq.items().findFirst().get() == someSeq[0]
+        someSeq.items().skip(2u).run().findFirst().get() == someSeq[2]
 
       check:
-        someArray.items().any((i: int) => i > 0)
-        someArray.items().all((i: int) => i >= 0)
-        someArray.items().none((i: int) => i < 0)
+        someSeq.items().any((i: int) => i > 0)
+        someSeq.items().all((i: int) => i >= 0)
+        someSeq.items().none((i: int) => i < 0)
 
 
 
