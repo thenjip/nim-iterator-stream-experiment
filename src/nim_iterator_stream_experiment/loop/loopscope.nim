@@ -7,7 +7,7 @@
 
 import ../monad/[optional, predicate, reader]
 import ../optics/[focus, plens, lens]
-import ../utils/[convert, ignore, lambda, partialprocs, unit, variables]
+import ../utils/[convert, ifelse, ignore, lambda, partialprocs, unit, variables]
 
 import std/[sugar]
 
@@ -136,10 +136,9 @@ proc mapSteps* [SA; SB](
   conditionMapper: Condition[SA] -> Condition[SB];
   stepperMapper: Stepper[SA] -> Stepper[SB]
 ): LoopScope[SB] =
-  self
-    .read(self.typeof().condition())
-    .conditionMapper()
-    .looped(self.read(self.typeof().stepper()).stepperMapper())
+  conditionMapper
+    .run(self.read(self.typeof().condition()))
+    .looped(stepperMapper.run(self.read(self.typeof().stepper())))
 
 
 proc mapSteps* [SA; SB](
@@ -159,8 +158,8 @@ proc mapSteps* [SA; SB](
 
 
 
-func breakIf* [S](self: LoopScope[S]; isBroken: Predicate[S]): LoopScope[S] =
-  self.modify(self.typeof().condition(), partial(?_ and not isBroken))
+func breakIf* [S](self: LoopScope[S]; predicate: Predicate[S]): LoopScope[S] =
+  self.modify(self.typeof().condition(), partial(?_ and not predicate))
 
 
 
@@ -228,12 +227,52 @@ when isMainModule:
 
 
 
+    test """"RunOnceResult[S, T].step()" should return a lens that verifies the lens laws.""":
+      proc doTest [S; T](spec: LensLawsSpec[RunOnceResult[S, T], S]) =
+        check:
+          RunOnceResult[S, T].step().checkLensLaws(spec)
+
+
+      doTest(
+        lensLawsSpec(
+          identitySpec(runOnceResult(1, char.toNone())),
+          retentionSpec(runOnceResult(-1, 'a'.toSome()), 0),
+          doubleWriteSpec(
+            runOnceResult(int.low(), char.high().toSome()),
+            int.high(),
+            -942
+          )
+        )
+      )
+
+
+
+    test """"RunOnceResult[S, T].item()" should return a lens that verifies the lens laws.""":
+      proc doTest [S; T](spec: LensLawsSpec[RunOnceResult[S, T], Optional[T]]) =
+        check:
+          RunOnceResult[S, T].item().checkLensLaws(spec)
+
+
+      doTest(
+        lensLawsSpec(
+          identitySpec(runOnceResult(1, char.toNone())),
+          retentionSpec(runOnceResult(-1, 'a'.toSome()), char.toNone()),
+          doubleWriteSpec(
+            runOnceResult(int.low(), char.high().toSome()),
+            char.low().toSome(),
+            '\a'.toSome()
+          )
+        )
+      )
+
+
+
     test """Using "sut.run(0, doNothing)" to count up to "expected" should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: N) =
-        let sut = partial(?:N < expected).looped(plus1[N])
+        let actual = partial(?:N < expected).looped(plus1).run(0.N, doNothing)
 
         check:
-          sut.run(0.N, doNothing) == expected
+          actual == expected
 
 
       doTest(100)
@@ -244,7 +283,23 @@ when isMainModule:
 
 
 
-    test """Using "sut.run(initial, body)" to copy an array should return an array equal to the original.""":
+    test """Using "sut.run(0, doNothing)" to count up to "expected" at compile time should return "expected".""":
+      proc doTest [N: SomeUnsignedInt](expected: static N) =
+        const actual = partial(?:N < expected).looped(plus1).run(0.N, doNothing)
+
+        check:
+          actual == expected
+
+
+      doTest(100)
+      doTest(56u8)
+      doTest(4u32)
+      doTest(0)
+      doTest(1u64)
+
+
+
+    test """Using a LoopScope to copy an array should return an array equal to the original.""":
       proc doTest [I: Ordinal, T](expected: array[I, T]) =
         var copy: expected.typeof()
 
@@ -260,3 +315,52 @@ when isMainModule:
 
       doTest(array[0, char].default())
       doTest(["a", "0123", "abc"])
+
+
+
+    test """Using "sut.runOnce(?, ?)" on an infinite LoopScope should enter the loop only once.""":
+      proc doTest () =
+        let
+          actual = alwaysTrue[Natural].looped(plus1).runOnce(0, doNothing)
+          expected = runOnceResult(1.Natural, unit().toSome())
+
+        check:
+          actual == expected
+
+
+      doTest()
+
+
+
+    test """Using "sut.runOnce(?, ?)" on an empty LoopScope should never enter the loop.""":
+      proc doTest () =
+        let
+          actual = alwaysFalse[Natural].looped(plus1).runOnce(0, doNothing)
+          expected = runOnceResult(0.Natural, Unit.toNone())
+
+        check:
+          actual == expected
+
+
+      doTest()
+
+
+
+    test """Using "sut.breakIf(n => n mod 2 == 1)" when iterating on Natural numbers should return the first found odd number.""":
+      proc doTest (start: Natural) =
+        let
+          actual =
+            partial(?:Natural < 10)
+              .looped(plus1)
+              .breakIf((n: Natural) => n mod 2 == 1)
+              .run(start, doNothing)
+          expected =
+            start.modulo(2).equal(1).ifElse(() => start, () => start.plus1())
+
+        check:
+          actual == expected
+
+
+
+      doTest(0)
+      doTest(Natural.high())
