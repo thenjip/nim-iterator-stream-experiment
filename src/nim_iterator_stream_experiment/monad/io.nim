@@ -39,13 +39,13 @@ func flatMap* [A; B](self: IO[A]; f: A -> IO[B]): IO[B] =
 
 
 func bracket* [A; B](before: IO[A]; between: A -> B; after: A -> Unit): IO[B] =
-  before.map(between.flatMap((b: B) => A.ask().map(after).map(_ => b)))
+  before.map(between.flatMap((b: B) => after.map(_ => b)))
 
 
 
 when isMainModule:
   import lazymonadlaws
-  import ../utils/[lambda, proctypes]
+  import ../utils/[lambda, proctypes, variables]
 
   import std/[os, sequtils, unittest]
 
@@ -121,25 +121,21 @@ when isMainModule:
 
 
 
-    test "bracket: compute the string's length with final action":
+    test """"after" in "self.bracket(between, after)" should be executed after "between".""":
       proc doTest () =
-        var afterExecuted = false
+        var address = new byte
+
         let
-          initial = "abc"
-          betweenFunc = (s: string) => s.len()
-          expected = initial.betweenFunc()
-          sut =
-            initial
-            .toIO()
-            .bracket(
-              betweenFunc,
-              proc (_: auto): Unit =
-                afterExecuted = true
-            ).run()
+          expected = address.read()
+          actual =
+            unit()
+              .toIO()
+              .bracket(_ => address.read(), _ => address.write(nil).doNothing())
+              .run()
 
         check:
-          sut == expected
-          afterExecuted
+          actual == expected
+
 
 
       doTest()
