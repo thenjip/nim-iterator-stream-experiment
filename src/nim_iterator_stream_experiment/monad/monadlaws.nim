@@ -1,8 +1,10 @@
 ##[
   Utilities to check whether a type `M` obeys the monad laws.
 
-  `M` must have a ``flatMap[A; B]`` procedure defined with the following
-  signature: ``(M[A], A -> M[B]) -> M[B]``.
+  `M` must have:
+    - A ``flatMap[A; B]`` procedure with the signature
+      ``(M[A], A -> M[B]) -> M[B]``.
+    - An equality operator.
 
   Concepts cannot be currently used to implement the monad concept in Nim.
   See this related `issue <https://github.com/nim-lang/Nim/issues/5650>`_ .
