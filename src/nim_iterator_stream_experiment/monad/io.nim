@@ -39,7 +39,7 @@ func flatMap* [A; B](self: IO[A]; f: A -> IO[B]): IO[B] =
 
 
 func bracket* [A; B](before: IO[A]; between: A -> B; after: A -> Unit): IO[B] =
-  before.map(between.flatMap((b: B) => after.map(_ => b)))
+  before.map(between.flatMap((b: B) => after.chain(_ => b)))
 
 
 
