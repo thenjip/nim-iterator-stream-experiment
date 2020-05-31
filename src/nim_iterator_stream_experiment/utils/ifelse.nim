@@ -34,8 +34,10 @@ when isMainModule:
             `else`.chain(incrementPathCounter)
           ).ignore()
 
+        let actual = pathTaken.read()
+
         check:
-          pathTaken.read() == expected
+          actual == expected
 
 
       doTest(false, () => unit(), () => unit())

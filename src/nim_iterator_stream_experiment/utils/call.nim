@@ -27,30 +27,36 @@ macro call* (p: proc; arg1: untyped; remaining: varargs[untyped]): untyped =
 
 
 when isMainModule:
+  import operators
+
   import std/[os, sugar, unittest]
 
 
 
   suite currentSourcePath().splitFile().name:
-    test "call: 1 argument":
-      proc doTest [A; B](sut: A -> B; arg: A) =
+    test """"f.call(arg)" should produce "f(arg)".""":
+      proc doTest [A; B](f: A -> B; arg: A) =
+        let
+          actual = f.call(arg)
+          expected = f(arg)
+
         check:
-          sut.call(arg) == sut(arg)
+          actual == expected
 
 
       doTest((c: char) => c.byte, 'a')
-      doTest((s: seq[string]) => s, @["a", "b"])
+      doTest((s: seq[string]) => s.len(), @["a", "b"])
 
 
 
-    test "call: 2 arguments":
-      proc doTest [A; B; C](sut: (A, B) -> C; arg1: A; arg2: B) =
+    test """"f.call(arg1, arg2)" should produce "f(arg1, arg2)".""":
+      proc doTest [A; B; C](f: (A, B) -> C; arg1: A; arg2: B) =
+        let
+          actual = f.call(arg1, arg2)
+          expected = f(arg1, arg2)
+
         check:
-          sut.call(arg1, arg2) == sut(arg1, arg2)
-
-
-      proc plus [I: SomeInteger](a, b: I): I =
-        a + b
+          actual == expected
 
 
       doTest(plus[int], 1, 2)
