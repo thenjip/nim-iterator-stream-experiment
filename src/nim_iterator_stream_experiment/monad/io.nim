@@ -45,7 +45,7 @@ func bracket* [A; B](before: IO[A]; between: A -> B; after: A -> Unit): IO[B] =
 
 when isMainModule:
   import lazymonadlaws
-  import ../utils/[lambda, proctypes, variables]
+  import ../utils/[call, lambda, proctypes, variables]
 
   import std/[os, sequtils, unittest]
 
@@ -88,12 +88,12 @@ when isMainModule:
 
     test """"IO[T]" without side effects should be compatible with compile time execution.""":
       template doTest [T](
-        sut: static[proc (): IO[T] {.nimcall, noSideEffect.}];
-        expected: static T
+        sut: IO[T]{noSideEffect};
+        expected: T
       ): proc () {.nimcall.} =
         (
           proc () =
-            const actual = sut().run()
+            const actual = sut.run()
 
             check:
               actual == expected
@@ -102,9 +102,6 @@ when isMainModule:
 
       func expected1 (): int =
         1
-
-      func sut1 (): IO[expected1.returnType()] =
-        expected1
 
 
       func expected2 (): int =
@@ -116,8 +113,11 @@ when isMainModule:
           .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
 
 
-      for t in [doTest(sut1, expected1()), doTest(sut2, expected2())]:
-        t()
+      for t in [
+        doTest(expected1, expected1.call()),
+        doTest(sut2.call(), expected2.call())
+      ]:
+        t.call()
 
 
 
