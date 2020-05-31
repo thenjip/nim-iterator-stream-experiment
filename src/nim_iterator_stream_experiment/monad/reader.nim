@@ -54,8 +54,8 @@ func local* [S; T](self: Reader[S, T]; f: S -> S): Reader[S, T] =
 
 
 when isMainModule:
-  import io, lazymonadlaws
-  import ../utils/[operators, partialprocs, unit]
+  import lazymonadlaws
+  import ../utils/[operators, partialprocs, proctypes, unit]
 
   import std/[os, sequtils, unittest]
 
@@ -95,6 +95,32 @@ when isMainModule:
           )
         )
       )
+
+
+
+    test """"Reader[S, T]" without side effects should be compatible with compile time execution.""":
+      template doTest [S; T](
+        sut: Reader[S, T]{noSideEffect};
+        state: S{noSideEffect};
+        expected: T
+      ): proc () {.nimcall.} =
+        (
+          proc () =
+            const actual = sut.run(state)
+
+            check:
+              actual == expected
+        )
+
+
+      func expected1 (): string =
+        "abc"
+
+      func sut1 (): Reader[Unit, expected1.returnType()] =
+        (_: Unit) => expected1.call()
+
+
+      doTest(sut1.call(), unit(), expected1.call()).call()
 
 
 

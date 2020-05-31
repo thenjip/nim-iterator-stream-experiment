@@ -108,7 +108,7 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 when isMainModule:
   import monadlaws
-  import ../utils/[call, ignore, partialprocs, unit]
+  import ../utils/[call, ignore, partialprocs, proctypes, unit]
 
   import std/[os, unittest]
 
@@ -179,6 +179,49 @@ when isMainModule:
           )
         )
       )
+
+
+
+    test """Computations that use "Optional[T]" and without side effects should be compatible with compile time execution.""":
+      template doTest [A; B](
+        sut: static[proc (argument: Optional[A]): B {.noSideEffect.}];
+        argument: Optional[A]{noSideEffect};
+        expected: B
+      ): proc () {.nimcall.} =
+        (
+          proc () =
+            const actual = sut.call(argument)
+
+            check:
+              actual == expected
+        )
+
+
+      func sut1 [T](arg: Optional[T]): T =
+        arg.get()
+
+      func expected1 (): int =
+        -2
+
+      func argument1 (): Optional[expected1.returnType()] =
+        expected1().toSome()
+
+
+      func sut2 [T: Nilable](arg: Optional[T]): T =
+        arg.ifSome(itself, () => nil.T)
+
+      func expected2 (): ref char =
+        nil
+
+      func argument2 (): Optional[expected2.returnType()] =
+        expected2.returnType().toNone()
+
+
+      for t in [
+        doTest(sut1[expected1.returnType()], argument1(), expected1()),
+        doTest(sut2[expected2.returnType()], argument2(), expected2())
+      ]:
+        t.call()
 
 
 
