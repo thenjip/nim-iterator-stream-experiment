@@ -77,6 +77,15 @@ func looped* [S](condition: Condition[S]; stepper: S -> S): LoopScope[S] =
 
 
 
+func emptyLoopScope* (S: typedesc): LoopScope[S] =
+  alwaysFalse[S].looped(itself[S])
+
+
+func infinite* [S](stepper: Stepper[S]): LoopScope[S] =
+  alwaysTrue[S].looped(stepper)
+
+
+
 func condition* [S](X: typedesc[LoopScope[S]]): Lens[X, Condition[S]] =
   lens(
     (self: X) => self.condition,
@@ -95,8 +104,8 @@ func stepper* [S](X: typedesc[LoopScope[S]]): Lens[X, Stepper[S]] =
 proc run* [S](self: LoopScope[S]; initial: S; body: S -> Unit): S =
   result = initial
 
-  while self.condition.test(result):
-    body.run(result).ignore()
+  while self.condition.test(result.read()):
+    body.run(result.read()).ignore()
     result.modify(self.stepper).ignore()
 
 
@@ -186,10 +195,10 @@ when isMainModule:
           doTest(
             lensLawsSpec(
               identitySpec(loopScope),
-              retentionSpec(loopScope, partial(?:S < 100) as Condition[S]),
+              retentionSpec(loopScope, partial(?:S < 100).condition()),
               doubleWriteSpec(
                 loopScope,
-                partial(?:S > 5) as Condition[S],
+                partial(?:S > 5).condition(),
                 partial(?_ != 7)
               )
             )
@@ -269,32 +278,30 @@ when isMainModule:
 
     test """Using "sut.run(0, doNothing)" to count up to "expected" should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: N) =
-        let actual = partial(?:N < expected).looped(plus1).run(0.N, doNothing)
+        let actual = partial(?:N < expected).looped(plus1[N].stepper()).run(0.N)
 
         check:
           actual == expected
 
 
-      doTest(100)
       doTest(56u8)
       doTest(4u32)
-      doTest(0)
+      doTest(0u)
       doTest(1u64)
 
 
 
-    test """Using "sut.run(0, doNothing)" to count up to "expected" at compile time should return "expected".""":
+    test """Using "sut.run(0)" to count up to "expected" at compile time should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: static N) =
-        const actual = partial(?:N < expected).looped(plus1).run(0.N, doNothing)
+        const actual = partial(?:N < expected).looped(plus1[N].stepper()).run(0)
 
         check:
           actual == expected
 
 
-      doTest(100)
       doTest(56u8)
       doTest(4u32)
-      doTest(0)
+      doTest(0u)
       doTest(1u64)
 
 
@@ -303,11 +310,14 @@ when isMainModule:
       proc doTest [I: Ordinal, T](expected: array[I, T]) =
         var copy: expected.typeof()
 
-        let sut = partial(?:I < expected.len()).looped(i => i.succ())
+        let sut = looped((i: I) => i.ord() < expected.len(), i => i.succ())
 
         sut
-          .run(expected.low(), proc (i: I): Unit = copy[i] = expected[i])
-          .ignore()
+          .run(
+            expected.low(),
+            proc (i: I): Unit =
+              copy[i] = expected[i]
+          ).ignore()
 
         check:
           copy == expected
@@ -315,6 +325,34 @@ when isMainModule:
 
       doTest(array[0, char].default())
       doTest(["a", "0123", "abc"])
+
+
+
+    test """Running an "emptyLoopScope(I)" to count up starting at "start" should return "start".""":
+      proc doTest [I: SomeInteger](start: I) =
+        let
+          expected = start
+          actual = I.emptyLoopScope().run(start)
+
+        check:
+          actual == expected
+
+
+      doTest(-3)
+      doTest(int.low())
+      doTest(cuint.high())
+
+
+
+    test """Running an "infinite(i => i + 1)" to count up starting at "start" should raise an "OverflowError".""":
+      proc doTest [I: SomeSignedInt](start: I) =
+        expect OverflowError:
+          partial(?:I + 1).infinite().run(start).ignore()
+
+
+      doTest(int16.high() div 2)
+      doTest(int8.high())
+      doTest(0.int8)
 
 
 
@@ -353,13 +391,12 @@ when isMainModule:
             partial(?:Natural < 10)
               .looped(plus1)
               .breakIf((n: Natural) => n mod 2 == 1)
-              .run(start, doNothing)
+              .run(start)
           expected =
             start.modulo(2).equal(1).ifElse(() => start, () => start.plus1())
 
         check:
           actual == expected
-
 
 
       doTest(0)

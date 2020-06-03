@@ -1,5 +1,5 @@
 import loop
-import loop/[loopscope, loopsteps]
+import loop/[loopscope]
 import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
 import stream/[streamsteps]
@@ -143,8 +143,8 @@ proc mapSteps* [SA; SB; T](
 
 
 
-func emptyStream* (T: typedesc): Stream[ZeroStep, T] =
-  T.emptyLoop().startingAt(zeroStep)
+func emptyStream* (T: typedesc): Stream[Unit, T] =
+  emptyLoop(Unit, T).startingAt(() => unit())
 
 
 func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
@@ -179,7 +179,8 @@ func filter* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
 ): Stream[S, Optional[T]] =
-  self.map(item => predicate.test(item).ifElse(() => item.toSome(), toNone[T]))
+  self.modify(self.typeof().loop(Optional[T]), partial(filter(?_, predicate)))
+
 
 
 func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
@@ -191,13 +192,11 @@ func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
     self
       .mapSteps(
         L.step().read(),
-        stepper =>
-          L.step().modify(stepper).map(L.count().modify(partial(?_ + 1)))
-        ,
+        stepper => L.step().modify(stepper).map(L.count().modify(plus1[N])),
         partial(limitStep(?:S, 0.N))
       ).modify(
-        result.typeof().condition(),
-        partial(?_ and L.count().read().map(partial(?_ < n)))
+        result.typeof().scope(),
+        scope => scope.breakIf(L.count().read().map(partial(?_ >= n)))
       )
 
   self.buildResult(n, LimitStep[S, N])
@@ -219,7 +218,7 @@ func skip* [S; T; N: SomeUnsignedInt](
         readStep.map(hasMore) and SK.count().read().map(partial(?_ < n))
       ,
       (stepper: Stepper[S]) =>
-        SK.step().modify(stepper).map(SK.count().modify(partial(?_ + 1)))
+        SK.step().modify(stepper).map(SK.count().modify(plus1))
     )
 
   self
@@ -238,11 +237,36 @@ func skip* [S; T; N: SomeUnsignedInt](
 
 
 
+func buildTakeWhileLoop [S; T](
+  loop: Loop[S, T];
+  predicate: Predicate[T]
+): Loop[TakeWhileStep[S, T], T] =
+  let
+    readStep = result.typeof().S.step().read()
+    readItem = result.typeof().S.item().read()
+
+  loop
+    .mapSteps(
+      readStep,
+      (_: Stepper[S]) =>
+        readStep
+          .map(partial(loop.runOnce(?_)))
+          .map(
+            (generated: RunOnceResult[S, T]) =>
+              takeWhileStep(
+                generated.read(generated.typeof().step()),
+                generated.read(generated.typeof().item()).filter(predicate)
+              )
+          )
+    ).write(result.typeof().condition(), readItem.map(isSome))
+    .write(result.typeof().generator(), readItem.map(get))
+
+
 func takeWhile* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
 ): Stream[TakeWhileStep[S, T], T] =
-  let twLoop = self.loop.takeWhile(predicate)
+  let twLoop = self.loop.buildTakeWhileLoop(predicate)
 
   twLoop.startingAt(
     self
@@ -261,8 +285,7 @@ func dropWhile* [S; T](
   self
     .modify(
       self.typeof().initialStep(),
-      partial(map(?:Initializer[S], self.loop.dropWhile(predicate).map(toIO)))
-        .map(run)
+      partial(map(?:Initializer[S], self.loop.dropWhile(predicate)))
     ).lambda()
 
 
