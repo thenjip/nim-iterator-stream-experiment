@@ -117,13 +117,6 @@ func map* [S; A; B](self: Loop[S, A]; f: A -> B): Loop[S, B] =
   self.scope.generating(self.generator.map(f))
 
 
-func filter* [S; T](
-  self: Loop[S, T];
-  predicate: Predicate[T]
-): Loop[S, Optional[T]] =
-  self.map(predicate.ifElse(toSome, _ => T.toNone()))
-
-
 
 func dropWhile* [S; T](
   self: Loop[S, T];
@@ -209,47 +202,6 @@ when isMainModule:
 
 
       runTest1()
-
-
-
-    test """Filtering a "seq[T]" and collecting the items should give a sequence only made of the filtered items.""":
-      proc filterAndCollect [T](
-        input: seq[T];
-        predicate: Predicate[T]
-      ): seq[T] =
-        var output = newSeqOfCap[T](input.len())
-
-        input
-          .itemLoop()
-          .filter(predicate)
-          .map(
-            opt =>
-              opt
-                .map(
-                  proc (item: T): Unit =
-                    output.modify(partial(?_ & item)).doNothing()
-                ).doNothing()
-          ).run(input.low())
-          .apply(_ => output.read())
-
-
-      proc doTest [T](input: seq[T]; predicate: Predicate[T]) =
-        let
-          expected = input.filterIt(predicate.test(it))
-          actual = input.filterAndCollect(predicate)
-
-        check:
-          actual == expected
-
-
-      doTest(@["a", "", "abc", "0123"], (s: string) => s.len() > 2)
-      doTest(
-        @[-5816, 18964, 2153, 1, 0, 946, 789641],
-        partial(?:int notin -100 .. 6000)
-      )
-      doTest(seq[cdouble].default(), alwaysTrue[cdouble])
-      doTest(@[1u, 5u, 7469u], alwaysTrue[uint])
-      doTest(@['a', '0', '\a'], alwaysFalse[char])
 
 
 

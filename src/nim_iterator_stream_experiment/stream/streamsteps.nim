@@ -6,6 +6,9 @@ import std/[sugar]
 
 
 type
+  EmptyStep* = object
+    discard
+
   SingleStep* = object
     consumed: bool
 
@@ -20,6 +23,11 @@ type
   TakeWhileStep* [S; T] = object
     step: S
     item: Optional[T]
+
+
+
+func emptyStep* (): EmptyStep =
+  EmptyStep()
 
 
 

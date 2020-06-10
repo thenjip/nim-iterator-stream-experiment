@@ -18,6 +18,8 @@ type
   Nilable* = concept var x
     x = nil
 
+  UnboxError* = object of CatchableError
+
   Optional* [T] = object
     when T is Nilable:
       value: T
@@ -86,8 +88,13 @@ proc map* [A; B](self: Optional[A]; f: A -> B): Optional[B] =
 
 
 
-func get* [T](self: Optional[T]): T {.raises: [Exception, ValueError].} =
-  self.ifSome(itself, proc (): T = raise ValueError.newException(""))
+func unbox* [T](self: Optional[T]): T {.raises: [Exception, UnboxError].} =
+  self
+    .ifSome(
+      itself,
+      proc (): T =
+        raise UnboxError.newException("")
+    )
 
 
 
@@ -198,7 +205,7 @@ when isMainModule:
 
 
       func sut1 [T](arg: Optional[T]): T =
-        arg.get()
+        arg.unbox()
 
       func expected1 (): int =
         -2
@@ -225,9 +232,9 @@ when isMainModule:
 
 
 
-    test """"get" with "some" should return the "expected" value.""":
+    test """"unbox" with "some" should return the "expected" value.""":
       proc doTest [T](expected: T) =
-        let actual = expected.toSome().get()
+        let actual = expected.toSome().unbox()
 
         check:
           actual == expected
@@ -240,10 +247,10 @@ when isMainModule:
 
 
 
-    test """"get" with "none" should raise a "CatchableError" at runtime.""":
+    test """"unbox" with "none" should raise a "CatchableError" at runtime.""":
       proc doTest (T: typedesc) =
         expect CatchableError:
-          T.toNone().get().ignore()
+          T.toNone().unbox().ignore()
 
 
       doTest(int)

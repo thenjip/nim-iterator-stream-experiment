@@ -27,6 +27,15 @@ proc modulo* [T: SomeInteger](x, y: T): T =
 
 
 
+func next* [T: Ordinal](x: T): T =
+  x.succ(1)
+
+
+func prev* [T: Ordinal](x: T): T =
+  x.pred(1)
+
+
+
 proc less* [T](x, y: T): bool =
   x < y
 

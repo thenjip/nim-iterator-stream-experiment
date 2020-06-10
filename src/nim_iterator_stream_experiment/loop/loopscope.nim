@@ -7,7 +7,7 @@
 
 import ../monad/[optional, predicate, reader]
 import ../optics/[focus, plens, lens]
-import ../utils/[convert, ifelse, ignore, lambda, partialprocs, unit, variables]
+import ../utils/[convert, ifelse, ignore, partialprocs, unit, variables]
 
 import std/[sugar]
 
@@ -129,14 +129,14 @@ proc runOnce* [S; T](
   start: S;
   body: S -> T
 ): RunOnceResult[S, T] =
-  self.condition.test(start).ifElse(
-    body
-      .run(start)
-      .apply((item: T) => runOnceResult(self.stepper.run(start), item.toSome()))
-      .lambda()
-    ,
-    () => runOnceResult(start, T.toNone())
-  )
+  self
+    .condition
+    .ifElse(
+      body
+        .map((item: T) => runOnceResult(self.stepper.run(start), item.toSome()))
+      ,
+      partial(runOnceResult(?:S, T.toNone()))
+    ).run(start)
 
 
 
@@ -218,13 +218,13 @@ when isMainModule:
 
 
       proc runTest1 () =
-        let loopScope = partial(?:char in {'a'..'z'}).looped(c => c.succ())
+        let loopScope = partial(?:char in {'a'..'z'}).looped(next)
 
         proc doRun (S: typedesc) =
           doTest(
             lensLawsSpec(
               identitySpec(loopScope),
-              retentionSpec(loopScope, stepper((c: S) => c.pred())),
+              retentionSpec(loopScope, stepper(prev[S])),
               doubleWriteSpec(loopScope, stepper((c: S) => '0'), itself[S])
             )
           )
@@ -310,7 +310,7 @@ when isMainModule:
       proc doTest [I: Ordinal, T](expected: array[I, T]) =
         var copy: expected.typeof()
 
-        let sut = looped((i: I) => i.ord() < expected.len(), i => i.succ())
+        let sut = looped((i: I) => i.ord() < expected.len(), next)
 
         sut
           .run(
