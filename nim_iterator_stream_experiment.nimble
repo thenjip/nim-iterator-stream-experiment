@@ -9,13 +9,13 @@ requires "nim >= 1.2.0"
 
 
 import std/[sequtils, strformat, strutils]
-from std/os import ExtSep, `/`, quoteShell, splitFile, walkDirRec
+from std/os import ExtSep, `/`, quoteShell, splitPath, walkDirRec
 
 
 
 type
-  AbsolutePath* = string
-  RelativePath* = string
+  AbsolutePath = string
+  RelativePath = string
 
 
 
@@ -51,9 +51,9 @@ task test, fmt"""Build the test suite in "{nimcacheDir()}/" and run it.""":
 
 
   func buildGenDir (module: RelativePath): AbsolutePath =
-    let (dir, name, _) = module.splitFile()
+    let (dir, file) = module.splitPath()
 
-    nimcacheDir() / dir / name
+    nimcacheDir() / dir / file
 
 
   withDir moduleDir():
