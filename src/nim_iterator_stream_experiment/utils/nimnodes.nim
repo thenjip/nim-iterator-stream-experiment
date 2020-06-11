@@ -2,11 +2,16 @@ import std/[macros]
 
 
 
-func low* (n: NimNode): Natural =
+type
+  NimNodeIndex* = int
+
+
+
+func low* (n: NimNode): NimNodeIndex =
   0
 
 
-func high* (n: NimNode): Natural =
+func high* (n: NimNode): NimNodeIndex =
   n.len().pred()
 
 

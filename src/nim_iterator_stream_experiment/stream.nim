@@ -3,6 +3,7 @@ import loop/[loopscope]
 import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
 import stream/[streamsteps]
+import types/[somenatural]
 import
   utils/[
     convert,
@@ -190,7 +191,10 @@ func filter* [S; T](self: Stream[S, T]; predicate: Predicate[T]): Stream[S, T] =
 
 
 
-func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
+func limit* [S; T; N: SomeNatural](
+  self: Stream[S, T];
+  n: N
+): Stream[LimitStep[S, N], T] =
   let limitLenses =
     (step: LimitStep[S, N].step(), count: LimitStep[S, N].count())
 
@@ -207,10 +211,7 @@ func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
     )
 
 
-func skip* [S; T; N: SomeUnsignedInt](
-  self: Stream[S, T];
-  n: N
-): IO[Stream[S, T]] =
+func skip* [S; T; N: SomeNatural](self: Stream[S, T]; n: N): IO[Stream[S, T]] =
   let
     skLenses =
       (step: SkipStep[S, N].step(), count: SkipStep[S, N].count())
@@ -341,14 +342,15 @@ proc reduceIfNotEmpty* [S; T; R](
 
 
 proc sum* [S; N](self: Stream[S, N]): N =
-  self.reduce(plus[N], 0.N)
+  ## `+` must be defined for `N`.
+  self.reduce(plus[N], 0 as N)
 
 
-proc count* [S; T](self: Stream[S, T]; N: typedesc): N =
+proc count* [S; T](self: Stream[S, T]; N: typedesc[SomeNatural]): N =
   self.map((_: T) => 1.N).sum()
 
 
-proc count* [S; T; N](self: Stream[S, T]): N =
+proc count* [S; T; N: SomeNatural](self: Stream[S, T]): N =
   self.count(N)
 
 
@@ -396,7 +398,7 @@ when isMainModule:
 
 
   type
-    InfiniteStreamParam [S; T] = object
+    InfiniteStreamParam [S; T] = tuple
       stepper: Stepper[S]
       generator: Generator[S, T]
       initialStep: Initializer[S]
@@ -409,12 +411,7 @@ when isMainModule:
     initialStep: Initializer[S];
     onClose: OnCloseEvent[S]
   ): InfiniteStreamParam[S, T] =
-    InfiniteStreamParam[S, T](
-      stepper: stepper,
-      generator: generator,
-      initialStep: initialStep,
-      onClose: onClose
-    )
+    (stepper, generator, initialStep, onClose)
 
 
 
@@ -505,11 +502,11 @@ when isMainModule:
 
 
 
-    test """Reducing an empty stream should return an empty "Optional[R]".""":
+    test """Using "reduceIfNotEmpty" on an empty stream should return an empty "Optional[R]".""":
       proc doTest [T; R](reducer: Reducer[R, T]; initialResult: R) =
         let
           actual = emptyStream(T).reduceIfNotEmpty(reducer, initialResult)
-          expected = actual.T.toNone()
+          expected = R.toNone()
 
         check:
           actual == expected

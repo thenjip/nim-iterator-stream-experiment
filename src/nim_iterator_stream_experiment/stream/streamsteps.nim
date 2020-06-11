@@ -1,5 +1,6 @@
 import ../monad/[optional]
 import ../optics/[lens]
+import ../types/[somenatural]
 
 import std/[sugar]
 
@@ -12,11 +13,11 @@ type
   SingleStep* = object
     consumed: bool
 
-  LimitStep* [S; N: SomeUnsignedInt] = object
+  LimitStep* [S; N: SomeNatural] = object
     step: S
     count: N
 
-  SkipStep* [S; N: SomeUnsignedInt] = object
+  SkipStep* [S; N: SomeNatural] = object
     step: S
     count: N
 
@@ -43,18 +44,18 @@ func isConsumed* (X: typedesc[SingleStep]): Lens[X, bool] =
 
 
 
-func limitStep* [S; N](step: S; count: N): LimitStep[S, N] =
+func limitStep* [S; N: SomeNatural](step: S; count: N): LimitStep[S, N] =
   LimitStep[S, N](step: step, count: count)
 
 
-func step* [S; N](X: typedesc[LimitStep[S, N]]): Lens[X, S] =
+func step* [S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, S] =
   lens(
     (self: X) => self.step,
     (self: X, step: S) => limitStep(step, self.count)
   )
 
 
-func count* [S; N](X: typedesc[LimitStep[S, N]]): Lens[X, N] =
+func count* [S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, N] =
   lens(
     (self: X) => self.count,
     (self: X, count: N) => limitStep(self.step, count)
@@ -62,15 +63,15 @@ func count* [S; N](X: typedesc[LimitStep[S, N]]): Lens[X, N] =
 
 
 
-func skipStep* [S; N](step: S; count: N): SkipStep[S, N] =
+func skipStep* [S; N: SomeNatural](step: S; count: N): SkipStep[S, N] =
   SkipStep[S, N](step: step, count: count)
 
 
-func step* [S; N](X: typedesc[SkipStep[S, N]]): Lens[X, S] =
+func step* [S; N: SomeNatural](X: typedesc[SkipStep[S, N]]): Lens[X, S] =
   lens((self: X) => self.step, (self: X, step: S) => skipStep(step, self.count))
 
 
-func count* [S; N](X: typedesc[SkipStep[S, N]]): Lens[X, N] =
+func count* [S; N: SomeNatural](X: typedesc[SkipStep[S, N]]): Lens[X, N] =
   lens(
     (self: X) => self.count,
     (self: X, count: N) => skipStep(self.step, count)
@@ -99,6 +100,7 @@ func item* [S; T](X: typedesc[TakeWhileStep[S, T]]): Lens[X, Optional[T]] =
 
 when isMainModule:
   import ../optics/[lenslaws]
+  import ../utils/[convert]
 
   import std/[os, unittest]
 
@@ -129,9 +131,13 @@ when isMainModule:
 
       doTest(
         lensLawsSpec(
-          identitySpec(limitStep(0, 50u)),
-          retentionSpec(limitStep(int.high(), 6u), 1),
-          doubleWriteSpec(limitStep(81435, 463u), int.high() div 2, 1563)
+          identitySpec(limitStep(0, 50 as Natural)),
+          retentionSpec(limitStep(int.high(), 6 as Natural), 1),
+          doubleWriteSpec(
+            limitStep(81435, 463 as Natural),
+            int.high() div 2,
+            1563
+          )
         )
       )
 
