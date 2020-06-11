@@ -3,7 +3,7 @@
 
   It lets one build a computation that does not need a parameter.
   It can also be used as a wrapper for computations that interact with external
-  resources such as memory management, FFI, I/O streams, etc. .
+  resources such as memory management, FFI, I/O, etc. .
 ]##
 
 
