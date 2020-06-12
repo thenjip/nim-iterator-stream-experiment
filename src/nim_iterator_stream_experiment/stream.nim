@@ -551,15 +551,26 @@ when isMainModule:
           actual == expected
 
 
-      doTest(
-        infiniteStreamParam(
-          stepper(itself[uint16]),
-          generator(partial($ ?:uint16)),
-          () => 1u16,
-          doNothing[uint16]
-        ),
-        10u
-      )
+      when defined(js):
+        doTest(
+          infiniteStreamParam(
+            stepper(itself[char]),
+            generator(partial($ ?:char)),
+            () => char.default(),
+            doNothing[char]
+          ),
+          7u
+        )
+      else:
+        doTest(
+          infiniteStreamParam(
+            stepper(itself[uint16]),
+            generator(partial($ ?:uint16)),
+            () => 1u16,
+            doNothing[uint16]
+          ),
+          10u
+        )
 
 
 
