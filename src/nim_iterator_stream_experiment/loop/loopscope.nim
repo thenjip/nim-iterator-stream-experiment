@@ -5,7 +5,7 @@
 
 
 
-import ../monad/[optional, predicate, reader]
+import ../monad/[identity, optional, predicate, reader]
 import ../optics/[focus, plens, lens]
 import ../utils/[convert, ifelse, ignore, partialprocs, unit, variables]
 
@@ -293,7 +293,10 @@ when isMainModule:
 
     test """Using "sut.run(0)" to count up to "expected" at compile time should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: static N) =
-        const actual = partial(?:N < expected).looped(plus1[N].stepper()).run(0)
+        const actual =
+          partial(?:N < expected)
+            .looped(plus1[N].stepper())
+            .run(0.N)
 
         check:
           actual == expected
@@ -340,7 +343,7 @@ when isMainModule:
 
       doTest(-3)
       doTest(int.low())
-      doTest(cuint.high())
+      doTest(Natural.high())
 
 
 
