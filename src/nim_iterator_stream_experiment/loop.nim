@@ -129,7 +129,7 @@ func dropWhile* [S; T](
 when isMainModule:
   import monad/[identity]
   import optics/[lenslaws]
-  import utils/[ignore, partialprocs, operators, variables]
+  import utils/[ignore, partialprocs, operators]
 
   import std/[os, sequtils, unittest]
 
