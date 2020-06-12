@@ -128,8 +128,10 @@ when isMainModule:
           ).run(value)
           .ignore()
 
+        let actual = pathTaken.read()
+
         check:
-          pathTaken.read() == expected
+          actual == expected
 
 
       doTest(alwaysTrue[Unit], itself[Unit], itself, unit())
