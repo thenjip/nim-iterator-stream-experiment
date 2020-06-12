@@ -54,8 +54,8 @@ when isMainModule:
         @[0, 1, 5, 7, 8, 13]
           .items()
           .filter((it: int) => it mod 2 == 0)
-          .count(csize_t)
+          .count(Natural)
 
       check:
-        "abc".chars().count(csize_t) == 3
+        "abc".chars().count(Natural) == 3
         evenNumberCount == 2
