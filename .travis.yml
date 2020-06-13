@@ -39,3 +39,6 @@ jobs:
     - name: Test suite (Node.js)
       env: NIM_BACKEND='js'
       <<: *shared_job
+      
+  allow_failures:
+    - env: NIM_BACKEND='js'
