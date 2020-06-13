@@ -135,4 +135,4 @@ when isMainModule:
 
 
       doTest(alwaysTrue[Unit], itself[Unit], itself, unit())
-      doTest(alwaysFalse[uint16], partial($ ?:uint16), _ => "abc", 9484)
+      doTest(alwaysFalse[int16], partial($ ?:int16), _ => "abc", 542)
