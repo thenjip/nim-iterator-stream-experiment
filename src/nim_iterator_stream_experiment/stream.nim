@@ -610,39 +610,46 @@ when isMainModule:
 
 
 
-    test """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
-      """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]".""":
-      func items (P: typedesc[Positive]): Stream[P, P] =
-        partial(?:P < P.high())
-          .looped(next)
-          .generating(itself[P])
-          .startingAt(() => P.low())
+    when defined(js):
+      #[
+        "takeWhile" is not currently compatible with compile time execution on
+        the JS backend.
+      ]#
+      discard
+    else:
+      test """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
+        """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]".""":
+        func items (P: typedesc[Positive]): Stream[P, P] =
+          partial(?:P < P.high())
+            .looped(next)
+            .generating(itself[P])
+            .startingAt(() => P.low())
 
 
-      func takeWhileAndCollect (P: typedesc[Positive]): seq[Positive] =
-        result = newSeqOfCap[P](9)
+        func takeWhileAndCollect (P: typedesc[Positive]): seq[Positive] =
+          result = newSeqOfCap[P](9)
 
-        for it in P.low() ..< P.high():
-          if it < 10:
-            result.add(it)
-          else:
-            break
-
-
-      proc doTest () =
-        const
-          actual =
-            Positive
-              .items()
-              .takeWhile(partial(?:Positive < 10))
-              .reduce(
-                (s: seq[Positive], it: Positive) => s & it,
-                newSeqOfCap[Positive](9)
-              )
-          expected = Positive.takeWhileAndCollect()
-
-        check:
-          actual == expected
+          for it in P.low() ..< P.high():
+            if it < 10:
+              result.add(it)
+            else:
+              break
 
 
-      doTest()
+        proc doTest () =
+          const
+            actual =
+              Positive
+                .items()
+                .takeWhile(partial(?:Positive < 10))
+                .reduce(
+                  (s: seq[Positive], it: Positive) => s & it,
+                  newSeqOfCap[Positive](9)
+                )
+            expected = Positive.takeWhileAndCollect()
+
+          check:
+            actual == expected
+
+
+        doTest()
