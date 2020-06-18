@@ -25,14 +25,12 @@ when isMainModule:
 
         var pathTaken = 0.Natural
 
-        proc incrementPathCounter [T](value: T): T =
-          pathTaken.modify(plus1).apply(_ => value)
+        let incPathCounter =
+          (value: T) => pathTaken.modify(plus1).apply(_ => value)
 
         condition
-          .ifElse(
-            then.chain(incrementPathCounter),
-            `else`.chain(incrementPathCounter)
-          ).ignore()
+          .ifElse(then.chain(incPathCounter), `else`.chain(incPathCounter))
+          .ignore()
 
         let actual = pathTaken.read()
 
