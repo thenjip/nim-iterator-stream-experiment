@@ -21,6 +21,23 @@ func generator* [S; T](g: Reader[S, T]): Generator[S, T] =
 
 
 
+template stepType* [S; T](X: typedesc[Loop[S, T]]): typedesc[S] =
+  S
+
+
+template stepType* [S; T](self: Loop[S, T]): typedesc[S] =
+  self.typeof().stepType()
+
+
+template itemType* [S; T](X: typedesc[Loop[S, T]]): typedesc[T] =
+  T
+
+
+template itemType* [S; T](self: Loop[S, T]): typedesc[T] =
+  self.typeof().itemType()
+
+
+
 func generating* [S; T](
   scope: LoopScope[S];
   generator: Generator[S, T]
@@ -156,20 +173,17 @@ when isMainModule:
       proc runTest1 () =
         let loop = itself[Unit].infiniteLoop((_: Unit) => 14u64)
 
-        proc doRun (S: typedesc) =
-          doTest(
-            lensLawsSpec(
-              identitySpec(loop),
-              retentionSpec(loop, alwaysFalse[S].looped(itself)),
-              doubleWriteSpec(
-                loop,
-                alwaysFalse[S].looped(itself),
-                alwaysTrue[S].looped(itself)
-              )
+        doTest(
+          lensLawsSpec(
+            identitySpec(loop),
+            retentionSpec(loop, alwaysFalse[loop.stepType()].looped(itself)),
+            doubleWriteSpec(
+              loop,
+              alwaysFalse[loop.stepType()].looped(itself),
+              alwaysTrue[loop.stepType()].looped(itself)
             )
           )
-
-        doRun(loop.typeof().S)
+        )
 
 
       runTest1()
@@ -185,20 +199,20 @@ when isMainModule:
       proc runTest1 () =
         let loop = emptyLoop(Unit, seq[Unit])
 
-        proc doRun (S: typedesc; T: typedesc) =
-          doTest(
-            lensLawsSpec(
-              identitySpec(loop),
-              retentionSpec(loop, generator((_: S) => unit().repeat(5))),
-              doubleWriteSpec(
-                loop,
-                generator((_: S) => T.default()),
-                (_: S) => @[unit()]
-              )
+        doTest(
+          lensLawsSpec(
+            identitySpec(loop),
+            retentionSpec(
+              loop,
+              generator((_: loop.stepType()) => unit().repeat(5))
+            ),
+            doubleWriteSpec(
+              loop,
+              generator((_: loop.stepType()) => loop.itemType().default()),
+              (_: loop.stepType()) => @[unit()]
             )
           )
-
-        doRun(loop.typeof().S, loop.typeof().T)
+        )
 
 
       runTest1()
