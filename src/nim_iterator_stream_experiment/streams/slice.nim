@@ -9,18 +9,12 @@ import std/[sugar]
 
 
 type
-  SmallOrdinal* {.explain.} = concept type T
-    T is Ordinal
-    T.sizeof() < BiggestInt.default().sizeof()
-  BigOrdinal* {.explain.} = concept type T
-    T is Ordinal
-    T.sizeof() == BiggestInt.default().sizeof()
-
-  SmallOrdSliceStepIndex* = BiggestInt
+  SliceStepSignedIndex* = BiggestInt
 
   SliceStep* [T] = object
     i: T
-  SmallOrdSliceStep* = SliceStep[SmallOrdSliceStepIndex]
+
+  SliceStepSigned* = SliceStep[SliceStepSignedIndex]
 
 
 
@@ -41,27 +35,28 @@ func sliceStep* [T](i: T): SliceStep[T] =
   SliceStep[T](i: i)
 
 
-func smallOrdSliceStep* (i: SmallOrdSliceStepIndex): SmallOrdSliceStep =
-  sliceStep(i)
+func sliceStepSigned* [T: Ordinal](i: T): SliceStepSigned =
+  sliceStep(i as SliceStepSignedIndex)
 
 
 func current* [T](S: typedesc[SliceStep[T]]): Lens[S, T] =
   lens((self: S) => self.i, (_: S, i: T) => sliceStep(i))
 
 
-func ordinals* [T: SmallOrdinal](s: Slice[T]): Stream[SmallOrdSliceStep, T] =
+
+func ordinals* [T: Ordinal](s: Slice[T]): Stream[SliceStepSigned, T] =
   let
-    lens = SmallOrdSliceStep.current()
+    lens = result.typeof().stepType().current()
     readCurrent = lens.read()
 
   readCurrent
-    .map(partial(?_ < s.high().convert(SmallOrdSliceStepIndex).next()))
+    .map(partial(?_ < s.high().convert(SliceStepSignedIndex).next()))
     .looped(lens.modify(next))
     .generating(readCurrent.map(partial(?_ as T)))
-    .startingAt(() => smallOrdSliceStep(s.low() as SmallOrdSliceStepIndex))
+    .startingAt(() => sliceStepSigned(s.low()))
 
 
-func items* [T: BigOrdinal](s: Slice[T]): Stream[SliceStep[T], T] =
+func items* [T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T] =
   let
     lens = SliceStep[T].current()
     readCurrent = lens.read()
@@ -75,14 +70,77 @@ func items* [T: BigOrdinal](s: Slice[T]): Stream[SliceStep[T], T] =
 
 
 when isMainModule:
+  import ../utils/[ignore]
+
   import std/[os, unittest]
 
 
 
   suite currentSourcePath().splitFile().name:
-    test "test":
-      check:
-        slice(char.low(), char.high()).ordinals().count(BiggestUInt) == 256u16
-        slice(0u64, 9u64).items().count(csize_t) == 10u
-        slice(-1i32, -2).ordinals().count(uint32) == 0
-        slice(-100i16, -10).ordinals().count(uint16) == 91
+    test """Counting the number of values in "char.low() .. char.high()" with "ordinals()" should return the length of this slice.""":
+      proc doTest () =
+        let
+          slice = char.low() .. char.high()
+          actual = slice.ordinals().count(Natural)
+          expected = slice.len()
+
+        check:
+          actual == expected
+
+
+      doTest()
+
+
+
+    test """Counting the number of values in the "char" type with "items()" should raise an "OverflowError".""":
+      proc doTest () =
+        expect OverflowError:
+          slice(char.low(), char.high()).items().count(Natural).ignore()
+
+
+      doTest()
+
+
+
+    test """Counting the number of items in an empty slice should return 0.""":
+      proc doTest [T: Ordinal](slice: Slice[T]) =
+        let
+          actual = slice.items().count(BiggestUInt)
+          expected = slice.len() as actual.typeof()
+
+        require:
+          expected == 0
+
+        check:
+          actual == expected
+
+
+      doTest(-1i32 .. -53i32)
+      doTest(156u64 .. 1u64)
+
+
+
+    test """Count the number of odd numbers in an integer slice at compile time.""":
+      func isOdd [I: SomeInteger](i: I): bool =
+        i mod 2 == 1
+
+
+      func countOdd [I: SomeInteger](s: Slice[I]): BiggestUInt =
+        result = 0
+
+        for i in s:
+          if i.isOdd():
+            result.inc()
+
+
+      proc doTest [I: SomeInteger](low, high: static I) =
+        const
+          s = slice(low, high)
+          actual = s.items().filter(isOdd[I]).count(BiggestUInt)
+          expected = s.countOdd()
+
+        check:
+          actual == expected
+
+
+      doTest(0u, 10u)
