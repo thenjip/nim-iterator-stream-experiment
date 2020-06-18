@@ -354,23 +354,21 @@ when isMainModule:
 
 
 
-    when defined(js):
-      #[
-        Disable the test because JS maps Nim's integer types to a "Number" or
-        "BigInt" and it could potentially last for a while.
-      ]#
-      discard
-    else:
-      test """Running an "infinite(next[I])" to count up starting at "start" should raise an "OverflowError".""":
-        proc doTest [I: SomeSignedInt](start: I) =
-          debugEcho(start)
+    test """Running an "infinite(next[I])" to count up starting at "start" should raise an "OverflowError".""":
+      proc doTest [I: SomeSignedInt](start: I) =
+        when defined(js):
+          #[
+            The generated JS does not seem to raise an "OverflowError".
+          ]#
+          skip()
+        else:
           expect OverflowError:
             next[I].infinite().run(start).ignore()
 
 
-        doTest(int16.high() div 2.int16)
-        doTest(int8.high())
-        doTest(0.int8)
+      doTest(int16.high() div 2.int16)
+      doTest(int8.high())
+      doTest(0.int8)
 
 
 

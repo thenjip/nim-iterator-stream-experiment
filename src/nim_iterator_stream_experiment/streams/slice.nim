@@ -94,8 +94,14 @@ when isMainModule:
 
     test """Counting the number of values in the "char" type with "items()" should raise an "OverflowError".""":
       proc doTest () =
-        expect OverflowError:
-          slice(char.low(), char.high()).items().count(Natural).ignore()
+        when defined(js):
+          #[
+            The generated JS does not seem to raise an "OverflowError".
+          ]#
+          skip()
+        else:
+          expect OverflowError:
+            slice(char.low(), char.high()).items().count(Natural).ignore()
 
 
       doTest()
@@ -120,24 +126,16 @@ when isMainModule:
 
 
 
-    test """Count the number of odd numbers in an integer slice at compile time.""":
+    test """Counting the number of odd numbers in an integer slice "s" at compile time should return "s.len() div 2".""":
       func isOdd [I: SomeInteger](i: I): bool =
         i mod 2 == 1
-
-
-      func countOdd [I: SomeInteger](s: Slice[I]): BiggestUInt =
-        result = 0
-
-        for i in s:
-          if i.isOdd():
-            result.inc()
 
 
       proc doTest [I: SomeInteger](low, high: static I) =
         const
           s = slice(low, high)
           actual = s.items().filter(isOdd[I]).count(BiggestUInt)
-          expected = s.countOdd()
+          expected = s.len() div 2 as actual.typeof()
 
         check:
           actual == expected

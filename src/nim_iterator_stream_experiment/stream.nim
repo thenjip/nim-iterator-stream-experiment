@@ -551,26 +551,19 @@ when isMainModule:
           actual == expected
 
 
-      when defined(js):
-        doTest(
-          infiniteStreamParam(
-            stepper(itself[char]),
-            generator(partial($ ?:char)),
-            () => char.default(),
-            doNothing[char]
-          ),
-          7u
-        )
-      else:
-        doTest(
-          infiniteStreamParam(
-            stepper(itself[uint16]),
-            generator(partial($ ?:uint16)),
-            () => 1u16,
-            doNothing[uint16]
-          ),
-          10u
-        )
+      doTest(
+        infiniteStreamParam(
+          stepper(itself[uint16]),
+          when defined(js):
+            generator((i: uint16) => (i, i))
+          else:
+            generator(partial($ ?:uint16))
+          ,
+          () => 1u16,
+          doNothing[uint16]
+        ),
+        10u
+      )
 
 
 
@@ -610,46 +603,39 @@ when isMainModule:
 
 
 
-    when defined(js):
-      #[
-        "takeWhile" is not currently compatible with compile time execution on
-        the JS backend.
-      ]#
-      discard
-    else:
-      test """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
-        """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]".""":
-        func items (P: typedesc[Positive]): Stream[P, P] =
-          partial(?:P < P.high())
-            .looped(next)
-            .generating(itself[P])
-            .startingAt(() => P.low())
+    test """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
+      """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]".""":
+      func items (P: typedesc[Positive]): Stream[P, P] =
+        partial(?:P < P.high())
+          .looped(next)
+          .generating(itself[P])
+          .startingAt(() => P.low())
 
 
-        func takeWhileAndCollect (P: typedesc[Positive]): seq[Positive] =
-          result = newSeqOfCap[P](9)
+      func takeWhileAndCollect (P: typedesc[Positive]): seq[Positive] =
+        result = newSeqOfCap[P](9)
 
-          for it in P.low() ..< P.high():
-            if it < 10:
-              result.add(it)
-            else:
-              break
-
-
-        proc doTest () =
-          const
-            actual =
-              Positive
-                .items()
-                .takeWhile(partial(?:Positive < 10))
-                .reduce(
-                  (s: seq[Positive], it: Positive) => s & it,
-                  newSeqOfCap[Positive](9)
-                )
-            expected = Positive.takeWhileAndCollect()
-
-          check:
-            actual == expected
+        for it in P.low() ..< P.high():
+          if it < 10:
+            result.add(it)
+          else:
+            break
 
 
-        doTest()
+      proc doTest () =
+        const
+          actual =
+            Positive
+              .items()
+              .takeWhile(partial(?:Positive < 10))
+              .reduce(
+                (s: seq[Positive], it: Positive) => s & it,
+                newSeqOfCap[Positive](9)
+              )
+          expected = Positive.takeWhileAndCollect()
+
+        check:
+          actual == expected
+
+
+      doTest()
