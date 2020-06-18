@@ -193,7 +193,7 @@ when isMainModule:
       template doTest [A; B](
         sut: static[proc (argument: Optional[A]): B {.noSideEffect.}];
         argument: Optional[A]{noSideEffect};
-        expected: B
+        expected: static B
       ): proc () {.nimcall.} =
         (
           proc () =

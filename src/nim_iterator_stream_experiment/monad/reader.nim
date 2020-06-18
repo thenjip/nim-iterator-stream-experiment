@@ -101,8 +101,8 @@ when isMainModule:
     test """"Reader[S, T]" without side effects should be compatible with compile time execution.""":
       template doTest [S; T](
         sut: Reader[S, T]{noSideEffect};
-        state: S{noSideEffect};
-        expected: T
+        state: static S;
+        expected: static T
       ): proc () {.nimcall.} =
         (
           proc () =

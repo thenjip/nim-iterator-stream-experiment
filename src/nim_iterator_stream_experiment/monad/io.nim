@@ -89,7 +89,7 @@ when isMainModule:
     test """"IO[T]" without side effects should be compatible with compile time execution.""":
       template doTest [T](
         sut: IO[T]{noSideEffect};
-        expected: T
+        expected: static T
       ): proc () {.nimcall.} =
         (
           proc () =

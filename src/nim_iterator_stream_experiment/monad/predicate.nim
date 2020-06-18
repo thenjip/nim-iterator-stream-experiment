@@ -45,9 +45,9 @@ func alwaysTrue* [T](_: T): bool =
 
 when isMainModule:
   import identity
-  import ../utils/[ignore, operators, unit, variables]
+  import ../utils/[call, ignore, operators, unit, variables]
 
-  import std/[os, unittest]
+  import std/[os, strutils, unittest]
 
 
 
@@ -118,14 +118,12 @@ when isMainModule:
 
         var pathTaken = 0.Natural
 
-        proc incrementPathCounter [T](value: T): T =
-          pathTaken.modify(plus1).apply(_ => value)
+        let incPathCounter =
+          (value: B) => pathTaken.modify(plus1).apply(_ => value)
 
         self
-          .ifElse(
-            then.map(incrementPathCounter),
-            `else`.map(incrementPathCounter)
-          ).run(value)
+          .ifElse(then.map(incPathCounter), `else`.map(incPathCounter))
+          .run(value)
           .ignore()
 
         let actual = pathTaken.read()
@@ -136,3 +134,30 @@ when isMainModule:
 
       doTest(alwaysTrue[Unit], itself[Unit], itself, unit())
       doTest(alwaysFalse[int16], partial($ ?:int16), _ => "abc", 542)
+
+
+
+    test """"self.test(value)" at compile time should return the expected boolean.""":
+      template doTest [T](
+        self: Predicate[T]{noSideEffect};
+        value: static T;
+        expected: static bool
+      ): proc () {.nimcall.} =
+        (
+          proc () =
+            const actual = predicate.test(self, value)
+
+            check:
+              actual == expected
+        )
+
+
+      for t in [
+        doTest(partial(?:int > 0), -1, false),
+        doTest(
+          partial(?:char in Letters) and partial(?:char != '\0'),
+          'a',
+          true
+        )
+      ]:
+        t.call()
