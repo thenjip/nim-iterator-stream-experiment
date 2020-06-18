@@ -41,6 +41,15 @@ func runOnceResult* [S; T](step: S; item: Optional[T]): RunOnceResult[S, T] =
 
 
 
+template stepType* [S](X: typedesc[LoopScope[S]]): typedesc[S] =
+  S
+
+
+template stepType* [S](self: LoopScope[S]): typedesc[S] =
+  self.typeof().stepType()
+
+
+
 func step* [SA; T](
   X: typedesc[RunOnceResult[SA, T]]; SB: typedesc
 ): PLens[X, SA, SB, RunOnceResult[SB, T]] =
@@ -189,22 +198,19 @@ when isMainModule:
 
 
       proc runTest1 () =
-        let loopScope = partial(?:int32 < 53).looped(plus1)
+        let scope = partial(?:int32 < 53).looped(plus1)
 
-        proc doRun (S: typedesc) =
-          doTest(
-            lensLawsSpec(
-              identitySpec(loopScope),
-              retentionSpec(loopScope, partial(?:S < 100).condition()),
-              doubleWriteSpec(
-                loopScope,
-                partial(?:S > 5).condition(),
-                partial(?_ != 7)
-              )
+        doTest(
+          lensLawsSpec(
+            identitySpec(scope),
+            retentionSpec(scope, partial(?:scope.stepType() < 100).condition()),
+            doubleWriteSpec(
+              scope,
+              partial(?:scope.stepType() > 5).condition(),
+              partial(?_ != 7)
             )
           )
-
-        doRun(loopScope.typeof().S)
+        )
 
 
       runTest1()
@@ -218,18 +224,19 @@ when isMainModule:
 
 
       proc runTest1 () =
-        let loopScope = partial(?:char in {'a'..'z'}).looped(next)
+        let scope = partial(?:char in {'a'..'z'}).looped(next)
 
-        proc doRun (S: typedesc) =
-          doTest(
-            lensLawsSpec(
-              identitySpec(loopScope),
-              retentionSpec(loopScope, stepper(prev[S])),
-              doubleWriteSpec(loopScope, stepper((c: S) => '0'), itself[S])
+        doTest(
+          lensLawsSpec(
+            identitySpec(scope),
+            retentionSpec(scope, stepper(prev[scope.stepType()])),
+            doubleWriteSpec(
+              scope,
+              stepper((c: scope.stepType()) => '0'),
+              itself[scope.stepType()]
             )
           )
-
-        doRun(loopScope.typeof().S)
+        )
 
 
       runTest1()
@@ -310,10 +317,10 @@ when isMainModule:
 
 
     test """Using a LoopScope to copy an array should return an array equal to the original.""":
-      proc doTest [I: Ordinal, T](expected: array[I, T]) =
+      proc doTest [I: Ordinal; T](expected: array[I, T]) =
         var copy: expected.typeof()
 
-        let sut = looped((i: I) => i.ord() < expected.len(), next)
+        let sut = looped((i: I) => i.int < expected.len(), next)
 
         sut
           .run(
@@ -347,15 +354,23 @@ when isMainModule:
 
 
 
-    test """Running an "infinite(i => i + 1)" to count up starting at "start" should raise an "OverflowError".""":
-      proc doTest [I: SomeSignedInt](start: I) =
-        expect OverflowError:
-          partial(?:I + 1).infinite().run(start).ignore()
+    when defined(js):
+      #[
+        Disable the test because JS maps Nim's integer types to a "Number" or
+        "BigInt" and it could potentially last for a while.
+      ]#
+      discard
+    else:
+      test """Running an "infinite(next[I])" to count up starting at "start" should raise an "OverflowError".""":
+        proc doTest [I: SomeSignedInt](start: I) =
+          debugEcho(start)
+          expect OverflowError:
+            next[I].infinite().run(start).ignore()
 
 
-      doTest(int16.high() div 2)
-      doTest(int8.high())
-      doTest(0.int8)
+        doTest(int16.high() div 2.int16)
+        doTest(int8.high())
+        doTest(0.int8)
 
 
 
@@ -388,15 +403,18 @@ when isMainModule:
 
 
     test """Using "sut.breakIf(n => n mod 2 == 1)" when iterating on Natural numbers should return the first found odd number.""":
+      func isOdd [I: SomeInteger](i: I): bool =
+        i mod 2 == 1
+
+
       proc doTest (start: Natural) =
         let
           actual =
-            partial(?:Natural < 10)
-              .looped(plus1)
-              .breakIf((n: Natural) => n mod 2 == 1)
+            partial(?:start.typeof() < 10)
+              .looped(next)
+              .breakIf(isOdd[start.typeof()])
               .run(start)
-          expected =
-            start.modulo(2).equal(1).ifElse(() => start, () => start.plus1())
+          expected = isOdd[start.typeof()].ifElse(itself, next).run(start)
 
         check:
           actual == expected
