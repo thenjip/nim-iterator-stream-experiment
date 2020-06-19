@@ -7,7 +7,7 @@
 
 
 
-import identity
+import identity, predicate
 import ../utils/[chain, ifelse]
 
 import std/[sugar]
@@ -17,6 +17,8 @@ import std/[sugar]
 type
   Nilable* = concept var x
     x = nil
+
+  UnboxError* = object of CatchableError
 
   Optional* [T] = object
     when T is Nilable:
@@ -78,7 +80,7 @@ proc ifSome* [A; B](self: Optional[A]; then: A -> B; `else`: () -> B): B =
 
 
 proc flatMap* [A; B](self: Optional[A]; f: A -> Optional[B]): Optional[B] =
-  self.ifSome(f, toNone[B])
+  self.ifSome(f, toNone)
 
 
 proc map* [A; B](self: Optional[A]; f: A -> B): Optional[B] =
@@ -86,15 +88,18 @@ proc map* [A; B](self: Optional[A]; f: A -> B): Optional[B] =
 
 
 
-func get* [T](self: Optional[T]): T {.raises: [Exception, ValueError].} =
-  self.ifSome(itself, proc (): T = raise ValueError.newException(""))
+func unbox* [T](self: Optional[T]): T {.raises: [Exception, UnboxError].} =
+  self
+    .ifSome(
+      itself,
+      proc (): T =
+        raise UnboxError.newException("")
+    )
 
 
 
-proc filter* [T](self: Optional[T]; predicate: T -> bool): Optional[T] =
-  self.flatMap(
-    (item: T) => item.predicate().ifElse(() => item.toSome(), toNone[T])
-  )
+proc filter* [T](self: Optional[T]; predicate: Predicate[T]): Optional[T] =
+  self.flatMap(predicate.ifElse(toSome, _ => T.toNone()))
 
 
 
@@ -109,83 +114,50 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 
 when isMainModule:
-  import io, monadlaws
-  import ../utils/[ignore, unit]
+  import monadlaws
+  import ../utils/[call, ignore, partialprocs, proctypes, unit]
 
   import std/[os, unittest]
 
 
 
-  template lazyCheck (checks: untyped): () -> Unit =
-    (
-      proc (): Unit =
-        check:
-          checks
-    )
-
-
-
   suite currentSourcePath().splitFile().name:
-    test "toSome: not Nilable":
-      proc doTest [T: not Nilable](expectedVal: T) =
-        let
-          expected = Optional[T](empty: false, value: expectedVal)
-          sut = expectedVal.toSome()
-
+    test """The "Nilable" concept should match standard "nil" types.""":
+      proc doTest (T: typedesc) =
         check:
-          sut == expected
+          T is Nilable
 
 
-      doTest(1)
-      doTest(@[0])
-      doTest("a")
+      doTest(ptr cstring)
+      doTest(pointer)
+      doTest(ref tuple[a: Unit; b: char])
+      doTest(int -> string)
+      doTest(cstring)
 
 
 
-    test "toSome: Nilable":
-      proc doTest [T: Nilable](expectedVal: T) =
-        let
-          expected = Optional[T](value: expectedVal)
-          sut = expectedVal.toSome()
-
+    test """The "Nilable" concept should not match standard non "nil" types.""":
+      proc doTest (T: typedesc) =
         check:
-          sut == expected
+          T isnot Nilable
 
 
-      doTest("a".cstring)
-      doTest(() => -1)
-      doTest(ArithmeticError.newException(""))
-
-
-
-    test "toNone: not Nilable":
-      proc doTest (T: typedesc[not Nilable]) =
-        let
-          expected = Optional[T](empty: true)
-          sut = T.toNone()
-
-        check:
-          sut == expected
-
-
-      doTest(set[char])
-      doTest({'a': 0}.typeof())
+      doTest(cuint)
+      doTest(string)
+      doTest(seq[cdouble])
+      doTest(tuple[a: Unit; b: byte])
+      doTest(Slice[Natural])
+      doTest(Positive)
 
 
 
-    test "toNone: Nilable":
+    test """"nil.toSome()" should raise a "Defect" at runtime.""":
       proc doTest (T: typedesc[Nilable]) =
-        let
-          expected = Optional[T](value: nil)
-          sut = T.toNone()
-
-        check:
-          sut == expected
+        expect Defect:
+          nil.T.toSome().ignore()
 
 
       doTest(pointer)
-      doTest(ref RootObj)
-      doTest(() -> void)
 
 
 
@@ -202,226 +174,130 @@ when isMainModule:
           leftIdentitySpec(NaN, toSome, _ => float32.toNone()),
           ["".cstring, nil]
             .apply(
-              initial =>
-                rightIdentitySpec(initial, _ => initial.typeof().toNone())
+              expected =>
+                rightIdentitySpec(expected, _ => expected.typeof().toNone())
             )
           ,
           associativitySpec(
             69,
             toSome,
-            (i) => toSome(i - 5),
-            (i: int) => i.`$`().toSome()
+            i => toSome(toNone[i.typeof()]),
+            (p: toNone[int].typeof()) => p.call().`$`().toSome()
           )
         )
       )
 
 
 
-    test "ifSome: with some":
-      proc doTest [A; B](initialVal: A; expected, unexpected: B) =
-        require:
-          expected != unexpected
+    test """Computations that use "Optional[T]" and without side effects should be compatible with compile time execution.""":
+      template doTest [A; B](
+        sut: static[proc (argument: Optional[A]): B {.noSideEffect.}];
+        argument: Optional[A]{noSideEffect};
+        expected: static B
+      ): proc () {.nimcall.} =
+        (
+          proc () =
+            const actual = sut.call(argument)
 
-        let sut =
-          initialVal
-            .toSome()
-            .ifSome(
-              a => lazyCheck(a == initialVal).chain(_ => expected).run(),
-              () => unexpected
-            )
-
-        check:
-          sut == expected
+            check:
+              actual == expected
+        )
 
 
-      doTest(['a'], 0, 1)
-      doTest("a", () => 0, () => 0)
+      func sut1 [T](arg: Optional[T]): T =
+        arg.unbox()
+
+      func expected1 (): int =
+        -2
+
+      func argument1 (): Optional[expected1.returnType()] =
+        expected1().toSome()
 
 
+      func sut2 [T: Nilable](arg: Optional[T]): T =
+        arg.ifSome(itself, () => nil.T)
 
-    test "ifSome: with none":
-      proc doTest [B](A: typedesc; expected, unexpected: B) =
-        require:
-          expected != unexpected
+      func expected2 (): ref char =
+        nil
 
-        let sut = A.toNone().ifSome(_ => unexpected, () => expected)
-
-        check:
-          sut == expected
+      func argument2 (): Optional[expected2.returnType()] =
+        expected2.returnType().toNone()
 
 
-      doTest(uint16, "a", "b")
-      doTest(seq[int], false, true)
-
-
-
-    test "ifNone: with some":
-      proc doTest [A; B](initialVal: A; expected, unexpected: B) =
-        require:
-          expected != unexpected
-
-        let sut =
-          initialVal
-          .toSome()
-          .ifNone(
-            () => unexpected,
-            a => lazyCheck(a == initialVal).chain(_ => expected).run()
-          )
-
-        check:
-          sut == expected
-
-
-      doTest("a", 'a', 'b')
+      for t in [
+        doTest(sut1[expected1.returnType()], argument1(), expected1()),
+        doTest(sut2[expected2.returnType()], argument2(), expected2())
+      ]:
+        t.call()
 
 
 
-    test "ifNone: with none":
-      proc doTest [B](A: typedesc; expected, unexpected: B) =
-        require:
-          expected != unexpected
-
-        let sut = A.toNone().ifNone(() => expected, _ => unexpected)
-
-        check:
-          sut == expected
-
-
-      doTest(cfloat, -1, 6)
-
-
-
-    test "get: with some":
+    test """"unbox" with "some" should return the "expected" value.""":
       proc doTest [T](expected: T) =
-        let sut = expected.toSome().get()
+        let actual = expected.toSome().unbox()
 
         check:
-          sut == expected
+          actual == expected
 
 
       doTest(["a", "b"])
+      doTest(1)
+      doTest((1, 1.005))
+      doTest(() => 5)
 
 
 
-    test "get: with none":
+    test """"unbox" with "none" should raise a "CatchableError" at runtime.""":
       proc doTest (T: typedesc) =
-        expect ValueError:
-          T.toNone().get().ignore()
+        expect CatchableError:
+          T.toNone().unbox().ignore()
 
 
       doTest(int)
 
 
 
-    test "flatMap: with some":
-      proc doTest [A; B](initialVal: A; expectedVal: B) =
-        let
-          expected = expectedVal.toSome()
-          sut =
-            initialVal
-            .toSome()
-            .flatMap(
-              (a: A) =>
-                lazyCheck(a == initialVal)
-                .chain(_ => expectedVal.toSome())
-                .run()
-            )
-
-        check:
-          sut == expected
-
-
-      doTest(0, 'a')
-
-
-
-    test "flatMap: with none":
-      proc doTest [B](A: typedesc; unexpectedVal: B) =
-        let
-          expected = B.toNone()
-          sut = A.toNone().flatMap((_: A) => unexpectedVal.toSome())
-
-        check:
-          sut == expected
-
-
-      doTest(string, () => 0.0)
-
-
-
-    test "map: with some":
-      proc doTest [A; B](initialVal: A; expectedVal: B) =
-        let
-          expected = expectedVal.toSome()
-          sut =
-            initialVal
-            .toSome()
-            .map(a => lazyCheck(a == initialVal).chain(_ => expectedVal).run())
-
-        check:
-          sut == expected
-
-
-      doTest(2.toBiggestFloat(), {0})
-
-
-
-    test "map: with none":
-      proc doTest [B](A: typedesc; unexpectedVal: B) =
-        let
-          expected = B.toNone()
-          sut = A.toNone().map(_ => unexpectedVal)
-
-        check:
-          sut == expected
-
-
-      doTest(float32, 'a')
-
-
-
-    test "filter: some -> some":
-      proc doTest [T](val: T; predicate: T -> bool) =
-        require:
-          val.predicate()
-
-        let
-          expected = val.toSome()
-          sut = val.toSome().filter(predicate)
-
-        check:
-          sut == expected
-
-
-      doTest(86, i => i > 80)
-
-
-
-    test "filter: some -> none":
-      proc doTest [T](val: T; predicate: T -> bool) =
-        require:
-          not val.predicate()
-
+    test """"self.filter(predicate)" with "none" should return "none".""":
+      proc doTest [T](predicate: Predicate[T]) =
         let
           expected = T.toNone()
-          sut = val.toSome().filter(predicate)
+          actual = expected.filter(predicate)
 
         check:
-          sut == expected
+          actual == expected
 
 
-        doTest("", s => s.len() > 0)
+      doTest((s: string) => s.len() > 0)
+      doTest(alwaysTrue[uint])
+      doTest(alwaysFalse[ptr cint])
 
 
 
-    test "filter: none -> none":
-      proc doTest (T: typedesc; predicate: T -> bool) =
+    test """"self.filter(predicate)" with "some" and a predicate that will be verified should return "self".""":
+      proc doTest [T](value: T) =
+        let
+          expected = value.toSome()
+          actual = expected.filter(alwaysTrue[T])
+
+        check:
+          actual == expected
+
+
+      doTest(new cfloat)
+      doTest('a')
+
+
+
+    test """"self.filter(predicate)" with "some" and a predicate that will not be verified should return "none".""":
+      proc doTest [T](value: T) =
         let
           expected = T.toNone()
-          sut = T.toNone().filter(predicate)
+          actual = value.toSome().filter(alwaysFalse[T])
 
         check:
-          sut == expected
+          actual == expected
 
 
-      doTest(char, c => true)
+      doTest("abc".cstring)
+      doTest(partial($ ?:uint))
+      doTest(0)

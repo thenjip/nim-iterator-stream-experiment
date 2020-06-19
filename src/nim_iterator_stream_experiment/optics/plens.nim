@@ -21,18 +21,18 @@ import std/[sugar]
 
 
 type
-  PLensReader* [S; T] = Reader[S, T]
-  PLensWriter* [SR; W; SW] = (state: SR, value: W) -> SW
+  MemberReader* [S; T] = Reader[S, T]
+  MemberUpdater* [SR; W; SW] = (state: SR, value: W) -> SW
 
   PLens* [SR; R; W; SW] = object
-    reader: PLensReader[SR, R]
-    writer: PLensWriter[SR, W, SW]
+    reader: MemberReader[SR, R]
+    writer: MemberUpdater[SR, W, SW]
 
 
 
 func lens* [SR; R; W; SW](
-  reader: PLensReader[SR, R];
-  writer: PLensWriter[SR, W, SW]
+  reader: MemberReader[SR, R];
+  writer: MemberUpdater[SR, W, SW]
 ): PLens[SR, R, W, SW] =
   PLens[SR, R, W, SW](reader: reader, writer: writer)
 

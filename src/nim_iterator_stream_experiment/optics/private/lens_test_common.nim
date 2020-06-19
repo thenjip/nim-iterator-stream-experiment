@@ -1,4 +1,4 @@
-import lens
+import ../lens
 
 import std/[sugar]
 

@@ -1,5 +1,5 @@
 import identity
-import ../utils/[chain]
+import ../utils/[call, chain]
 
 import std/[sugar]
 
@@ -28,7 +28,7 @@ func toReader* [S; T](value: T): Reader[S, T] =
 
 
 proc run* [S; T](self: Reader[S, T]; state: S): T =
-  state.self()
+  self.call(state)
 
 
 
@@ -54,8 +54,8 @@ func local* [S; T](self: Reader[S, T]; f: S -> S): Reader[S, T] =
 
 
 when isMainModule:
-  import io, lazymonadlaws
-  import ../utils/[unit]
+  import lazymonadlaws
+  import ../utils/[operators, partialprocs, proctypes, unit]
 
   import std/[os, sequtils, unittest]
 
@@ -64,15 +64,6 @@ when isMainModule:
   static:
     doAssert(
       Reader[cuint, ref NilAccessError] is LazyMonad[ref NilAccessError, cuint]
-    )
-
-
-
-  template lazyCheck (checks: untyped): proc (): Unit =
-    (
-      proc (): Unit =
-        check:
-          checks
     )
 
 
@@ -90,16 +81,16 @@ when isMainModule:
         monadLawsSpec(
           leftIdentitySpec(
             @["a", "abc", "012"],
-            a => a.toReader(Unit),
+            partial(toReader(?_, Unit)),
             s => s.foldl(a + b.len().uint, 0u).toReader(Unit),
             unit()
           ),
-          rightIdentitySpec({0..9}, a => a.toReader(cfloat), 165.8),
+          rightIdentitySpec({0..9}, partial(toReader(?_, cfloat)), 165.8),
           associativitySpec(
             ([0, 7], 'a'),
-            a => a.toReader(string),
-            t => toReader(t[0].foldl(a + b, 0) + t[1].ord(), string),
-            (i: int) => i.`mod`(2).toReader(string),
+            partial(toReader(?_, string)),
+            t => t[0].foldl(a + b, 0).plus(t[1].ord()).toReader(string),
+            (i: int) => i.modulo(2).toReader(string),
             "0123"
           )
         )
@@ -107,60 +98,38 @@ when isMainModule:
 
 
 
-    test """"S.ask()" or "ask[S]" should return a "Reader[S, S]" that returns the passed argument.""":
-      proc doTest [S](expected: S) =
-        let
-          sut1 = S.ask()
-          sut2 = ask[S]()
+    test """"Reader[S, T]" without side effects should be compatible with compile time execution.""":
+      template doTest [S; T](
+        sut: Reader[S, T]{noSideEffect};
+        state: static S;
+        expected: static T
+      ): proc () {.nimcall.} =
+        (
+          proc () =
+            const actual = sut.run(state)
 
-        check:
-          sut1.run(expected) == expected
-          sut2.run(expected) == expected
+            check:
+              actual == expected
+        )
 
 
-      doTest(@[new string])
-      doTest({0: 'a'})
+      func expected1 (): string =
+        "abc"
+
+      func sut1 (): Reader[Unit, expected1.returnType()] =
+        (_: Unit) => expected1.call()
+
+
+      doTest(sut1.call(), unit(), expected1.call()).call()
 
 
 
     test """"S.ask()" should give access to the read state when using "flatMap".""":
-      proc doTest [S; T](initial: Reader[S, T]; expected: S) =
-        let sut = initial.flatMap((_: T) => S.ask())
+      proc doTest [S; T](self: Reader[S, T]; expected: S) =
+        let actual = self.flatMap((_: T) => S.ask()).run(expected)
 
         check:
-          sut.run(expected) == expected
+          actual == expected
 
 
-      doTest((s: string) => s.len(), "abc")
-
-
-
-    test "local":
-      proc checkState [S](T: typedesc; expectedState: S): T -> Reader[S, T] =
-        (a: T) =>
-          S
-          .ask()
-          .map(s => lazyCheck(s == expectedState).map(_ => a).run())
-
-
-      proc doTest [S; T](
-        expectedVal: T;
-        initialState: S;
-        modifiedState: S;
-        f: S -> S
-      ) =
-        require:
-          initialState != modifiedState
-
-        let sut =
-          expectedVal
-          .toReader(S)
-          .flatMap(T.checkState(modifiedState))
-          .local(f)
-          .flatMap(T.checkState(initialState))
-
-        check:
-          initialState.sut() == expectedVal
-
-
-      doTest(0, "a", "ab", s => s & "b")
+      doTest(partial(len(?:string)), "abc")

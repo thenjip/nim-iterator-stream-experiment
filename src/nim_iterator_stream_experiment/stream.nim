@@ -1,16 +1,17 @@
 import loop
-import loop/[loopscope, loopsteps]
+import loop/[loopscope]
 import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
 import stream/[streamsteps]
+import types/[somenatural]
 import
   utils/[
     convert,
-    ignore,
     ifelse,
     lambda,
     operators,
     partialprocs,
+    reducer,
     unit,
     variables
   ]
@@ -30,6 +31,24 @@ type
 
 
 
+func initializer* [T](self: IO[T]): Initializer[T] =
+  self
+
+
+func onCloseEvent* [T](self: Reader[T, Unit]): OnCloseEvent[T] =
+  self
+
+
+
+template stepType* [S; T](X: typedesc[Stream[S, T]]): typedesc[S] =
+  S
+
+
+template stepType* [S; T](self: Stream[S, T]): typedesc[S] =
+  self.typeof().stepType()
+
+
+
 func startingAt* [S; T](
   loop: Loop[S, T];
   initialStep: Initializer[S];
@@ -42,6 +61,7 @@ func startingAt* [S; T](
   loop: Loop[S, T];
   initialStep: Initializer[S]
 ): Stream[S, T] =
+  ## An overload that will do nothing when the returned stream is closed.
   loop.startingAt(initialStep, doNothing[S])
 
 
@@ -101,20 +121,8 @@ func stepper* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]] =
 
 
 
-proc hasMore [S; T](self: Stream[S, T]; step: S): bool =
-  self.read(self.typeof().condition()).test(step)
-
-
-proc generate [S; T](self: Stream[S, T]; step: S): T =
-  self.read(self.typeof().generator()).run(step)
-
-
-proc nextStep [S; T](self: Stream[S, T]; step: S): S =
-  self.read(self.typeof().stepper()).run(step)
-
-
-proc run* [S](self: Stream[S, Unit]): Unit =
-  self.loop.run(self.initialStep.run()).apply(self.onCloseEvent)
+proc run* [S](self: Stream[S, Unit]): S =
+  self.initialStep.bracket(partial(self.loop.run(?_)), self.onCloseEvent).run()
 
 
 
@@ -142,8 +150,8 @@ proc mapSteps* [SA; SB; T](
 
 
 
-func emptyStream* (T: typedesc): Stream[ZeroStep, T] =
-  T.emptyLoop().startingAt(zeroStep)
+func emptyStream* (T: typedesc): Stream[EmptyStep, T] =
+  emptyLoop(EmptyStep, T).startingAt(emptyStep)
 
 
 func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
@@ -165,76 +173,99 @@ func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
 func onClose* [S; T](self: Stream[S, T]; callBack: () -> Unit): Stream[S, T] =
   self.modify(
     self.typeof().onCloseEvent(),
-    event => event.map(_ => callBack.run())
+    partial(map(?_, _ => callBack.run()))
   )
 
 
 
 func map* [S; A; B](self: Stream[S, A]; f: A -> B): Stream[S, B] =
-  self.modify(self.typeof().generator(B), gen => gen.map(f))
+  self.modify(self.typeof().generator(B), partial(map(?_, f)))
 
 
-func filter* [S; T](
-  self: Stream[S, T];
-  predicate: Predicate[T]
-): Stream[S, Optional[T]] =
-  self.map(item => predicate.test(item).ifElse(() => item.toSome(), toNone[T]))
+func filter* [S; T](self: Stream[S, T]; predicate: Predicate[T]): Stream[S, T] =
+  let dropSteps = self.loop.dropWhile(not predicate)
+
+  self
+    .modify(self.typeof().initialStep(), partial(map(?_, dropSteps)))
+    .modify(self.typeof().stepper(), partial(map(?_, dropSteps)))
 
 
-func limit* [S; T; N](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T] =
-  func buildResult [S; N](
-    self: self.typeof();
-    n: N;
-    L: typedesc[LimitStep[S, N]]
-  ): result.typeof() =
-    self
-      .mapSteps(
-        L.step().read(),
-        stepper =>
-          L.step().modify(stepper).map(L.count().modify(partial(?_ + 1)))
-        ,
-        partial(limitStep(?:S, 0.N))
-      ).modify(
-        result.typeof().condition(),
-        partial(?_ and L.count().read().map(partial(?_ < n)))
-      )
 
-  self.buildResult(n, LimitStep[S, N])
-
-
-func skip* [S; T; N: SomeUnsignedInt](
+func limit* [S; T; N: SomeNatural](
   self: Stream[S, T];
   n: N
-): IO[Stream[S, T]] =
-  let readStep = SkipStep[S, N].step().read()
+): Stream[LimitStep[S, N], T] =
+  let limitLenses =
+    (step: LimitStep[S, N].step(), count: LimitStep[S, N].count())
 
-  func buildSkipLoopScope [S; N](
-    scope: LoopScope[S];
-    n: N;
-    SK: typedesc[SkipStep[S, N]]
-  ): LoopScope[SK] =
-    scope.mapSteps(
-      (hasMore: Condition[S]) =>
-        readStep.map(hasMore) and SK.count().read().map(partial(?_ < n))
+  self
+    .mapSteps(
+      limitLenses.step.read(),
+      stepper =>
+        limitLenses.step.modify(stepper).map(limitLenses.count.modify(next[N]))
       ,
-      (stepper: Stepper[S]) =>
-        SK.step().modify(stepper).map(SK.count().modify(partial(?_ + 1)))
+      partial(limitStep(?:S, 0 as N))
+    ).modify(
+      result.typeof().scope(),
+      scope => scope.breakIf(limitLenses.count.read().map(partial(?_ >= n)))
     )
+
+
+func skip* [S; T; N: SomeNatural](self: Stream[S, T]; n: N): IO[Stream[S, T]] =
+  let
+    skLenses =
+      (step: SkipStep[S, N].step(), count: SkipStep[S, N].count())
+    readSkStep = skLenses.step.read()
+    skipSteps =
+      self
+        .read(self.typeof().scope())
+        .mapSteps(
+          (hasMore: Condition[S]) =>
+            readSkStep
+              .map(hasMore)
+              .`and`(skLenses.count.read().map(partial(?_ < n)))
+          ,
+          (stepper: Stepper[S]) =>
+            skLenses.step.modify(stepper).map(skLenses.count.modify(next))
+        ).asReader()
 
   self
     .modify(
       self.typeof().initialStep(),
       (start: Initializer[S]) =>
-        start
-          .map(partial(skipStep(?::S, 0.N)))
-          .map(
-            self
-              .read(self.typeof().scope())
-              .buildSkipLoopScope(n, SkipStep[S, N])
-              .asReader()
-          ).map(readStep)
+        start.map(partial(skipStep(?::S, 0.N))).map(skipSteps).map(readSkStep)
     ).lambda()
 
+
+
+func runOnceToTakeWhileStep [S; T](
+  runOnce: RunOnceResult[S, T]
+): TakeWhileStep[S, T] =
+  takeWhileStep(
+    runOnce.read(runOnce.typeof().step()),
+    runOnce.read(runOnce.typeof().item())
+  )
+
+
+func takeWhile [S; T](
+  loop: Loop[S, T];
+  predicate: Predicate[T]
+): Loop[TakeWhileStep[S, T], T] =
+  let
+    itemLens = TakeWhileStep[S, T].item()
+    readItem = itemLens.read()
+    readStep = TakeWhileStep[S, T].step().read()
+
+  loop
+    .mapSteps(
+      readStep,
+      (_: Stepper[S]) =>
+        readStep
+          .map(partial(loop.runOnce(?_)))
+          .map(runOnceToTakeWhileStep)
+          .map(itemLens.modify(partial(filter(?:Optional[T], predicate))))
+    ).write(result.typeof().condition(), readItem.map(isSome))
+    .write(result.typeof().generator(), readItem.map(unbox))
 
 
 func takeWhile* [S; T](
@@ -260,61 +291,66 @@ func dropWhile* [S; T](
   self
     .modify(
       self.typeof().initialStep(),
-      partial(map(?: Initializer[S], self.loop.dropWhile(predicate).map(toIO)))
-        .map(run)
+      partial(map(?:Initializer[S], self.loop.dropWhile(predicate)))
     ).lambda()
+
+
+
+proc forEach* [S; T](self: Stream[S, T]; action: T -> Unit): Unit =
+  self.map(action).run().doNothing()
 
 
 
 proc reduce* [S; T; R](
   self: Stream[S, T];
-  reducer: (reduction: R, item: T) -> R;
+  reducer: Reducer[R, T];
   initialResult: R
 ): R =
   var reduction = initialResult
 
   self
-    .map(item => reduction.modify(partial(reducer(?_, item))).doNothing())
-    .run()
-    .apply(_ => reduction.read())
+    .forEach(
+      item => reduction.modify(partial(reducer.run(?_, item))).doNothing()
+    ).apply(_ => reduction.read())
 
 
 proc reduceIfNotEmpty* [S; T; R](
   self: Stream[S, T];
-  reducer: (reduction: R, item: T) -> R;
+  reducer: Reducer[R, T];
   initialResult: R
 ): Optional[R] =
   let reduceOnNextStep =
     (step: S) =>
       self
-        .write(self.typeof().initialStep(), () => self.nextStep(step))
-        .reduce(reducer, initialResult.reducer(self.generate(step)))
+        .write(
+          self.typeof().initialStep(),
+          () => self.read(self.typeof().stepper()).run(step)
+        ).reduce(
+          reducer,
+          reducer
+            .run(initialResult, self.read(self.typeof().generator()).run(step))
+        )
 
   self
     .initialStep
     .map(
-      (initial: S) =>
-        self.hasMore(initial).ifElse(
-          () => initial.reduceOnNextStep().toSome(),
-          toNone[R]
-        )
+      self
+        .read(self.typeof().condition())
+        .ifElse(reduceOnNextStep.map(toSome), _ => R.toNone())
     ).run()
-
-
-proc forEach* [S; T](self: Stream[S, T]; action: T -> Unit): Unit =
-  self.map(action).reduce((u: Unit, _: Unit) => u, unit())
 
 
 
 proc sum* [S; N](self: Stream[S, N]): N =
-  self.reduce(plus, 0.N)
+  ## `+` must be defined for `N`.
+  self.reduce(plus[N], 0 as N)
 
 
-proc count* [S; T](self: Stream[S, T]; N: typedesc): N =
+proc count* [S; T](self: Stream[S, T]; N: typedesc[SomeNatural]): N =
   self.map((_: T) => 1.N).sum()
 
 
-proc count* [S; T; N](self: Stream[S, T]): N =
+proc count* [S; T; N: SomeNatural](self: Stream[S, T]): N =
   self.count(N)
 
 
@@ -323,14 +359,17 @@ proc findFirst* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
 ): Optional[T] =
-  let findItem =
-    (step: S) =>
-      self
-        .hasMore(step)
-        .ifElse(() => self.generate(step).toSome(), toNone)
-        .apply(found => self.onCloseEvent.map(_ => found).run(step))
-
-  self.dropWhile(not predicate).run().initialStep.map(findItem).run()
+  self
+    .dropWhile(not predicate)
+    .flatMap(
+      (self: self.typeof()) =>
+        self.initialStep.bracket(
+          partial(self.loop.runOnce(?:S))
+            .map(RunOnceResult[S, T].item().read())
+          ,
+          self.onCloseEvent
+        )
+    ).run()
 
 
 proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
@@ -352,59 +391,251 @@ proc none* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
 
 
 when isMainModule:
+  import optics/[lenslaws]
+
   import std/[os, unittest]
 
 
 
+  type
+    InfiniteStreamParam [S; T] = tuple
+      stepper: Stepper[S]
+      generator: Generator[S, T]
+      initialStep: Initializer[S]
+      onClose: OnCloseEvent[S]
+
+
+  func infiniteStreamParam [S; T](
+    stepper: Stepper[S];
+    generator: Generator[S, T];
+    initialStep: Initializer[S];
+    onClose: OnCloseEvent[S]
+  ): InfiniteStreamParam[S, T] =
+    (stepper, generator, initialStep, onClose)
+
+
+
   suite currentSourcePath().splitFile().name:
-    func indexes [I, T](a: array[I, T]): Stream[Natural, Natural] =
-        partial(?:Natural < a.len())
-          .looped(partial(?_ + 1))
-          .generating(itself[Natural])
-          .startingAt(() => 0)
-
-    func items [I, T](a: array[I, T]): Stream[Natural, T] =
-      a.indexes().map(i => a[i])
+    test """"Stream[S, T].initialStep()" should return a lens that verifies the lens laws.""":
+      proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], Initializer[S]]) =
+        check:
+          Stream[S, T].initialStep().checkLensLaws(spec)
 
 
+      doTest(
+        lensLawsSpec(
+          identitySpec(singleItemStream(() => 1)),
+          retentionSpec(
+            singleItemStream(() => -1),
+            nil as Initializer[SingleStep]
+          ),
+          doubleWriteSpec(
+            singleItemStream(() => int.low()),
+            initializer(() => singleStep(false)),
+            () => singleStep(true)
+          )
+        )
+      )
 
-    test "test":
-      let someArray = [0, 1, 3, 10]
 
-      check:
-        someArray.indexes().count(Natural) == someArray.len()
 
-      someArray.indexes().forEach(proc (i: Natural): Unit = echo(i)).ignore()
-      someArray
-        .items()
-        .filter(alwaysTrue[int])
-        .forEach(proc (i: Optional[int]): Unit = echo(i))
-        .ignore()
+    test """"Stream[S, T].onCloseEvent()" should return a lens that verifies the lens laws.""":
+      proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], OnCloseEvent[S]]) =
+        check:
+          Stream[S, T].onCloseEvent().checkLensLaws(spec)
 
-      check:
-        singleItemStream(() => 0).count(uint) == 1u
-        singleItemStream(() => 0).limit(2u).count(uint) == 1u
 
-      check:
-        someArray
-          .indexes()
-          .onClose(() => unit())
-          .reduceIfNotEmpty((count: int, _: Natural) => count + 1, 0)
-          .isSome()
+      doTest(
+        lensLawsSpec(
+          identitySpec(emptyStream(string)),
+          retentionSpec(
+            emptyStream(string),
+            onCloseEvent(
+              proc (_: EmptyStep): Unit =
+                echo("a")
+            )
+          ),
+          doubleWriteSpec(
+            emptyStream(string),
+            onCloseEvent(doNothing[EmptyStep]),
+            proc (_: EmptyStep): Unit =
+              debugEcho("0", 1)
+          )
+        )
+      )
 
-      check:
-        someArray.items().takeWhile((i: int) => i < 5).count(uint) == 3u
 
-      check:
-        someArray.items().dropWhile((i: int) => i <= 1).run().count(uint) == 2u
 
-      check:
-        someArray.items().findFirst((i: int) => i == 10).isSome()
-        someArray.items().findFirst((i: int) => i > 15).isNone()
-        someArray.items().findFirst().get() == someArray[0]
-        someArray.items().skip(2u).run().findFirst().get() == someArray[2]
+    test """"Stream[S, T].loop()" should return a lens that verifies the lens laws.""":
+      proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], Loop[S, T]]) =
+        check:
+          Stream[S, T].loop().checkLensLaws(spec)
 
-      check:
-        someArray.items().any((i: int) => i > 0)
-        someArray.items().all((i: int) => i >= 0)
-        someArray.items().none((i: int) => i < 0)
+
+      proc runTest1 () =
+        let
+          stream =
+            next[Natural]
+              .infiniteLoop(partial($ ?:Natural))
+              .startingAt(() => Natural.low())
+          streamGenerator = stream.read(stream.typeof().generator())
+
+
+        doTest(
+          lensLawsSpec(
+            identitySpec(stream),
+            retentionSpec(stream, emptyLoop(stream.stepType(), string)),
+            doubleWriteSpec(
+              stream,
+              partial(?:stream.stepType() < 10)
+                .looped(next)
+                .generating(streamGenerator),
+              partial(?:stream.stepType() > Natural.low())
+                .looped(prev)
+                .generating(streamGenerator)
+            )
+          )
+        )
+
+
+      runTest1()
+
+
+
+    test """Using "reduceIfNotEmpty" on an empty stream should return an empty "Optional[R]".""":
+      proc doTest [T; R](reducer: Reducer[R, T]; initialResult: R) =
+        let
+          actual = emptyStream(T).reduceIfNotEmpty(reducer, initialResult)
+          expected = R.toNone()
+
+        check:
+          actual == expected
+
+
+      doTest(plus[int], 0)
+      doTest(mult[cdouble], 100.0)
+      doTest(partial(?:string & ?:string), "abc")
+
+
+
+    test """Counting the number of items in a stream of 1 item should return 1.""":
+      proc doTest [T](item: () -> T) =
+        let
+          actual = singleItemStream(item).count(Natural)
+          expected = 1 as actual.typeof()
+
+        check:
+          actual == expected
+
+
+      doTest(() => ValueError.newException(""))
+      doTest(() => 'a')
+
+
+
+    test """Limiting an infinite stream to "n" items and collecting them in a "seq[T]" should return a sequence of "n" items.""":
+      proc doTest [S; T; N](param: InfiniteStreamParam[S, T]; n: N) =
+        let
+          actual =
+            param
+              .stepper
+              .infiniteLoop(param.generator)
+              .startingAt(param.initialStep, param.onClose)
+              .limit(n)
+              .reduce((s: seq[T], item: T) => s & item, @[])
+              .len()
+              .convert(N)
+          expected = n
+
+        check:
+          actual == expected
+
+
+      doTest(
+        infiniteStreamParam(
+          stepper(itself[uint16]),
+          when defined(js):
+            generator((i: uint16) => (i, i))
+          else:
+            generator(partial($ ?:uint16))
+          ,
+          () => 1u16,
+          doNothing[uint16]
+        ),
+        10u
+      )
+
+
+
+    test """Skipping "ns" items of a infinite stream limited to "nl" items and collecting them in a "seq[T]" should return a sequence of "ns" items.""":
+      proc doTest [S; T; N](param: InfiniteStreamParam[S, T]; nl, ns: N) =
+        require:
+          ns <= nl
+
+        let
+          actual =
+            param
+              .stepper
+              .infiniteLoop(param.generator)
+              .startingAt(param.initialStep, param.onClose)
+              .limit(nl)
+              .skip(ns)
+              .run()
+              .reduce((s: seq[T], item: T) => s & item, @[])
+              .len()
+              .convert(N)
+          expected = nl - ns
+
+        check:
+          actual == expected
+
+
+      doTest(
+        infiniteStreamParam(
+          stepper(next[Natural]),
+          generator(itself[Natural]),
+          () => 0 as Natural,
+          doNothing[Natural]
+        ),
+        20u,
+        5u
+      )
+
+
+
+    test """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
+      """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]".""":
+      func items (P: typedesc[Positive]): Stream[P, P] =
+        partial(?:P < P.high())
+          .looped(next)
+          .generating(itself[P])
+          .startingAt(() => P.low())
+
+
+      func takeWhileAndCollect (P: typedesc[Positive]): seq[Positive] =
+        result = newSeqOfCap[P](9)
+
+        for it in P.low() ..< P.high():
+          if it < 10:
+            result.add(it)
+          else:
+            break
+
+
+      proc doTest () =
+        const
+          actual =
+            Positive
+              .items()
+              .takeWhile(partial(?:Positive < 10))
+              .reduce(
+                (s: seq[Positive], it: Positive) => s & it,
+                newSeqOfCap[Positive](9)
+              )
+          expected = Positive.takeWhileAndCollect()
+
+        check:
+          actual == expected
+
+
+      doTest()

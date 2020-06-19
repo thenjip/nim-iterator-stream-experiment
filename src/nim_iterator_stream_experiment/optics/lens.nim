@@ -12,7 +12,7 @@ type
 
 
 when isMainModule:
-  import lens_test_common
+  import private/[lens_test_common]
   import ../monad/[io, reader]
 
   import std/[os, strutils, sugar, unittest]
