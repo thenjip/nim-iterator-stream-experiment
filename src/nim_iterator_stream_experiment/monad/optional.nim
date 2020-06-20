@@ -190,18 +190,16 @@ when isMainModule:
 
 
     test """Computations that use "Optional[T]" and without side effects should be compatible with compile time execution.""":
-      template doTest [A; B](
+      proc doTest [A; B](
         sut: static[proc (argument: Optional[A]): B {.noSideEffect.}];
-        argument: Optional[A]{noSideEffect};
+        argument: static[proc (): Optional[A] {.noSideEffect.}];
         expected: static B
-      ): proc () {.nimcall.} =
-        (
-          proc () =
-            const actual = sut.call(argument)
+      ) =
+        const actual = sut.call(argument.call())
 
-            check:
-              actual == expected
-        )
+        check:
+          actual == expected
+
 
 
       func sut1 [T](arg: Optional[T]): T =
@@ -224,11 +222,8 @@ when isMainModule:
         expected2.returnType().toNone()
 
 
-      for t in [
-        doTest(sut1[expected1.returnType()], argument1(), expected1()),
-        doTest(sut2[expected2.returnType()], argument2(), expected2())
-      ]:
-        t.call()
+      doTest(sut1[expected1.returnType()], argument1, expected1())
+      doTest(sut2[expected2.returnType()], argument2, expected2())
 
 
 
