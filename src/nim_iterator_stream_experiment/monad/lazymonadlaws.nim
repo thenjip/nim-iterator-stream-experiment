@@ -3,9 +3,10 @@
 
   A lazy monad builds computations lazily. The user decides when to run them.
 
-  In addition to the ``flatMap[A; B]`` procedure as required in
-  `monadlaws <monadlaws.html>`_, a ``run[A; R]`` one must exist too with the
-  signature: ``(M[A], R) -> A``.
+  `M` must have:
+    - A ``flatMap[A; B]`` procedure with the signature
+      ``(M[A], A -> M[B]) -> M[B]``.
+    - A ``run[A; R]`` procedure with the signature ``(M[A], R) -> A``.
 ]##
 
 

@@ -3,12 +3,12 @@
 
   It lets one build a computation that does not need a parameter.
   It can also be used as a wrapper for computations that interact with external
-  resources such as memory management, FFI, I/O streams, etc. .
+  resources such as memory management, FFI, I/O, etc. .
 ]##
 
 
 
-import identity
+import reader
 import ../utils/[chain, unit]
 
 import std/[sugar]
@@ -39,13 +39,13 @@ func flatMap* [A; B](self: IO[A]; f: A -> IO[B]): IO[B] =
 
 
 func bracket* [A; B](before: IO[A]; between: A -> B; after: A -> Unit): IO[B] =
-  before.map(a => a.between().apply(b => a.after().apply(_ => b)))
+  before.map(between.flatMap((b: B) => after.chain(_ => b)))
 
 
 
 when isMainModule:
   import lazymonadlaws
-  import ../utils/[proctypes]
+  import ../utils/[call, lambda, proctypes, variables]
 
   import std/[os, sequtils, unittest]
 
@@ -88,55 +88,54 @@ when isMainModule:
 
     test """"IO[T]" without side effects should be compatible with compile time execution.""":
       template doTest [T](
-        sut: static[proc (): IO[T] {.nimcall, noSideEffect.}];
+        sut: IO[T]{noSideEffect};
         expected: static T
-      ) =
-        const actual = sut().run()
+      ): proc () {.nimcall.} =
+        (
+          proc () =
+            const actual = sut.run()
 
-        check:
-          actual == expected
+            check:
+              actual == expected
+        )
 
 
       func expected1 (): int =
         1
-
-      func sut1 (): IO[expected1.returnType()] =
-        expected1
 
 
       func expected2 (): int =
         toSeq(1 .. 10).foldl(a + b, 0)
 
       func sut2 (): IO[expected2.returnType()] =
-        itself(() => 1 .. 10)
+        lambda(1 .. 10)
           .map(slice => toSeq(slice.items()))
           .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
 
 
-      doTest(sut1, expected1())
-      doTest(sut2, expected2())
+      for t in [
+        doTest(expected1, expected1.call()),
+        doTest(sut2.call(), expected2.call())
+      ]:
+        t.call()
 
 
 
-    test "bracket: compute the string's length with final action":
+    test """"after" in "self.bracket(between, after)" should be executed after "between".""":
       proc doTest () =
-        var afterExecuted = false
+        var address = new byte
+
         let
-          initial = "abc"
-          betweenFunc = (s: string) => s.len()
-          expected = initial.betweenFunc()
-          sut =
-            initial
-            .toIO()
-            .bracket(
-              betweenFunc,
-              proc (_: auto): Unit =
-                afterExecuted = true
-            ).run()
+          expected = address.read()
+          actual =
+            unit()
+              .toIO()
+              .bracket(_ => address.read(), _ => address.write(nil).doNothing())
+              .run()
 
         check:
-          sut == expected
-          afterExecuted
+          actual == expected
+
 
 
       doTest()

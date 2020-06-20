@@ -1,5 +1,5 @@
+import ifelse, nimnodes
 import ../monad/[identity]
-import ifelse
 
 import std/[macros, sequtils, strformat, strutils, sugar, tables]
 
@@ -41,22 +41,6 @@ func newLambda* (
 ): NimNode =
   newProc(newEmptyNode(), returnType & params, body, nnkLambda, newEmptyNode())
 
-
-
-func low* (n: NimNode): Natural =
-  0
-
-
-func high* (n: NimNode): Natural =
-  n.len().pred()
-
-
-func firstChild* (n: NimNode): NimNode =
-  n[n.low()]
-
-
-func secondChild* (n: NimNode): NimNode =
-  n[n.low().succ()]
 
 
 func isUnderscore* (n: NimNode): bool =
@@ -180,8 +164,12 @@ when isMainModule:
   suite currentSourcePath().splitFile().name:
     test """"partial(a + ?:N)" should return a lambda expression equivalent to "(b: N) => a + b".""":
       proc doTest [N: SomeNumber](a, b: N) =
+        let
+          actual = partial(a + ?:N)(b)
+          expected = a + b
+
         check:
-          partial(a + ?:N)(b) == a + b
+          actual == expected
 
 
       doTest(1, 9)
@@ -191,8 +179,12 @@ when isMainModule:
 
     test """"partial($ ?:T)" should return a lambda expression equivalent to "(a: T) => $a".""":
       proc doTest [T](a: T) =
+        let
+          actual = partial($ ?:T)(a)
+          expected = $a
+
         check:
-          partial($ ?:T)(a) == $a
+          actual == expected
 
 
       doTest('a')
@@ -205,8 +197,12 @@ when isMainModule:
 
     test """"partial(f(a, ?:B))" should return a lambda expression equivalent to "(b: B) => f(a, b)".""":
       proc doTest [A; B; R](f: (A, B) -> R; a: A; b: B) =
+        let
+          actual = partial(f(a, ?:B))(b)
+          expected = f(a, b)
+
         check:
-          partial(f(a, ?:B))(b) == f(a, b)
+          actual == expected
 
 
       doTest(plus[int, int, int], 0, 1)
@@ -217,8 +213,12 @@ when isMainModule:
 
     test """"partial(f(?:A, b, ?:C))" should return a lambda expression equivalent to "(a: A, c: C) => f(a, b, c)".""":
       proc doTest [A; B; C; R](f: (A, B, C) -> R; a: A; b: B; c: C) =
+        let
+          actual = partial(f(?:A, b, ?:C))(a, c)
+          expected = f(a, b, c)
+
         check:
-          partial(f(?:A, b, ?:C))(a, c) == f(a, b, c)
+          actual == expected
 
 
       doTest(sum[uint16], 3, 5, 7)
@@ -227,8 +227,12 @@ when isMainModule:
 
     test """"f.chain(partial(g(?b, c)))" should be equivalent to "f.chain(b => b.g(c))(a)".""":
       proc doTest [A; B; C; D](f: A -> B; g: (B, C) -> D; a: A; c: C) =
+        let
+          actual = f.chain(partial(g(?b, c)))(a)
+          expected = f.chain(b => b.g(c))(a)
+
         check:
-          f.chain(partial(g(?b, c)))(a) == f.chain(b => b.g(c))(a)
+          actual == expected
 
 
       doTest((a: int) => $a, (b: string, c: Positive) => b & $c, 1, 1)

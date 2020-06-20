@@ -67,9 +67,12 @@ when isMainModule:
         1
 
 
-      for t in [
-        doTest(stackTraceAvailable, bool),
-        doTest(absolutePath, string),
-        doTest(someProc, Positive)
-      ]:
-        t.call()
+      when defined(js):
+        doTest(someProc, Positive).call()
+      else:
+        for t in [
+          doTest(stackTraceAvailable, bool),
+          doTest(absolutePath, string),
+          doTest(someProc, Positive)
+        ]:
+          t.call()

@@ -1,7 +1,7 @@
-import loop/[loopscope, loopsteps]
-import monad/[identity, io, optional, predicate, reader]
-import optics/[focus, lens]
-import utils/[convert, partialprocs, unit]
+import loop/[loopscope]
+import monad/[io, optional, predicate, reader]
+import optics/[lens]
+import utils/[convert, unit]
 
 import std/[sugar]
 
@@ -18,6 +18,23 @@ type
 
 func generator* [S; T](g: Reader[S, T]): Generator[S, T] =
   g
+
+
+
+template stepType* [S; T](X: typedesc[Loop[S, T]]): typedesc[S] =
+  S
+
+
+template stepType* [S; T](self: Loop[S, T]): typedesc[S] =
+  self.typeof().stepType()
+
+
+template itemType* [S; T](X: typedesc[Loop[S, T]]): typedesc[T] =
+  T
+
+
+template itemType* [S; T](self: Loop[S, T]): typedesc[T] =
+  self.typeof().itemType()
 
 
 
@@ -79,20 +96,22 @@ proc mapSteps* [SA; SB; T](
 
 
 
-func emptyLoop* (T: typedesc): Loop[ZeroStep, T] =
-  func buildResult (S: typedesc; T: typedesc): result.typeof() =
-    alwaysFalse[S]
-      .looped(itself[S])
-      .generating(nil as Generator[S, T])
-
-  ZeroStep.buildResult(T)
+func emptyLoop* (S: typedesc; T: typedesc): Loop[S, T] =
+  S.emptyLoopScope().generating(nil as Generator[S, T])
 
 
 func infiniteLoop* [S; T](
-  generator: Generator[S, T];
-  stepper: Stepper[S]
+  stepper: Stepper[S];
+  generator: Generator[S, T]
 ): Loop[S, T] =
   alwaysTrue[S].looped(stepper).generating(generator)
+
+
+func infiniteLoop* [S; T](
+  stepper: S -> S;
+  generator: Generator[S, T]
+): Loop[S, T] =
+  stepper.convert(Stepper[S]).infiniteLoop(generator)
 
 
 
@@ -116,53 +135,31 @@ func map* [S; A; B](self: Loop[S, A]; f: A -> B): Loop[S, B] =
 
 
 
-func takeWhile* [S; T](
-  self: Loop[S, T];
-  predicate: Predicate[T]
-): Loop[TakeWhileStep[S, T], T] =
-  func buildResult [X: self.typeof(); S; T](
-    self: X;
-    predicate: predicate.typeof();
-    TW: typedesc[TakeWhileStep[S, T]]
-  ): result.typeof() =
-    let
-      readStep = TW.step().read()
-      readItem = TW.item().read()
-
-    self
-      .mapSteps(
-        readStep,
-        (_: Stepper[S]) =>
-          readStep
-            .map(partial(self.runOnce(?_)))
-            .map(
-              (generated: RunOnceResult[S, T]) =>
-                takeWhileStep(generated.step, generated.item.filter(predicate))
-            )
-      ).write(result.typeof().condition(), readItem.map(isSome))
-      .write(result.typeof().generator(), readItem.map(get))
-
-  self.buildResult(predicate, TakeWhileStep[S, T])
-
-
 func dropWhile* [S; T](
   self: Loop[S, T];
   predicate: Predicate[T]
 ): Reader[S, S] =
-  let scope = self.scope
-
-  scope
-    .modify(scope.typeof().condition(),
-      partial(?_ and self.generator.map(predicate))
-    ).asReader()
+  self.scope.breakIf(self.generator.map(not predicate)).asReader()
 
 
 
 when isMainModule:
+  import monad/[identity]
   import optics/[lenslaws]
-  import utils/[ignore]
+  import utils/[ignore, partialprocs, operators]
 
   import std/[os, sequtils, unittest]
+
+
+
+  func indexLoop [T](s: seq[T]): Loop[Natural, Natural] =
+    partial(?:Natural < s.len())
+      .looped(plus1)
+      .generating(itself[Natural])
+
+
+  func itemLoop [T](s: seq[T]): Loop[Natural, T] =
+    s.indexLoop().map(i => s[i])
 
 
 
@@ -174,22 +171,19 @@ when isMainModule:
 
 
       proc runTest1 () =
-        let loop = infiniteLoop((_: Unit) => 14u64, itself[Unit].stepper())
+        let loop = itself[Unit].infiniteLoop((_: Unit) => 14u64)
 
-        proc doRun (S: typedesc[loop.typeof().S]) =
-          doTest(
-            lensLawsSpec(
-              identitySpec(loop),
-              retentionSpec(loop, alwaysFalse[S].looped(itself)),
-              doubleWriteSpec(
-                loop,
-                alwaysFalse[S].looped(itself),
-                alwaysTrue[S].looped(itself)
-              )
+        doTest(
+          lensLawsSpec(
+            identitySpec(loop),
+            retentionSpec(loop, alwaysFalse[loop.stepType()].looped(itself)),
+            doubleWriteSpec(
+              loop,
+              alwaysFalse[loop.stepType()].looped(itself),
+              alwaysTrue[loop.stepType()].looped(itself)
             )
           )
-
-        doRun(loop.typeof().S)
+        )
 
 
       runTest1()
@@ -203,40 +197,49 @@ when isMainModule:
 
 
       proc runTest1 () =
-        let loop = seq[Unit].emptyLoop()
+        let loop = emptyLoop(Unit, seq[Unit])
 
-        proc doRun (
-          S: typedesc[loop.typeof().S];
-          T: typedesc[loop.typeof().T]
-        ) =
-          doTest(
-            lensLawsSpec(
-              identitySpec(loop),
-              retentionSpec(loop, generator((_: S) => unit().repeat(5))),
-              doubleWriteSpec(
-                loop,
-                generator((_: S) => @[].T),
-                (_: S) => @[unit()]
-              )
+        doTest(
+          lensLawsSpec(
+            identitySpec(loop),
+            retentionSpec(
+              loop,
+              generator((_: loop.stepType()) => unit().repeat(5))
+            ),
+            doubleWriteSpec(
+              loop,
+              generator((_: loop.stepType()) => loop.itemType().default()),
+              (_: loop.stepType()) => @[unit()]
             )
           )
-
-        doRun(loop.typeof().S, loop.typeof().T)
+        )
 
 
       runTest1()
 
 
 
-    test "test":
-      int
-        .emptyLoop()
-        .map(_ => unit())
-        .apply(
-          loop =>
-            loop.modify(
-              loop.typeof().scope(),
-              scope => scope.breakIf(alwaysFalse[ZeroStep])
-            )
-        ).run(zeroStep())
-        .ignore()
+    test """Dropping the items of a "seq[T]" while they verify the given predicate should return the index of the first item that does not verify the predicate.""":
+      proc doTest [T](
+        input: seq[T];
+        predicate: Predicate[T];
+        expected: Natural
+      ) =
+        let actual = input.itemLoop().dropWhile(predicate).run(input.low())
+
+        check:
+          actual == expected
+
+
+      proc doTest [T](
+        input: seq[T];
+        predicate: Predicate[T];
+        expectedIndex: seq[T] -> Natural
+      ) =
+        doTest(input, predicate, expectedIndex.run(input))
+
+
+      doTest(seq[Unit].default(), alwaysTrue[Unit], partial(low(?_)))
+      doTest(@["", "", "", "", "a", ""], (s: string) => s.len() == 0, 4)
+      doTest(@[-5, -1, -3], partial(?:int > 0), partial(low(?_)))
+      doTest(@[1.0, 15.47, 62.8], alwaysTrue[float], partial(len(?_)))

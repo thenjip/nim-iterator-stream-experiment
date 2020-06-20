@@ -5,6 +5,10 @@ import std/[macros, sugar]
 
 
 
+export reader
+
+
+
 type
   IdentitySpec* [S] = tuple
     expected: S
@@ -101,7 +105,7 @@ template checkLensLaws* [S; T](
 
 
 when isMainModule:
-  import lens_test_common
+  import private/[lens_test_common]
 
   import std/[os, unittest]
 
