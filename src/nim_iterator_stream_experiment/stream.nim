@@ -191,6 +191,11 @@ func filter* [S; T](self: Stream[S, T]; predicate: Predicate[T]): Stream[S, T] =
 
 
 
+func peek* [S; T](self: Stream[S, T]; f: T -> Unit): Stream[S, T] =
+  self.map(it => f.run(it).apply(_ => it))
+
+
+
 func limit* [S; T; N: SomeNatural](
   self: Stream[S, T];
   n: N
