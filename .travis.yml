@@ -13,11 +13,11 @@ services:
 
 
 env:
-  global:
-    - DOCKER_IMG="nimlang/nim:$NIM_VERSION-alpine"
   jobs:
     #- NIM_VERSION='1.2.2'
     - NIM_VERSION='latest'
+  global:
+    - DOCKER_IMG="nimlang/nim:$NIM_VERSION-alpine"
 
 
 _shared_job: &shared_job
