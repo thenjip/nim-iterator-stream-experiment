@@ -4,7 +4,7 @@ description = "An attempt at providing a replacement for closure iterators in Ni
 license = "MIT"
 srcDir = "src"
 
-requires "nim >= 1.2.0"
+requires "nim >= 1.2.2"
 
 
 

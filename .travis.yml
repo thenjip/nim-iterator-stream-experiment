@@ -1,7 +1,6 @@
 branches:
   only:
     - master
-    - devel
 
 language: c
 
@@ -15,30 +14,29 @@ services:
 
 env:
   global:
-    - DOCKER_IMG='nimlang/nim:latest-alpine'
+    - DOCKER_IMG="nimlang/nim:$NIM_VERSION-alpine"
+  jobs:
+    #- NIM_VERSION='1.2.2'
+    - NIM_VERSION='latest'
 
 
 _shared_job: &shared_job
   before_install:
     - docker pull "$DOCKER_IMG"
   script:
-    - docker run "$DOCKER_IMG" nim --version
     - docker run -v "$(pwd):/project" -w /project -e NIM_BACKEND="$NIM_BACKEND" "$DOCKER_IMG" sh -c "nimble install -dy && nimble test"
 
 
 jobs:
   include:
-    - name: Test suite (C)
-      env: NIM_BACKEND='cc'
+    - env: NIM_BACKEND='cc'
       <<: *shared_job
 
-    - name: Test suite (C++)
-      env: NIM_BACKEND='cpp'
+    - env: NIM_BACKEND='cpp'
       <<: *shared_job
 
-    - name: Test suite (Node.js)
-      env: NIM_BACKEND='js'
+    - env: NIM_BACKEND='js'
       <<: *shared_job
-      
+
   allow_failures:
     - env: NIM_BACKEND='js'
