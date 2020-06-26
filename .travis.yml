@@ -1,13 +1,11 @@
 branches:
   only:
     - master
-    - devel
 
 language: c
 
 os: linux
 dist: bionic
-sudo: required
 
 services:
   - docker
@@ -19,7 +17,8 @@ env:
 
 
 _shared_job: &shared_job
-  before_install:
+  install: skip
+  before_script:
     - docker pull "$DOCKER_IMG"
   script:
     - docker run "$DOCKER_IMG" nim --version
@@ -39,6 +38,6 @@ jobs:
     - name: Test suite (Node.js)
       env: NIM_BACKEND='js'
       <<: *shared_job
-      
+
   allow_failures:
     - env: NIM_BACKEND='js'
