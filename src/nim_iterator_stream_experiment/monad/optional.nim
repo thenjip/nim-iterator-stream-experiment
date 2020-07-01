@@ -8,7 +8,7 @@
 
 
 import identity, predicate, reader
-import ../utils/[chain, ifelse, partialprocs]
+import ../utils/[chain, ifelse]
 
 import std/[sugar]
 
@@ -138,7 +138,7 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 when isMainModule:
   import monadlaws
-  import ../utils/[call, convert, ignore, proctypes, unit]
+  import ../utils/[call, convert, ignore, partialprocs, proctypes, unit]
 
   import std/[os, unittest]
 
