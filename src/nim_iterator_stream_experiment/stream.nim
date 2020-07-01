@@ -49,6 +49,15 @@ template stepType* [S; T](self: Stream[S, T]): typedesc[S] =
 
 
 
+template itemType* [S; T](X: typedesc[Stream[S, T]]): typedesc[T] =
+  T
+
+
+template itemType* [S; T](self: Stream[S, T]): typedesc[T] =
+  self.typeof().itemType()
+
+
+
 func startingAt* [S; T](
   loop: Loop[S, T];
   initialStep: Initializer[S];
@@ -398,7 +407,7 @@ proc none* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
 when isMainModule:
   import optics/[lenslaws]
 
-  import std/[os, unittest]
+  import std/[os, strutils, unittest]
 
 
 
@@ -410,6 +419,7 @@ when isMainModule:
       onClose: OnCloseEvent[S]
 
 
+
   func infiniteStreamParam [S; T](
     stepper: Stepper[S];
     generator: Generator[S, T];
@@ -417,6 +427,18 @@ when isMainModule:
     onClose: OnCloseEvent[S]
   ): InfiniteStreamParam[S, T] =
     (stepper, generator, initialStep, onClose)
+
+
+
+  func items (s: Slice[Natural]): Stream[Natural, Natural] =
+    partial(?:result.stepType() <= s.b)
+      .looped(next)
+      .generating(itself[result.stepType()])
+      .startingAt(() => s.a)
+
+
+  func items [T](s: seq[T]): Stream[Natural, T] =
+    items(s.low().Natural .. s.high().Natural).map(i => s[i])
 
 
 
@@ -644,3 +666,129 @@ when isMainModule:
 
 
       doTest()
+
+
+
+    test """"self.findFirst(predicate)" should return the first item that verifies "predicate".""":
+      proc doTest [S; T](
+        self: Stream[S, T];
+        predicate: Predicate[T];
+        expected: Optional[T]
+      ) =
+        let actual = self.findFirst(predicate)
+
+        check:
+          actual == expected
+
+
+      proc runTest1 () =
+        let expected = 35.Natural
+
+        doTest(
+          items(0.convert(expected.typeof()) .. 100.convert(expected.typeof())),
+          partial(?:expected.typeof() == expected),
+          expected.toSome()
+        )
+
+
+      proc runTest2 () =
+        let
+          stream = @["", "a", "abc", " \n"].items()
+          expected = stream.itemType().toNone()
+
+        doTest(stream, (s: stream.itemType()) => s.len() > 5, expected)
+
+
+      runTest1()
+      runTest2()
+      doTest(Natural.emptyStream(), alwaysTrue[Natural], Natural.toNone())
+
+
+
+    test """"self.any(predicate)" should check whether any item verifies "predicate".""":
+      proc doTest [S; T](
+        self: Stream[S, T];
+        predicate: Predicate[T];
+        expected: bool
+      ) =
+        let actual = self.any(predicate)
+
+        check:
+          actual == expected
+
+
+      proc runTest1 () =
+        let stream = @[-5, -1041, 683, 40, 339].items()
+
+        doTest(stream, (i: stream.itemType()) => i mod 2 == 0, true)
+
+
+      proc runTest2 () =
+        let stream = @[@[0, 1], @[-8, 9, 10]].items()
+
+        doTest(stream, (it: stream.itemType()) => it.len() == 0, false)
+
+
+      runTest1()
+      runTest2()
+      doTest(char.emptyStream(), alwaysTrue[char], false)
+
+
+
+    test """"self.all(predicate)" should check whether all the items verify "predicate".""":
+      proc doTest [S; T](
+        self: Stream[S, T];
+        predicate: Predicate[T];
+        expected: bool
+      ) =
+        let actual = self.all(predicate)
+
+        check:
+          actual == expected
+
+
+      proc runTest1 () =
+        let stream = @[('a', 1), (' ', -5), ('\t', 7), (']', -100)].items()
+
+        doTest(stream, (it: stream.itemType()) => not it[0].isDigit(), true)
+
+
+      proc runTest2 () =
+        let stream = @[new int, nil, new int].items().map(toOptional)
+
+        doTest(stream, isSome[stream.itemType().valueType()], false)
+
+
+      runTest1()
+      runTest2()
+      doTest(uint.emptyStream(), alwaysFalse[uint], true)
+
+
+
+    test """"self.none(predicate)" should check whether no items verify "predicate".""":
+      proc doTest [S; T](
+        self: Stream[S, T];
+        predicate: Predicate[T];
+        expected: bool
+      ) =
+        let actual = self.none(predicate)
+
+        check:
+          actual == expected
+
+
+      proc runTest1 () =
+        let stream = items(132.Natural .. 956.Natural)
+
+        doTest(stream, (it: stream.itemType()) => it mod 1000 == 0, true)
+
+
+      proc runTest2 () =
+        let stream = @[false, true, false, false].items()
+
+        doTest(stream, itself[stream.itemType()], false)
+
+
+      runTest1()
+      runTest2()
+      doTest(Unit.emptyStream(), alwaysTrue[Unit], true)
