@@ -7,8 +7,8 @@
 
 
 
-import identity, predicate
-import ../utils/[chain, ifelse]
+import identity, predicate, reader
+import ../utils/[chain, ifelse, partialprocs]
 
 import std/[sugar]
 
@@ -32,6 +32,15 @@ type
 
 
 
+template valueType* [T](X: typedesc[Optional[T]]): typedesc[T] =
+  T
+
+
+template valueType* [T](self: Optional[T]): typedesc[T] =
+  self.typeof().valueType()
+
+
+
 func toNone* (T: typedesc[Nilable]): Optional[T] =
   Optional[T](value: nil)
 
@@ -45,14 +54,24 @@ func toNone* [T](): Optional[T] =
 
 
 
-func toSome* [T: Nilable](value: T): Optional[T] =
-  assert(not value.isNil())
-
+func optionalNilable [T: Nilable](value: T): Optional[T] =
   Optional[T](value: value)
+
+
+
+proc toSome* [T: Nilable](value: T): Optional[T] =
+  assert(value != nil)
+
+  value.optionalNilable()
 
 
 func toSome* [T: not Nilable](value: T): Optional[T] =
   Optional[T](empty: false, value: value)
+
+
+
+proc toOptional* [T: Nilable](value: T): Optional[T] =
+  value.optionalNilable()
 
 
 
@@ -88,13 +107,17 @@ proc map* [A; B](self: Optional[A]; f: A -> B): Optional[B] =
 
 
 
+proc unboxOr* [T](self: Optional[T]; `else`: () -> T): T =
+  self.ifSome(itself, `else`)
+
+
+
+func raiseUnboxError [T](): T {.noinit, raises:[UnboxError].} =
+  raise UnboxError.newException("")
+
+
 func unbox* [T](self: Optional[T]): T {.raises: [Exception, UnboxError].} =
-  self
-    .ifSome(
-      itself,
-      proc (): T =
-        raise UnboxError.newException("")
-    )
+  self.unboxOr(raiseUnboxError)
 
 
 
@@ -115,7 +138,7 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 when isMainModule:
   import monadlaws
-  import ../utils/[call, ignore, partialprocs, proctypes, unit]
+  import ../utils/[call, convert, ignore, proctypes, unit]
 
   import std/[os, unittest]
 
@@ -158,6 +181,37 @@ when isMainModule:
 
 
       doTest(pointer)
+
+
+
+    test """"nil.toOptional()" should return "none".""":
+      proc doTest (T: typedesc[Nilable]) =
+        let
+          actual = nil.convert(T).toOptional()
+          expected = T.toNone()
+
+        check:
+          actual == expected
+
+
+      doTest(pointer)
+      doTest(Predicate[uint16])
+      doTest(ref Exception)
+
+
+
+    test """"value.toOptional()" should return "some" when "value" is not "nil".""":
+      proc doTest [T: Nilable](value: T) =
+        let
+          actual = value.toOptional()
+          expected = value.toSome()
+
+        check:
+          actual == expected
+
+
+      doTest(doTest[cstring])
+      doTest(new byte)
 
 
 
@@ -227,6 +281,35 @@ when isMainModule:
 
 
 
+    test """"unboxOr" with "some" should return the value inside the "Optional".""":
+      proc doTest [T](expected: T; unexpected: T) =
+        require:
+          expected != unexpected
+
+        let actual = expected.toSome().unboxOr(() => unexpected)
+
+        check:
+          actual == expected
+
+
+      doTest("abc".cstring, nil)
+      doTest(0, 1)
+
+
+
+    test """"unboxOr" with "none" should return the default value passed.""":
+      proc doTest [T](expected: T) =
+        let actual = T.toNone().unboxOr(() => expected)
+
+        check:
+          actual == expected
+
+
+      doTest('a')
+      doTest(unboxOr[int32])
+
+
+
     test """"unbox" with "some" should return the "expected" value.""":
       proc doTest [T](expected: T) =
         let actual = expected.toSome().unbox()
@@ -242,9 +325,9 @@ when isMainModule:
 
 
 
-    test """"unbox" with "none" should raise a "CatchableError" at runtime.""":
+    test """"unbox" with "none" should raise an "UnboxError" at runtime.""":
       proc doTest (T: typedesc) =
-        expect CatchableError:
+        expect UnboxError:
           T.toNone().unbox().ignore()
 
 
