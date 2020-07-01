@@ -115,7 +115,11 @@ proc run* [S](self: LoopScope[S]; initial: S; body: S -> Unit): S =
 
   while self.condition.test(result.read()):
     body.run(result.read()).ignore()
-    result.modify(self.stepper).ignore()
+
+    when defined(cpp):
+      result = self.stepper.run(result.read())
+    else:
+      result.modify(self.stepper).ignore()
 
 
 proc run* [S](self: LoopScope[S]; initial: S): S =
