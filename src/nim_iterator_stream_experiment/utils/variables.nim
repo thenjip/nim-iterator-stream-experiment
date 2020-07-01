@@ -1,6 +1,3 @@
-when defined(cpp):
-  import unit
-
 import std/[sugar]
 
 
@@ -9,34 +6,22 @@ func read* [T](self: var T): T =
   self
 
 
-when defined(cpp):
-  #[
-    "var" return types make the compiler generate invalid C++ code.
-    Related issue: https://github.com/nim-lang/Nim/issues/10219
-  ]#
+proc write* [T](self: var T; value: T): var T =
+  self = value
 
-  proc write* [T](self: var T; value: T): Unit =
-    self = value
-
-
-  proc modify* [T](self: var T; f: T -> T): Unit =
-    self.write(self.read().f())
-else:
-  proc write* [T](self: var T; value: T): var T =
-    self = value
-
+  # Workaround from https://github.com/nim-lang/Nim/issues/10219#issue-396282902 .
+  when defined(cpp):
+    (addr self)[]
+  else:
     self
 
 
-  proc modify* [T](self: var T; f: T -> T): var T =
-    self.write(self.read().f())
+proc modify* [T](self: var T; f: T -> T): var T =
+  self.write(self.read().f())
 
 
 
 when isMainModule:
-  when defined(cpp):
-    import call, ignore
-
   import std/[os, unittest]
 
 
@@ -47,15 +32,7 @@ when isMainModule:
         var sut {.noInit.}: T
 
         let
-          actual =
-            when defined(cpp):
-              call(
-                proc (): T =
-                  sut.write(value).ignore()
-                  sut.read()
-              )
-            else:
-              sut.write(value).read()
+          actual = sut.write(value).read()
           expected = value
 
         check:
