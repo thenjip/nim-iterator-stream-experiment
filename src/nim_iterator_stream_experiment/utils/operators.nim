@@ -1,3 +1,12 @@
+##[
+  Procedures to alias common math and logical operators.
+
+  They may be handy to avoid quoted calls in multiline statements or to pass an
+  operator as a procedure in a call.
+]##
+
+
+
 proc plus* [T](x, y: T): T =
   x + y
 

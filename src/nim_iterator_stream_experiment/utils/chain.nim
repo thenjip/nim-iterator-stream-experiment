@@ -1,3 +1,9 @@
+##[
+  The bread and butter of functional programming: function composition.
+]##
+
+
+
 import std/[sugar]
 
 

@@ -1,4 +1,13 @@
-type Unit* = tuple[]
+##[
+  The `Unit` type from functional programming.
+
+  It can be seen as the `void` type but with a single value in it.
+]##
+
+
+
+type
+  Unit* = tuple[]
 
 
 

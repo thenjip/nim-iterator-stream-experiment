@@ -1,3 +1,12 @@
+##[
+  An implementation of partial function application for Nim.
+
+  It is inspired by the way Scala do it (with underscores as arguments), but it
+  takes into account Nim's current limitations on type inference.
+]##
+
+
+
 import ifelse, nimnodes
 import ../monad/[identity]
 
@@ -133,6 +142,46 @@ func splitArgs (callExpr: CallExpr): SplitArgPair =
 
 
 macro partial* (call: untyped{call}): untyped =
+  ##[
+    Transforms a call expression of any kind into a lambda expression.
+
+    The macro understands 2 types of placeholders:
+      - The identifier placeholder (examples: ``?_``, ``?a``).
+
+        Its type will be inferred by the compiler. The macro does not make use
+        of the identifier after the ``?``.
+      - The typed placeholder (examples: ``?:string``, ``?:ref Exception``).
+
+        The type of the parameter of the generated lambda expression at that
+        position will be the one passed after the ``?:``.
+
+    **Examples:**
+
+    .. code-block:: nim
+      import std/[sugar]
+
+      proc plus [T](a, b: T): T =
+        a + b
+
+      proc chain [A; B; C](f: A -> B; g: B -> C): A -> C =
+        (a: A) => a.f().g()
+
+      proc `not` [T](predicate: T -> bool): T -> bool =
+        predicate.chain(partial(not ?_))
+
+      let
+        f1 = partial(0 + ?:int)
+        f2 = partial(5.plus(?:int))
+        f3 = partial(plus(?:uint, 6))
+        f4 = partial(?:string & ?:char)
+        f5 = not partial(?:int < 0)
+
+      doAssert(f1(1) == 1)
+      doAssert(f2(10) == 15)
+      doAssert(f3(154u) == 160u)
+      doAssert(f4("abc", 'd') == "abcd")
+      doAssert(f5(1))
+  ]##
   let
     callExpr = call.astToCallExpr()
     splitArgs = callExpr.splitArgs()

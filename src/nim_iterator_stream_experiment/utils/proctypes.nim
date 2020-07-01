@@ -1,3 +1,9 @@
+##[
+  Utilities to get the return type of a procedure.
+]##
+
+
+
 import std/[macros]
 
 

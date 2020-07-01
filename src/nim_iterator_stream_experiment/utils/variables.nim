@@ -1,3 +1,11 @@
+##[
+  Utilities to manipulate variables.
+
+  Useful when composing procedures that use variables with others that do not.
+]##
+
+
+
 import std/[sugar]
 
 
@@ -9,7 +17,10 @@ func read* [T](self: var T): T =
 proc write* [T](self: var T; value: T): var T =
   self = value
 
-  # Workaround from https://github.com/nim-lang/Nim/issues/10219#issue-396282902 .
+  #[
+    Workaround from
+    https://github.com/nim-lang/Nim/issues/10219#issue-396282902 .
+  ]#
   when defined(cpp):
     (addr self)[]
   else:

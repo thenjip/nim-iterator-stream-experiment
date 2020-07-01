@@ -1,3 +1,9 @@
+##[
+  A module to lift the if/else expression as a procedure.
+]##
+
+
+
 import std/[sugar]
 
 

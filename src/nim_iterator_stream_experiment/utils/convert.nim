@@ -1,3 +1,9 @@
+##[
+  Functions to alias the explicit conversion operator.
+]##
+
+
+
 func convert* [A](a: A; B: typedesc): B =
   a.B
 
