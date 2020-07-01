@@ -14,6 +14,10 @@ type
     callee: NimNode
     args: seq[NimNode]
 
+  SplitArgPair = tuple
+    partialParams: OrderedTable[Natural, LambdaParam]
+    callArgs: seq[NimNode]
+
 
 
 func lambdaParam (name: string; `type`: NimNode): LambdaParam =
@@ -107,9 +111,7 @@ func isPartialParamPrefixed (arg: NimNode): bool =
     )
 
 
-func splitArgs (
-  callExpr: CallExpr
-): tuple[partialParams: Table[Natural, LambdaParam]; callArgs: seq[NimNode]] =
+func splitArgs (callExpr: CallExpr): SplitArgPair =
   for pos, arg in callExpr.args:
     if arg.isPartialParamPrefixed():
       let paramName = nskParam.genSym(fmt"a{pos}")
@@ -136,9 +138,9 @@ macro partial* (call: untyped{call}): untyped =
     splitArgs = callExpr.splitArgs()
 
   newLambda(
-    toSeq(splitArgs.partialParams.values()).mapIt(
-      newIdentDefs(it.name.ident(), it.argType)
-    ),
+    toSeq(splitArgs.partialParams.values())
+      .mapIt(newIdentDefs(it.name.ident(), it.argType))
+    ,
     newStmtList(callExpr.callee.newCall(splitArgs.callArgs)),
     ident"auto"
   )
@@ -154,6 +156,10 @@ when isMainModule:
 
   func plus [A: SomeNumber; B: SomeNumber; R: SomeNumber](a: A; b: B): R =
     a + b
+
+
+  func ternaryProc (a: char; b: int; c: string): bool =
+    true
 
 
   func sum [N: SomeNumber](a, b, c: N): N =
@@ -222,6 +228,7 @@ when isMainModule:
 
 
       doTest(sum[uint16], 3, 5, 7)
+      doTest(ternaryProc, 'a', 1, "")
 
 
 
