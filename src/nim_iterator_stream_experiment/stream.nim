@@ -441,6 +441,10 @@ when isMainModule:
     items(s.low().Natural .. s.high().Natural).map(i => s[i])
 
 
+  func addToSeq [T](s: seq[T]; item: T): seq[T] =
+    s & item
+
+
 
   suite currentSourcePath().splitFile().name:
     test """"Stream[S, T].initialStep()" should return a lens that verifies the lens laws.""":
@@ -569,7 +573,7 @@ when isMainModule:
               .infiniteLoop(param.generator)
               .startingAt(param.initialStep, param.onClose)
               .limit(n)
-              .reduce((s: seq[T], item: T) => s & item, @[])
+              .reduce(addToSeq[T], @[])
               .len()
               .convert(N)
           expected = n
@@ -608,7 +612,7 @@ when isMainModule:
               .limit(nl)
               .skip(ns)
               .run()
-              .reduce((s: seq[T], item: T) => s & item, @[])
+              .reduce(addToSeq[T], @[])
               .len()
               .convert(N)
           expected = nl - ns
@@ -655,10 +659,7 @@ when isMainModule:
             Positive
               .items()
               .takeWhile(partial(?:Positive < 10))
-              .reduce(
-                (s: seq[Positive], it: Positive) => s & it,
-                newSeqOfCap[Positive](9)
-              )
+              .reduce(addToSeq[Positive], newSeqOfCap[Positive](9))
           expected = Positive.takeWhileAndCollect()
 
         check:
