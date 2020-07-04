@@ -1,12 +1,15 @@
 ##[
   Utilities to check whether a type `M` obeys the monad laws.
 
+  This module is meant to be used in test suites. It should not be imported with
+  `lazymonadlaws <lazymonadlaws.html>`_.
+
   `M` must have:
     - A ``flatMap[A; B]`` procedure with the signature
       ``(M[A], A -> M[B]) -> M[B]``.
     - An equality operator.
 
-  Concepts cannot be currently used to implement the monad concept in Nim.
+  Concepts cannot currently be used to implement the monad concept in Nim.
   See this related `issue <https://github.com/nim-lang/Nim/issues/5650>`_ .
 ]##
 
@@ -20,15 +23,24 @@ import std/[sugar]
 
 type
   LeftIdentitySpec* [A; MA; MB] = tuple
+    ##[
+      Parameters for the left identity law.
+    ]##
     initial: A
     lift: A -> MA
     f: A -> MB
 
   RightIdentitySpec* [T; M] = tuple
+    ##[
+      Parameters for the right identity law.
+    ]##
     expected: T
     lift: T -> M
 
   AssociativitySpec* [A; B; MA; MB; MC] = tuple
+    ##[
+      Parameters for the associativity law.
+    ]##
     initial: A
     lift: A -> MA
     f: A -> MB
@@ -46,6 +58,11 @@ func leftIdentitySpec* [A; MA; MB](
   lift: A -> MA;
   f: A -> MB
 ): LeftIdentitySpec[A, MA, MB] =
+  ##[
+    - `lift`: A procedure to lift a value to a monad.
+    - `f`: The procedure passed to `flatMap` defined by the tested monad type.
+    - `runArg`: The argument passed to `run` as defined in `LazyMonad <#LazyMonad>`_.
+  ]##
   (initial, lift, f)
 
 
@@ -53,6 +70,11 @@ func rightIdentitySpec* [T; M](
   expected: T;
   lift: T -> M
 ): RightIdentitySpec[T, M] =
+  ##[
+    - `expected`: The starting value on the left side of the equation, the final value on the right side.
+    - `lift`: A procedure to lift a value to a monad.
+    - `runArg`: The argument passed to `run` as defined in `LazyMonad <#LazyMonad>`_.
+  ]##
   (expected, lift)
 
 
@@ -62,6 +84,12 @@ func associativitySpec* [A; B; MA; MB; MC](
   f: A -> MB;
   g: B -> MC;
 ): AssociativitySpec[A, B, MA, MB, MC] =
+  ##[
+    - `lift`: A procedure to lift a value to a monad.
+    - `f`: The procedure passed to the first `flatMap` defined by the tested monad type.
+    - `g`: The procedure passed to the second `flatMap` defined by the tested monad type.
+    - `runArg`: The argument passed to `run` as defined in `LazyMonad <#LazyMonad>`_.
+  ]##
   (initial, lift, f, g)
 
 
@@ -78,17 +106,35 @@ func monadLawsSpec* [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
 template checkLeftIdentity* [A; MA; MB](
   spec: LeftIdentitySpec[A, MA, MB]
 ): bool =
+  ##[
+    Checks whether ``a.lift().flatMap(f) == f(a)``.
+
+    Lifting a value `a` to a monad, and binding `f` to it should be the same as
+    applying `f` to `a`.
+  ]##
   spec.lift(spec.initial).flatMap(spec.f) == spec.f(spec.initial)
 
 
 
 template checkRightIdentity* [T; M](spec: RightIdentitySpec[T, M]): bool =
+  ##[
+    Checks whether ``a.lift().flatMap(lift) == a.lift()``.
+
+    Lifting a value `a`, and binding the same `lift` procedure to it should be
+    the same as lifting `a`.
+  ]##
   spec.lift(spec.expected).flatMap(spec.lift) == spec.lift(spec.expected)
 
 
 template checkAssociativity* [A; B; MA; MB; MC](
   spec: AssociativitySpec[A, B, MA, MB, MC]
 ): bool =
+  ##[
+    Checks whether ``a.lift().flatMap(f).flatMap(g) == a.lift().flatMap(f.chain(m => m.flatMap(g)))``.
+
+    Lifting a value `a`, binding `f`, then `g` to it should be the same as
+    lifting `a` and binding ``f.chain(m => m.flatMap(g))``.
+  ]##
   spec
     .lift(spec.initial)
     .flatMap(spec.f)
