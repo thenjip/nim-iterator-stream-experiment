@@ -1,3 +1,11 @@
+##[
+  The identity monad.
+
+  It does not do much in itself, but at least it defines the identity function.
+]##
+
+
+
 import std/[sugar]
 
 
