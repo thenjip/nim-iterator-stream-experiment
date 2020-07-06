@@ -11,6 +11,47 @@
 
   Concepts cannot currently be used to implement the monad concept in Nim.
   See this related `issue <https://github.com/nim-lang/Nim/issues/5650>`_ .
+
+  Example: Test the identity monad.
+
+    .. code-block:: nim
+      import nim_iterator_stream_experiment/monad/[monadlaws]
+
+      import std/[sugar, unittest]
+
+
+      type Id[T] = T
+
+
+      proc toId [T](value: T): Id[T] =
+        value
+
+
+      proc flatMap [A; B](self: Id[A]; f: A -> Id[B]): Id[B] =
+        self.f()
+
+
+      when isMainModule:
+        suite "identity monad":
+          test "Id[T] should verify the monad laws.":
+            proc doTest [LA; LMA; LMB; LR; RT; RM; RR; AA; AB; AMA; AMB; AMC; AR](
+              spec: MonadLawsSpec[LA, LMA, LMB, LR, RT, RM, RR, AA, AB, AMA, AMB, AMC, AR]
+            ) =
+              check:
+                spec.checkMonadLaws()
+
+          doTest(
+            monadLawsSpec(
+              leftIdentitySpec(0, toId, a => `$`(a + 10)),
+              rightIdentitySpec(nil.pointer, toId),
+              associativitySpec(
+                'a',
+                toId,
+                a => a.Natural,
+                (b: Natural) => b.`$`().toId()
+              )
+            )
+          )
 ]##
 
 
@@ -162,5 +203,35 @@ when isMainModule:
 
 
 
+  type Id[T] = T
+
+
+  proc toId [T](value: T): Id[T] =
+    value
+
+
+  proc flatMap [A; B](self: Id[A]; f: A -> Id[B]): Id[B] =
+    self.f()
+
+
+
   suite currentSourcePath().splitFile().name:
-    discard
+    test "Id[T] should verify the monad laws.":
+      proc doTest [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
+        spec: MonadLawsSpec[LA, LMA, LMB, RT, RM, AA, AB, AMA, AMB, AMC]
+      ) =
+        check:
+          spec.checkMonadLaws()
+
+      doTest(
+        monadLawsSpec(
+          leftIdentitySpec(0, toId, a => `$`(a + 10)),
+          rightIdentitySpec(nil.pointer, toId),
+          associativitySpec(
+            'a',
+            toId,
+            a => a.Natural,
+            (b: Natural) => b.`$`().toId()
+          )
+        )
+      )
