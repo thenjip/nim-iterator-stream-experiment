@@ -1,14 +1,17 @@
 ##[
   The `Optional[T]` monad.
 
-  This is another implementation of the `Option`/`Maybe` type, but with only
-  pure functional programming.
+  It is a box containing either a value or nothing.
+
+  This is another implementation of the `Option`/`Maybe` monad, but using only
+  pure functional programming techniques to make it compatible with compile time
+  execution.
 ]##
 
 
 
 import identity, predicate, reader
-import ../utils/[chain, ifelse]
+import ../utils/[chain, ifelse, partialprocs]
 
 import std/[sugar]
 
@@ -71,12 +74,16 @@ func toSome* [T: not Nilable](value: T): Optional[T] =
 
 
 proc toOptional* [T: Nilable](value: T): Optional[T] =
+  ##[
+    If `value` is not ``nil``, returns ``value.toSome()``, otherwise an empty
+    `Optional`.
+  ]##
   value.optionalNilable()
 
 
 
 func isNone* [T: Nilable](self: Optional[T]): bool =
-  self.value.isNil()
+  self.value == nil
 
 
 func isNone* [T: not Nilable](self: Optional[T]): bool =
@@ -99,10 +106,16 @@ proc ifSome* [A; B](self: Optional[A]; then: A -> B; `else`: () -> B): B =
 
 
 proc flatMap* [A; B](self: Optional[A]; f: A -> Optional[B]): Optional[B] =
+  ##[
+    Applies `f` to the value inside `self` or does nothing if `self` is empty.
+  ]##
   self.ifSome(f, toNone)
 
 
 proc map* [A; B](self: Optional[A]; f: A -> B): Optional[B] =
+  ##[
+    Applies `f` to the value inside `self` or does nothing if `self` is empty.
+  ]##
   self.flatMap(f.chain(toSome))
 
 
@@ -112,11 +125,15 @@ proc unboxOr* [T](self: Optional[T]; `else`: () -> T): T =
 
 
 
-func raiseUnboxError [T](): T {.noinit, raises:[UnboxError].} =
+func raiseUnboxError [T](): T {.noinit, raises: [UnboxError].} =
   raise UnboxError.newException("")
 
 
 func unbox* [T](self: Optional[T]): T {.raises: [Exception, UnboxError].} =
+  ##[
+    Retrieves the value inside `self` or raise an ``UnboxError`` if `self` is
+    empty.
+  ]##
   self.unboxOr(raiseUnboxError)
 
 
@@ -128,9 +145,7 @@ proc filter* [T](self: Optional[T]; predicate: Predicate[T]): Optional[T] =
 
 func `==`* [T](self, other: Optional[T]): bool =
   self.ifSome(
-    selfValue =>
-      other.ifSome(otherValue => selfValue == otherValue, () => false)
-    ,
+    selfValue => other.ifSome(partial(?_ == selfValue), () => false),
     () => other.isNone()
   )
 
