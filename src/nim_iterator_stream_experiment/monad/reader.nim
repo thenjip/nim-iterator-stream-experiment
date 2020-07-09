@@ -1,3 +1,12 @@
+##[
+  The `Reader` monad.
+
+  A ``Reader[S, T]`` is a function that reads some environment (or state) `S`
+  and returns some value `T`.
+]##
+
+
+
 import identity
 import ../utils/[call, chain]
 
@@ -10,6 +19,10 @@ type Reader* [S, T] = S -> T
 
 
 func ask* (S: typedesc): Reader[S, S] =
+  ##[
+    Can be used to retrieve the read state within a
+    `flatMap <#flatMap%2CReader%5BS%2CA%5D%2C>`_ call.
+  ]##
   itself[S]
 
 
@@ -46,8 +59,8 @@ func flatMap* [S; A; B](
 
 func local* [S; T](self: Reader[S, T]; f: S -> S): Reader[S, T] =
   ##[
-    Returns a `Reader` that will execute `self` in an environment
-    modified by `f`.
+    Returns a `Reader` that will execute `self` in an environment modified by
+    `f`.
   ]##
   f.map(self)
 
