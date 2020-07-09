@@ -5,8 +5,7 @@ import std/[sugar]
 
 
 
-type
-  Predicate* [T] = Reader[T, bool]
+type Predicate* [T] = Reader[T, bool]
 
 
 
