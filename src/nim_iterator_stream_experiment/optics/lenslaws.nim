@@ -111,55 +111,80 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    let testedLens = name(Street)
+  proc main () =
+    let testedLens = number[CityAddress]()
 
 
 
-    test """Using "checkIdentityLaw" in a unit test's "check" section should compile.""":
-      proc doTest [S; T](lens: Lens[S, T]; spec: IdentitySpec[S]) =
-        check:
-          lens.checkIdentityLaw(spec)
+    suite currentSourcePath().splitFile().name:
+      test """Using "checkIdentityLaw" in a unit test's "check" section should compile.""":
+        proc doTest [S; T](lens: Lens[S, T]; spec: IdentitySpec[S]) =
+          check:
+            lens.checkIdentityLaw(spec)
 
 
-      doTest(testedLens, identitySpec(street("abc", 751)))
-
-
-
-    test """Using "checkRetentionLaw" in a unit test's "check" section should compile.""":
-      proc doTest [S; T](lens: Lens[S, T]; spec: RetentionSpec[S, T]) =
-        check:
-          lens.checkRetentionLaw(spec)
-
-
-      doTest(testedLens, retentionSpec(street("2qfze26q", 9), "abc"))
-
-
-
-    test """Using "checkDoubleWriteLaw" in a unit test's "check" section should compile.""":
-      proc doTest [S; T](lens: Lens[S, T]; spec: DoubleWriteSpec[S, T]) =
-        check:
-          lens.checkDoubleWriteLaw(spec)
-
-
-      doTest(
-        testedLens,
-        doubleWriteSpec(street("abc", 13845), "ABC", "0123")
-      )
-
-
-
-    test """Using "checkLensLaws" in a unit test's "check" section should compile.""":
-      proc doTest [S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]) =
-        check:
-          lens.checkLensLaws(spec)
-
-
-      doTest(
-        testedLens,
-        lensLawsSpec(
-          identitySpec(street("t", 5)),
-          retentionSpec(street("A0", 79), "street"),
-          doubleWriteSpec(street("ac", 18996), "a", "b")
+        doTest(
+          testedLens,
+          identitySpec(cityAddress(751, road(RoadKind.Street, "abc")))
         )
-      )
+
+
+
+      test """Using "checkRetentionLaw" in a unit test's "check" section should compile.""":
+        proc doTest [S; T](lens: Lens[S, T]; spec: RetentionSpec[S, T]) =
+          check:
+            lens.checkRetentionLaw(spec)
+
+
+        doTest(
+          testedLens,
+          retentionSpec(
+            cityAddress(9, road(RoadKind.Boulevard, "2qfze26q")),
+            5.HouseNumber
+          )
+        )
+
+
+
+      test """Using "checkDoubleWriteLaw" in a unit test's "check" section should compile.""":
+        proc doTest [S; T](lens: Lens[S, T]; spec: DoubleWriteSpec[S, T]) =
+          check:
+            lens.checkDoubleWriteLaw(spec)
+
+
+        doTest(
+          testedLens,
+          doubleWriteSpec(
+            cityAddress(13845, road(RoadKind.Avenue, "abc")),
+            98.HouseNumber,
+            123.HouseNumber
+          )
+        )
+
+
+
+      test """Using "checkLensLaws" in a unit test's "check" section should compile.""":
+        proc doTest [S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]) =
+          check:
+            lens.checkLensLaws(spec)
+
+
+        doTest(
+          testedLens,
+          lensLawsSpec(
+            identitySpec(cityAddress(5, road(RoadKind.Boulevard, "t"))),
+            retentionSpec(
+              cityAddress(79, road(RoadKind.Avenue, "A0")),
+              0.HouseNumber
+            ),
+            doubleWriteSpec(
+              cityAddress(18996, road(RoadKind.Street, "ac")),
+              1.HouseNumber,
+              11.HouseNumber
+            )
+          )
+        )
+
+
+
+  main()
