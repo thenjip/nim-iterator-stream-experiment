@@ -634,8 +634,10 @@ when isMainModule:
 
 
 
-    test """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
-      """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]".""":
+    test(
+      """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
+        """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]"."""
+    ):
       func items (P: typedesc[Positive]): Stream[P, P] =
         partial(?:P < P.high())
           .looped(next)
