@@ -105,17 +105,18 @@ template checkLensLaws* [S; T](
 
 
 when isMainModule:
-  import private/[lens_test_common]
+  import lens/private/test/[cityaddress, road]
 
   import std/[os, unittest]
 
 
 
+  func testedLens (): Lens[CityAddress, HouseNumber] =
+    number[CityAddress]()
+
+
+
   proc main () =
-    let testedLens = number[CityAddress]()
-
-
-
     suite currentSourcePath().splitFile().name:
       test """Using "checkIdentityLaw" in a unit test's "check" section should compile.""":
         proc doTest [S; T](lens: Lens[S, T]; spec: IdentitySpec[S]) =
@@ -124,7 +125,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens,
+          testedLens(),
           identitySpec(cityAddress(751, road(RoadKind.Street, "abc")))
         )
 
@@ -137,7 +138,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens,
+          testedLens(),
           retentionSpec(
             cityAddress(9, road(RoadKind.Boulevard, "2qfze26q")),
             5.HouseNumber
@@ -153,7 +154,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens,
+          testedLens(),
           doubleWriteSpec(
             cityAddress(13845, road(RoadKind.Avenue, "abc")),
             98.HouseNumber,
@@ -170,7 +171,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens,
+          testedLens(),
           lensLawsSpec(
             identitySpec(cityAddress(5, road(RoadKind.Boulevard, "t"))),
             retentionSpec(
