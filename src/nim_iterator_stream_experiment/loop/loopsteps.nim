@@ -1,3 +1,9 @@
+##[
+  Step types used in `loop <loop.html>`_ module.
+]##
+
+
+
 import ../monad/[optional]
 import ../optics/[lens]
 
