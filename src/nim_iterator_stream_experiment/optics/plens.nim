@@ -14,6 +14,46 @@
 
   Modifications of the focused structure can be free of side effects or not. It
   is up to the lens implementation.
+
+  Examples:
+    - Define polymorphic lenses for a structure type.
+
+      See `block <block.html>`_ and `conditionalblock <conditionalblock.html>`_.
+
+    - Using polymorphic lenses to modify parts of a structure.
+
+      .. code-block:: nim
+        import nim_iterator_stream_experiment/optics/[plens]
+        import
+          nim_iterator_stream_experiment/optics/plens/private/test/[
+            "block",
+            conditionalblock
+          ]
+        import ../utils/[call, chain]
+
+        import std/[strformat, sugar]
+
+
+        when isMainModule:
+          proc main () =
+            let
+              input = conditionalBlock(() => false, `block`("a", () => 5))
+              output =
+                input
+                  .typeof()
+                  .thenBlock(float)
+                  .modify(
+                    old =>
+                      `block`(fmt"{old.label()}1", old.body().chain(i => i.toFloat()))
+                  ).run(input)
+
+            doAssert(input.condition() == output.condition())
+            doAssert(output.thenLabel() == fmt"{input.thenLabel()}1")
+            doAssert(output.thenBody().call() == input.thenBody().call().toFloat())
+
+
+
+          main()
 ]##
 
 
@@ -125,7 +165,7 @@ func chain* [SR; R1; W1; SW; R2; W2](
 
 when isMainModule:
   import plens/private/test/["block", conditionalblock]
-  import ../monad/[io]
+  import ../utils/[call]
 
   import std/[os, unittest]
 
@@ -186,7 +226,7 @@ when isMainModule:
 
         doTest(
           ConditionalBlock[int].thenBody(string),
-          body => body.IO[:int].map(i => $i),
+          body => (() => $body.call()),
           conditionalBlock(() => true, `block`("abc", () => 1))
         )
 
@@ -243,12 +283,12 @@ when isMainModule:
           input: static proc (): ConditionalBlock[A] {.nimcall, noSideEffect.}
         ) =
           const
-            modifiedBody = lens.run().read().map(modifier).run(input.run())
-            actual = lens.run().modify(_ => modifiedBody).run(input.run())
+            modifiedBody = lens.call().read().map(modifier).run(input.call())
+            actual = lens.call().modify(_ => modifiedBody).run(input.call())
             expected =
               conditionalBlock(
-                input.run().condition(),
-                `block`(input.run().thenLabel(), modifiedBody)
+                input.call().condition(),
+                `block`(input.call().thenLabel(), modifiedBody)
               )
 
           check:
@@ -256,7 +296,7 @@ when isMainModule:
 
 
         func modifier (input: BlockBody[int]): BlockBody[string] =
-          () => $input()
+          () => $input.call()
 
 
         #[ doTest(

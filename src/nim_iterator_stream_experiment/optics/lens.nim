@@ -1,5 +1,36 @@
 ##[
   See `polymorphic lenses <plens.html>`_.
+
+  Examples:
+    - Define lenses for a structure type.
+
+      See `road <road.html>`_ and `cityaddress <cityaddress.html>`_.
+
+    - Using lenses to modify parts of a structure.
+
+      .. code-block:: nim
+        import nim_iterator_stream_experiment/optics/[lens]
+        import
+          nim_iterator_stream_experiment/optics/lens/private/test/[road, cityaddress]
+        import nim_iterator_stream_experiment/monad/[reader]
+
+        import std/[sugar]
+
+
+
+        when isMainModule:
+          proc main () =
+            let
+              start = cityAddress(2, road(RoadKind.Avenue, "somewhere"))
+              end = start.typeof().roadName().write(() => "elsewhere").run(start)
+
+            doAssert(start.number() == end.number())
+            doAssert(start.road().kind() == end.road().kind())
+            doAssert(start.road().name() != end.road().name())
+
+
+
+          main()
 ]##
 
 
