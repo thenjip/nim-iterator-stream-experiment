@@ -1,6 +1,86 @@
 ##[
-  A structure that encloses a looped computation between a condition and a
-  stepper.
+  A ``while`` scope defined by a condition and a stepper (a procedure that makes
+  the loop go forward).
+
+
+  Examples
+  ========
+
+  - The classic counter counting up.
+
+    .. code-block:: nim
+      import nim_iterator_stream_experiment/loop/[loopscope]
+      import nim_iterator_stream_experiment/utils/[ignore, operators, unit]
+
+      import std/[sugar]
+
+
+
+      when isMainModule:
+        proc main () =
+          let scope = looped((i: Natural) => i < 10, next)
+
+          scope.run(0, proc (i: auto): Unit = echo(i)).ignore()
+
+
+
+        main()
+
+  - Iterate on the first 3 items of a ``seq[T]``.
+
+    .. code-block:: nim
+      import nim_iterator_stream_experiment/loop/[loopscope]
+      import nim_iterator_stream_experiment/utils/[ignore, operators, unit]
+
+      import std/[sugar]
+
+
+
+      proc iterateFirst3 [T](s: seq[T]; body: T -> Unit) =
+        looped((i: Natural) => i <= s.high(), next)
+          .breakIf((i: Natural) => i >= 3)
+          .run(0, i => s[i].body())
+          .ignore()
+
+
+
+      when isMainModule:
+        proc main () =
+          @[1, 9, 5, -1, 7].iterateFirst3(proc (i: auto): Unit = echo(i))
+
+
+
+        main()
+
+  - Generate random integers.
+
+    .. code-block:: nim
+      import nim_iterator_stream_experiment/loop/[loopscope]
+      import nim_iterator_stream_experiment/utils/[ignore, operators, unit]
+
+      import std/[random, sugar]
+
+
+
+      proc generateRandomInts [T: SomeInteger](
+        seed: int64;
+        limit: Natural;
+        body: T -> Unit
+      ) =
+        var rng = initRand(seed)
+
+        looped((i: limit.typeof()) => i < limit, next)
+          .run(0, _ => rng.rand(T.low() .. T.high()).body())
+          .ignore()
+
+
+      when isMainModule:
+        proc main () =
+          123.generateRandomInts(20, proc (n: uint32): Unit = echo(n))
+
+
+
+        main()
 ]##
 
 
@@ -287,7 +367,7 @@ when isMainModule:
 
 
 
-    test """Using "sut.run(0, doNothing)" to count up to "expected" should return "expected".""":
+    test """Using "self.run(0, doNothing)" to count up to "expected" should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: N) =
         let actual = partial(?:N < expected).looped(plus1[N].stepper()).run(0.N)
 
@@ -302,7 +382,7 @@ when isMainModule:
 
 
 
-    test """Using "sut.run(0)" to count up to "expected" at compile time should return "expected".""":
+    test """Using "self.run(0)" to count up to "expected" at compile time should return "expected".""":
       proc doTest [N: SomeUnsignedInt](expected: static N) =
         const actual =
           partial(?:N < expected)
@@ -324,9 +404,9 @@ when isMainModule:
       proc doTest [I: Ordinal; T](expected: array[I, T]) =
         var copy: expected.typeof()
 
-        let sut = looped((i: I) => i.int < expected.len(), next)
+        let self = looped((i: I) => i.int < expected.len(), next)
 
-        sut
+        self
           .run(
             expected.low(),
             proc (i: I): Unit =
@@ -376,7 +456,7 @@ when isMainModule:
 
 
 
-    test """Using "sut.runOnce(?, ?)" on an infinite LoopScope should enter the loop only once.""":
+    test """Using "self.runOnce(?, ?)" on an infinite LoopScope should enter the loop only once.""":
       proc doTest () =
         let
           actual = alwaysTrue[Natural].looped(plus1).runOnce(0, doNothing)
@@ -390,7 +470,7 @@ when isMainModule:
 
 
 
-    test """Using "sut.runOnce(?, ?)" on an empty LoopScope should never enter the loop.""":
+    test """Using "self.runOnce(?, ?)" on an empty LoopScope should never enter the loop.""":
       proc doTest () =
         let
           actual = alwaysFalse[Natural].looped(plus1).runOnce(0, doNothing)
@@ -404,7 +484,7 @@ when isMainModule:
 
 
 
-    test """Using "sut.breakIf(n => n mod 2 == 1)" when iterating on Natural numbers should return the first found odd number.""":
+    test """Using "self.breakIf(n => n mod 2 == 1)" when iterating on Natural numbers should return the first found odd number.""":
       func isOdd [I: SomeInteger](i: I): bool =
         i mod 2 == 1
 
