@@ -1,3 +1,46 @@
+##[
+  Utilities to check if a `lens <lens.html>`_ verifies the lens laws.
+
+  This module is meant to be used in test suites.
+
+  Example:
+    .. code-block:: nim
+      import nim_iterator_stream_experiment/optics/[lenslaws]
+      import nim_iterator_stream_experiment/optics/lens/private/test/[road]
+
+      import std/[unittest]
+
+
+
+      when isMainModule:
+        proc main () =
+          suite """"Road" kind lens""":
+            test """"kind[Road]()" should verify the lens laws.""":
+              proc doTest [S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]) =
+                check:
+                  lens.checkLensLaws(spec)
+
+
+              doTest(
+                kind[Road](),
+                lensLawsSpec(
+                  identitySpec(road(RoadKind.Street, "aaa")),
+                  retentionSpec(road(RoadKind.Avenue, "  "), RoadKind.Street),
+                  doubleWriteSpec(
+                    road(RoadKind.Avenue, "&&&"),
+                    RoadKind.Boulevard,
+                    RoadKind.Street
+                  )
+                )
+              )
+
+
+
+        main()
+]##
+
+
+
 import lens
 import ../monad/[reader]
 
@@ -5,20 +48,29 @@ import std/[macros, sugar]
 
 
 
-export reader
+export lens, reader
 
 
 
 type
   IdentitySpec* [S] = tuple
+    ##[
+      Parameters for the lens identity law.
+    ]##
     expected: S
 
   RetentionSpec* [S; T] = tuple
-    state: S
+    ##[
+      Parameters for the lens retention law.
+    ]##
+    input: S
     expected: T
 
   DoubleWriteSpec* [S; T] = tuple
-    state: S
+    ##[
+      Parameters for the lens double write law.
+    ]##
+    input: S
     first: T
     second: T
 
@@ -34,16 +86,16 @@ func identitySpec* [S](expected: S): IdentitySpec[S] =
   (expected: expected)
 
 
-func retentionSpec* [S; T](state: S; expected: T): RetentionSpec[S, T] =
-  (state: state, expected: expected)
+func retentionSpec* [S; T](input: S; expected: T): RetentionSpec[S, T] =
+  (input: input, expected: expected)
 
 
 func doubleWriteSpec* [S; T](
-  state: S;
+  input: S;
   first: T;
   second: T
 ): DoubleWriteSpec[S, T] =
-  (state: state, first: first, second: second)
+  (input: input, first: first, second: second)
 
 
 func lensLawsSpec* [S; T](
@@ -59,6 +111,10 @@ template checkIdentityLaw* [S; T](
   lens: Lens[S, T];
   spec: IdentitySpec[S]
 ): bool =
+  ##[
+    Checks whether a read followed by a write through `lens` is the same as not
+    modifying the initial structure.
+  ]##
   lens
     .read()
     .flatMap((t: T) => lens.write(() => t))
@@ -70,10 +126,14 @@ template checkRetentionLaw* [S; T](
   lens: Lens[S, T];
   spec: RetentionSpec[S, T]
 ): bool =
+  ##[
+    Checks whether a write followed by a read through `lens` returns the same
+    value written.
+  ]##
   lens
     .write(() => spec.expected)
     .map(lens.read())
-    .run(spec.state)
+    .run(spec.input)
     .`==`(spec.expected)
 
 
@@ -81,11 +141,15 @@ template checkDoubleWriteLaw* [S; T](
   lens: Lens[S, T];
   spec: DoubleWriteSpec[S, T]
 ): bool =
+  ##[
+    Checks whether two consecutive writes through `lens` is the same as directly
+    writing the second value.
+  ]##
   lens
     .write(() => spec.first)
     .map(lens.write(() => spec.second))
-    .run(spec.state)
-    .`==`(lens.write(() => spec.second).run(spec.state))
+    .run(spec.input)
+    .`==`(lens.write(() => spec.second).run(spec.input))
 
 
 
@@ -111,8 +175,18 @@ when isMainModule:
 
 
 
-  func testedLens (): Lens[CityAddress, HouseNumber] =
-    number[CityAddress]()
+  func brokenReadLens (): Lens[Road, RoadName] =
+    name[Road]()
+      .chain(
+        lens((name: RoadName) => "", (_: RoadName, `new`: RoadName) => `new`)
+      )
+
+
+  func brokenWriteLens (): Lens[CityAddress, RoadKind] =
+    lens(
+      CityAddress.roadKind().read(),
+      (address: CityAddress, _: RoadKind) => address
+    )
 
 
 
@@ -125,7 +199,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens(),
+          number[CityAddress](),
           identitySpec(cityAddress(751, road(RoadKind.Street, "abc")))
         )
 
@@ -138,7 +212,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens(),
+          number[CityAddress](),
           retentionSpec(
             cityAddress(9, road(RoadKind.Boulevard, "2qfze26q")),
             5.HouseNumber
@@ -154,7 +228,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens(),
+          number[CityAddress](),
           doubleWriteSpec(
             cityAddress(13845, road(RoadKind.Avenue, "abc")),
             98.HouseNumber,
@@ -171,7 +245,7 @@ when isMainModule:
 
 
         doTest(
-          testedLens(),
+          number[CityAddress](),
           lensLawsSpec(
             identitySpec(cityAddress(5, road(RoadKind.Boulevard, "t"))),
             retentionSpec(
@@ -182,6 +256,47 @@ when isMainModule:
               cityAddress(18996, road(RoadKind.Street, "ac")),
               1.HouseNumber,
               11.HouseNumber
+            )
+          )
+        )
+
+
+
+      test """A lens with a deficient member reader should not verify at least one of the laws.""":
+        proc doTest [S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]) =
+          check:
+            not lens.checkLensLaws(spec)
+
+
+        doTest(
+          brokenReadLens(),
+          lensLawsSpec(
+            identitySpec(road(RoadKind.Street, "abc")),
+            retentionSpec(road(RoadKind.Boulevard, "0123"), "a0b1"),
+            doubleWriteSpec(road(RoadKind.Avenue, "bcd"), "aa", "00")
+          )
+        )
+
+
+
+      test """A lens with a deficient member writer should not verify at least one of the laws.""":
+        proc doTest [S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]) =
+          check:
+            not lens.checkLensLaws(spec)
+
+
+        doTest(
+          brokenWriteLens(),
+          lensLawsSpec(
+            identitySpec(cityAddress(0, road(RoadKind.Avenue, "a"))),
+            retentionSpec(
+              cityAddress(3, road(RoadKind.Boulevard, "01")),
+              RoadKind.Street
+            ),
+            doubleWriteSpec(
+              cityAddress(142, road(RoadKind.Street, "aaa")),
+              RoadKind.Avenue,
+              RoadKind.Boulevard
             )
           )
         )
