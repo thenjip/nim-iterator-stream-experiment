@@ -1,7 +1,7 @@
 import loop/[loopscope]
-import monad/[io, optional, predicate, reader]
-import optics/[lens]
-import utils/[convert, unit]
+import ../monad/[io, optional, predicate, reader]
+import ../optics/[lens]
+import ../utils/[convert, unit]
 
 import std/[sugar]
 
@@ -144,9 +144,9 @@ func dropWhile* [S; T](
 
 
 when isMainModule:
-  import monad/[identity]
-  import optics/[lenslaws]
-  import utils/[ignore, partialprocs, operators]
+  import ../monad/[identity]
+  import ../optics/[lenslaws]
+  import ../utils/[ignore, partialprocs, operators]
 
   import std/[os, sequtils, unittest]
 
@@ -163,83 +163,88 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"Loop[S, T].scope()" should return a lens that obeys the lens laws.""":
-      proc doTest [S; T](spec: LensLawsSpec[Loop[S, T], LoopScope[S]]) =
-        check:
-          Loop[S, T].scope().checkLensLaws(spec)
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"Loop[S, T].scope()" should return a lens that obeys the lens laws.""":
+        proc doTest [S; T](spec: LensLawsSpec[Loop[S, T], LoopScope[S]]) =
+          check:
+            Loop[S, T].scope().checkLensLaws(spec)
 
 
-      proc runTest1 () =
-        let loop = itself[Unit].infiniteLoop((_: Unit) => 14u64)
+        proc runTest1 () =
+          let loop = itself[Unit].infiniteLoop((_: Unit) => 14u64)
 
-        doTest(
-          lensLawsSpec(
-            identitySpec(loop),
-            retentionSpec(loop, alwaysFalse[loop.stepType()].looped(itself)),
-            doubleWriteSpec(
-              loop,
-              alwaysFalse[loop.stepType()].looped(itself),
-              alwaysTrue[loop.stepType()].looped(itself)
+          doTest(
+            lensLawsSpec(
+              identitySpec(loop),
+              retentionSpec(loop, alwaysFalse[loop.stepType()].looped(itself)),
+              doubleWriteSpec(
+                loop,
+                alwaysFalse[loop.stepType()].looped(itself),
+                alwaysTrue[loop.stepType()].looped(itself)
+              )
             )
           )
-        )
 
 
-      runTest1()
+        runTest1()
 
 
 
-    test """"Loop[S, T].generator()" should return a lens that obeys the lens laws.""":
-      proc doTest [S; T](spec: LensLawsSpec[Loop[S, T], Generator[S, T]]) =
-        check:
-          Loop[S, T].generator().checkLensLaws(spec)
+      test """"Loop[S, T].generator()" should return a lens that obeys the lens laws.""":
+        proc doTest [S; T](spec: LensLawsSpec[Loop[S, T], Generator[S, T]]) =
+          check:
+            Loop[S, T].generator().checkLensLaws(spec)
 
 
-      proc runTest1 () =
-        let loop = emptyLoop(Unit, seq[Unit])
+        proc runTest1 () =
+          let loop = emptyLoop(Unit, seq[Unit])
 
-        doTest(
-          lensLawsSpec(
-            identitySpec(loop),
-            retentionSpec(
-              loop,
-              generator((_: loop.stepType()) => unit().repeat(5))
-            ),
-            doubleWriteSpec(
-              loop,
-              generator((_: loop.stepType()) => loop.itemType().default()),
-              (_: loop.stepType()) => @[unit()]
+          doTest(
+            lensLawsSpec(
+              identitySpec(loop),
+              retentionSpec(
+                loop,
+                generator((_: loop.stepType()) => unit().repeat(5))
+              ),
+              doubleWriteSpec(
+                loop,
+                generator((_: loop.stepType()) => loop.itemType().default()),
+                (_: loop.stepType()) => @[unit()]
+              )
             )
           )
-        )
 
 
-      runTest1()
+        runTest1()
 
 
 
-    test """Dropping the items of a "seq[T]" while they verify the given predicate should return the index of the first item that does not verify the predicate.""":
-      proc doTest [T](
-        input: seq[T];
-        predicate: Predicate[T];
-        expected: Natural
-      ) =
-        let actual = input.itemLoop().dropWhile(predicate).run(input.low())
+      test """Dropping the items of a "seq[T]" while they verify the given predicate should return the index of the first item that does not verify the predicate.""":
+        proc doTest [T](
+          input: seq[T];
+          predicate: Predicate[T];
+          expected: Natural
+        ) =
+          let actual = input.itemLoop().dropWhile(predicate).run(input.low())
 
-        check:
-          actual == expected
-
-
-      proc doTest [T](
-        input: seq[T];
-        predicate: Predicate[T];
-        expectedIndex: seq[T] -> Natural
-      ) =
-        doTest(input, predicate, expectedIndex.run(input))
+          check:
+            actual == expected
 
 
-      doTest(seq[Unit].default(), alwaysTrue[Unit], partial(low(?_)))
-      doTest(@["", "", "", "", "a", ""], (s: string) => s.len() == 0, 4)
-      doTest(@[-5, -1, -3], partial(?:int > 0), partial(low(?_)))
-      doTest(@[1.0, 15.47, 62.8], alwaysTrue[float], partial(len(?_)))
+        proc doTest [T](
+          input: seq[T];
+          predicate: Predicate[T];
+          expectedIndex: seq[T] -> Natural
+        ) =
+          doTest(input, predicate, expectedIndex.run(input))
+
+
+        doTest(seq[Unit].default(), alwaysTrue[Unit], partial(low(?_)))
+        doTest(@["", "", "", "", "a", ""], (s: string) => s.len() == 0, 4)
+        doTest(@[-5, -1, -3], partial(?:int > 0), partial(low(?_)))
+        doTest(@[1.0, 15.47, 62.8], alwaysTrue[float], partial(len(?_)))
+
+
+
+  main()

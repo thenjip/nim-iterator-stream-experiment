@@ -1,8 +1,7 @@
-import loop
-import loop/[loopscope]
 import monad/[identity, io, optional, predicate, reader]
 import optics/[focus, lens]
-import stream/[streamsteps]
+import stream/[loop, streamsteps]
+import stream/loop/[loopscope]
 import types/[somenatural]
 import
   utils/[
@@ -446,352 +445,357 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"Stream[S, T].initialStep()" should return a lens that verifies the lens laws.""":
-      proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], Initializer[S]]) =
-        check:
-          Stream[S, T].initialStep().checkLensLaws(spec)
-
-
-      doTest(
-        lensLawsSpec(
-          identitySpec(singleItemStream(() => 1)),
-          retentionSpec(
-            singleItemStream(() => -1),
-            nil as Initializer[SingleStep]
-          ),
-          doubleWriteSpec(
-            singleItemStream(() => int.low()),
-            initializer(() => singleStep(false)),
-            () => singleStep(true)
-          )
-        )
-      )
-
-
-
-    test """"Stream[S, T].onCloseEvent()" should return a lens that verifies the lens laws.""":
-      proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], OnCloseEvent[S]]) =
-        check:
-          Stream[S, T].onCloseEvent().checkLensLaws(spec)
-
-
-      doTest(
-        lensLawsSpec(
-          identitySpec(emptyStream(string)),
-          retentionSpec(
-            emptyStream(string),
-            onCloseEvent(
-              proc (_: EmptyStep): Unit =
-                echo("a")
-            )
-          ),
-          doubleWriteSpec(
-            emptyStream(string),
-            onCloseEvent(doNothing[EmptyStep]),
-            proc (_: EmptyStep): Unit =
-              debugEcho("0", 1)
-          )
-        )
-      )
-
-
-
-    test """"Stream[S, T].loop()" should return a lens that verifies the lens laws.""":
-      proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], Loop[S, T]]) =
-        check:
-          Stream[S, T].loop().checkLensLaws(spec)
-
-
-      proc runTest1 () =
-        let
-          stream =
-            next[Natural]
-              .infiniteLoop(partial($ ?:Natural))
-              .startingAt(() => Natural.low())
-          streamGenerator = stream.read(stream.typeof().generator())
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"Stream[S, T].initialStep()" should return a lens that verifies the lens laws.""":
+        proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], Initializer[S]]) =
+          check:
+            Stream[S, T].initialStep().checkLensLaws(spec)
 
 
         doTest(
           lensLawsSpec(
-            identitySpec(stream),
-            retentionSpec(stream, emptyLoop(stream.stepType(), string)),
+            identitySpec(singleItemStream(() => 1)),
+            retentionSpec(
+              singleItemStream(() => -1),
+              nil as Initializer[SingleStep]
+            ),
             doubleWriteSpec(
-              stream,
-              partial(?:stream.stepType() < 10)
-                .looped(next)
-                .generating(streamGenerator),
-              partial(?:stream.stepType() > Natural.low())
-                .looped(prev)
-                .generating(streamGenerator)
+              singleItemStream(() => int.low()),
+              initializer(() => singleStep(false)),
+              () => singleStep(true)
             )
           )
         )
 
 
-      runTest1()
 
+      test """"Stream[S, T].onCloseEvent()" should return a lens that verifies the lens laws.""":
+        proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], OnCloseEvent[S]]) =
+          check:
+            Stream[S, T].onCloseEvent().checkLensLaws(spec)
 
-
-    test """Using "reduceIfNotEmpty" on an empty stream should return an empty "Optional[R]".""":
-      proc doTest [T; R](reducer: Reducer[R, T]; initialResult: R) =
-        let
-          actual = emptyStream(T).reduceIfNotEmpty(reducer, initialResult)
-          expected = R.toNone()
-
-        check:
-          actual == expected
-
-
-      doTest(plus[int], 0)
-      doTest(mult[cdouble], 100.0)
-      doTest(partial(?:string & ?:string), "abc")
-
-
-
-    test """Counting the number of items in a stream of 1 item should return 1.""":
-      proc doTest [T](item: () -> T) =
-        let
-          actual = singleItemStream(item).count(Natural)
-          expected = 1 as actual.typeof()
-
-        check:
-          actual == expected
-
-
-      doTest(() => ValueError.newException(""))
-      doTest(() => 'a')
-
-
-
-    test """Limiting an infinite stream to "n" items and collecting them in a "seq[T]" should return a sequence of "n" items.""":
-      proc doTest [S; T; N](param: InfiniteStreamParam[S, T]; n: N) =
-        let
-          actual =
-            param
-              .stepper
-              .infiniteLoop(param.generator)
-              .startingAt(param.initialStep, param.onClose)
-              .limit(n)
-              .reduce(addToSeq[T], @[])
-              .len()
-              .convert(N)
-          expected = n
-
-        check:
-          actual == expected
-
-
-      doTest(
-        infiniteStreamParam(
-          stepper(itself[uint16]),
-          when defined(js):
-            generator((i: uint16) => (i, i))
-          else:
-            generator(partial($ ?:uint16))
-          ,
-          () => 1u16,
-          doNothing[uint16]
-        ),
-        10u
-      )
-
-
-
-    test """Skipping "ns" items of a infinite stream limited to "nl" items and collecting them in a "seq[T]" should return a sequence of "ns" items.""":
-      proc doTest [S; T; N](param: InfiniteStreamParam[S, T]; nl, ns: N) =
-        require:
-          ns <= nl
-
-        let
-          actual =
-            param
-              .stepper
-              .infiniteLoop(param.generator)
-              .startingAt(param.initialStep, param.onClose)
-              .limit(nl)
-              .skip(ns)
-              .run()
-              .reduce(addToSeq[T], @[])
-              .len()
-              .convert(N)
-          expected = nl - ns
-
-        check:
-          actual == expected
-
-
-      doTest(
-        infiniteStreamParam(
-          stepper(next[Natural]),
-          generator(itself[Natural]),
-          () => 0 as Natural,
-          doNothing[Natural]
-        ),
-        20u,
-        5u
-      )
-
-
-
-    test(
-      """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
-        """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]"."""
-    ):
-      func items (P: typedesc[Positive]): Stream[P, P] =
-        partial(?:P < P.high())
-          .looped(next)
-          .generating(itself[P])
-          .startingAt(() => P.low())
-
-
-      func takeWhileAndCollect (P: typedesc[Positive]): seq[Positive] =
-        result = newSeqOfCap[P](9)
-
-        for it in P.low() ..< P.high():
-          if it < 10:
-            result.add(it)
-          else:
-            break
-
-
-      proc doTest () =
-        const
-          actual =
-            Positive
-              .items()
-              .takeWhile(partial(?:Positive < 10))
-              .reduce(addToSeq[Positive], newSeqOfCap[Positive](9))
-          expected = Positive.takeWhileAndCollect()
-
-        check:
-          actual == expected
-
-
-      doTest()
-
-
-
-    test """"self.findFirst(predicate)" should return the first item that verifies "predicate".""":
-      proc doTest [S; T](
-        self: Stream[S, T];
-        predicate: Predicate[T];
-        expected: Optional[T]
-      ) =
-        let actual = self.findFirst(predicate)
-
-        check:
-          actual == expected
-
-
-      proc runTest1 () =
-        let expected = 35.Natural
 
         doTest(
-          items(0.convert(expected.typeof()) .. 100.convert(expected.typeof())),
-          partial(?:expected.typeof() == expected),
-          expected.toSome()
+          lensLawsSpec(
+            identitySpec(emptyStream(string)),
+            retentionSpec(
+              emptyStream(string),
+              onCloseEvent(
+                proc (_: EmptyStep): Unit =
+                  echo("a")
+              )
+            ),
+            doubleWriteSpec(
+              emptyStream(string),
+              onCloseEvent(doNothing[EmptyStep]),
+              proc (_: EmptyStep): Unit =
+                debugEcho("0", 1)
+            )
+          )
         )
 
 
-      proc runTest2 () =
-        let
-          stream = @["", "a", "abc", " \n"].items()
-          expected = stream.itemType().toNone()
 
-        doTest(stream, (s: stream.itemType()) => s.len() > 5, expected)
-
-
-      runTest1()
-      runTest2()
-      doTest(Natural.emptyStream(), alwaysTrue[Natural], Natural.toNone())
+      test """"Stream[S, T].loop()" should return a lens that verifies the lens laws.""":
+        proc doTest [S; T](spec: LensLawsSpec[Stream[S, T], Loop[S, T]]) =
+          check:
+            Stream[S, T].loop().checkLensLaws(spec)
 
 
-
-    test """"self.any(predicate)" should check whether any item verifies "predicate".""":
-      proc doTest [S; T](
-        self: Stream[S, T];
-        predicate: Predicate[T];
-        expected: bool
-      ) =
-        let actual = self.any(predicate)
-
-        check:
-          actual == expected
+        proc runTest1 () =
+          let
+            stream =
+              next[Natural]
+                .infiniteLoop(partial($ ?:Natural))
+                .startingAt(() => Natural.low())
+            streamGenerator = stream.read(stream.typeof().generator())
 
 
-      proc runTest1 () =
-        let stream = @[-5, -1041, 683, 40, 339].items()
+          doTest(
+            lensLawsSpec(
+              identitySpec(stream),
+              retentionSpec(stream, emptyLoop(stream.stepType(), string)),
+              doubleWriteSpec(
+                stream,
+                partial(?:stream.stepType() < 10)
+                  .looped(next)
+                  .generating(streamGenerator),
+                partial(?:stream.stepType() > Natural.low())
+                  .looped(prev)
+                  .generating(streamGenerator)
+              )
+            )
+          )
 
-        doTest(stream, (i: stream.itemType()) => i mod 2 == 0, true)
 
-
-      proc runTest2 () =
-        let stream = @[@[0, 1], @[-8, 9, 10]].items()
-
-        doTest(stream, (it: stream.itemType()) => it.len() == 0, false)
-
-
-      runTest1()
-      runTest2()
-      doTest(char.emptyStream(), alwaysTrue[char], false)
+        runTest1()
 
 
 
-    test """"self.all(predicate)" should check whether all the items verify "predicate".""":
-      proc doTest [S; T](
-        self: Stream[S, T];
-        predicate: Predicate[T];
-        expected: bool
-      ) =
-        let actual = self.all(predicate)
+      test """Using "reduceIfNotEmpty" on an empty stream should return an empty "Optional[R]".""":
+        proc doTest [T; R](reducer: Reducer[R, T]; initialResult: R) =
+          let
+            actual = emptyStream(T).reduceIfNotEmpty(reducer, initialResult)
+            expected = R.toNone()
 
-        check:
-          actual == expected
+          check:
+            actual == expected
 
 
-      proc runTest1 () =
-        let stream = @[('a', 1), (' ', -5), ('\t', 7), (']', -100)].items()
-
-        doTest(stream, (it: stream.itemType()) => not it[0].isDigit(), true)
-
-
-      proc runTest2 () =
-        let stream = @[new int, nil, new int].items().map(toOptional)
-
-        doTest(stream, isSome[stream.itemType().valueType()], false)
-
-
-      runTest1()
-      runTest2()
-      doTest(uint.emptyStream(), alwaysFalse[uint], true)
+        doTest(plus[int], 0)
+        doTest(mult[cdouble], 100.0)
+        doTest(partial(?:string & ?:string), "abc")
 
 
 
-    test """"self.none(predicate)" should check whether no items verify "predicate".""":
-      proc doTest [S; T](
-        self: Stream[S, T];
-        predicate: Predicate[T];
-        expected: bool
-      ) =
-        let actual = self.none(predicate)
+      test """Counting the number of items in a stream of 1 item should return 1.""":
+        proc doTest [T](item: () -> T) =
+          let
+            actual = singleItemStream(item).count(Natural)
+            expected = 1 as actual.typeof()
 
-        check:
-          actual == expected
+          check:
+            actual == expected
 
 
-      proc runTest1 () =
-        let stream = items(132.Natural .. 956.Natural)
-
-        doTest(stream, (it: stream.itemType()) => it mod 1000 == 0, true)
+        doTest(() => ValueError.newException(""))
+        doTest(() => 'a')
 
 
-      proc runTest2 () =
-        let stream = @[false, true, false, false].items()
 
-        doTest(stream, itself[stream.itemType()], false)
+      test """Limiting an infinite stream to "n" items and collecting them in a "seq[T]" should return a sequence of "n" items.""":
+        proc doTest [S; T; N](param: InfiniteStreamParam[S, T]; n: N) =
+          let
+            actual =
+              param
+                .stepper
+                .infiniteLoop(param.generator)
+                .startingAt(param.initialStep, param.onClose)
+                .limit(n)
+                .reduce(addToSeq[T], @[])
+                .len()
+                .convert(N)
+            expected = n
+
+          check:
+            actual == expected
 
 
-      runTest1()
-      runTest2()
-      doTest(Unit.emptyStream(), alwaysTrue[Unit], true)
+        doTest(
+          infiniteStreamParam(
+            stepper(itself[uint16]),
+            when defined(js):
+              generator((i: uint16) => (i, i))
+            else:
+              generator(partial($ ?:uint16))
+            ,
+            () => 1u16,
+            doNothing[uint16]
+          ),
+          10u
+        )
+
+
+
+      test """Skipping "ns" items of a infinite stream limited to "nl" items and collecting them in a "seq[T]" should return a sequence of "ns" items.""":
+        proc doTest [S; T; N](param: InfiniteStreamParam[S, T]; nl, ns: N) =
+          require:
+            ns <= nl
+
+          let
+            actual =
+              param
+                .stepper
+                .infiniteLoop(param.generator)
+                .startingAt(param.initialStep, param.onClose)
+                .limit(nl)
+                .skip(ns)
+                .run()
+                .reduce(addToSeq[T], @[])
+                .len()
+                .convert(N)
+            expected = nl - ns
+
+          check:
+            actual == expected
+
+
+        doTest(
+          infiniteStreamParam(
+            stepper(next[Natural]),
+            generator(itself[Natural]),
+            () => 0 as Natural,
+            doNothing[Natural]
+          ),
+          20u,
+          5u
+        )
+
+
+
+      test(
+        """Taking the items of a stream of "Positive"s, starting at "Positive.low()",""" &
+          """ while the current item is less than 10 and collecting them at compile time should return "@[Positive.low() .. 9]"."""
+      ):
+        func items (P: typedesc[Positive]): Stream[P, P] =
+          partial(?:P < P.high())
+            .looped(next)
+            .generating(itself[P])
+            .startingAt(() => P.low())
+
+
+        func takeWhileAndCollect (P: typedesc[Positive]): seq[Positive] =
+          result = newSeqOfCap[P](9)
+
+          for it in P.low() ..< P.high():
+            if it < 10:
+              result.add(it)
+            else:
+              break
+
+
+        proc doTest () =
+          const
+            actual =
+              Positive
+                .items()
+                .takeWhile(partial(?:Positive < 10))
+                .reduce(addToSeq[Positive], newSeqOfCap[Positive](9))
+            expected = Positive.takeWhileAndCollect()
+
+          check:
+            actual == expected
+
+
+        doTest()
+
+
+
+      test """"self.findFirst(predicate)" should return the first item that verifies "predicate".""":
+        proc doTest [S; T](
+          self: Stream[S, T];
+          predicate: Predicate[T];
+          expected: Optional[T]
+        ) =
+          let actual = self.findFirst(predicate)
+
+          check:
+            actual == expected
+
+
+        proc runTest1 () =
+          let expected = 35.Natural
+
+          doTest(
+            items(0.convert(expected.typeof()) .. 100.convert(expected.typeof())),
+            partial(?:expected.typeof() == expected),
+            expected.toSome()
+          )
+
+
+        proc runTest2 () =
+          let
+            stream = @["", "a", "abc", " \n"].items()
+            expected = stream.itemType().toNone()
+
+          doTest(stream, (s: stream.itemType()) => s.len() > 5, expected)
+
+
+        runTest1()
+        runTest2()
+        doTest(Natural.emptyStream(), alwaysTrue[Natural], Natural.toNone())
+
+
+
+      test """"self.any(predicate)" should check whether any item verifies "predicate".""":
+        proc doTest [S; T](
+          self: Stream[S, T];
+          predicate: Predicate[T];
+          expected: bool
+        ) =
+          let actual = self.any(predicate)
+
+          check:
+            actual == expected
+
+
+        proc runTest1 () =
+          let stream = @[-5, -1041, 683, 40, 339].items()
+
+          doTest(stream, (i: stream.itemType()) => i mod 2 == 0, true)
+
+
+        proc runTest2 () =
+          let stream = @[@[0, 1], @[-8, 9, 10]].items()
+
+          doTest(stream, (it: stream.itemType()) => it.len() == 0, false)
+
+
+        runTest1()
+        runTest2()
+        doTest(char.emptyStream(), alwaysTrue[char], false)
+
+
+
+      test """"self.all(predicate)" should check whether all the items verify "predicate".""":
+        proc doTest [S; T](
+          self: Stream[S, T];
+          predicate: Predicate[T];
+          expected: bool
+        ) =
+          let actual = self.all(predicate)
+
+          check:
+            actual == expected
+
+
+        proc runTest1 () =
+          let stream = @[('a', 1), (' ', -5), ('\t', 7), (']', -100)].items()
+
+          doTest(stream, (it: stream.itemType()) => not it[0].isDigit(), true)
+
+
+        proc runTest2 () =
+          let stream = @[new int, nil, new int].items().map(toOptional)
+
+          doTest(stream, isSome[stream.itemType().valueType()], false)
+
+
+        runTest1()
+        runTest2()
+        doTest(uint.emptyStream(), alwaysFalse[uint], true)
+
+
+
+      test """"self.none(predicate)" should check whether no items verify "predicate".""":
+        proc doTest [S; T](
+          self: Stream[S, T];
+          predicate: Predicate[T];
+          expected: bool
+        ) =
+          let actual = self.none(predicate)
+
+          check:
+            actual == expected
+
+
+        proc runTest1 () =
+          let stream = items(132.Natural .. 956.Natural)
+
+          doTest(stream, (it: stream.itemType()) => it mod 1000 == 0, true)
+
+
+        proc runTest2 () =
+          let stream = @[false, true, false, false].items()
+
+          doTest(stream, itself[stream.itemType()], false)
+
+
+        runTest1()
+        runTest2()
+        doTest(Unit.emptyStream(), alwaysTrue[Unit], true)
+
+
+
+  main()
