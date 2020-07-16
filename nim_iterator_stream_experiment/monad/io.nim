@@ -1,7 +1,7 @@
 ##[
   The IO monad from Haskell.
 
-  It lets one build a computation that does not need a parameter.
+  It lets one build a computation that has no parameters.
   It can also be used as a wrapper for computations that interact with external
   resources such as memory management, FFI, I/O, etc. .
 
@@ -30,7 +30,7 @@
       This can compiled to C or C++ and checked for file descriptor leaks with
       ``valgrind --track-fds=yes``. No leaks should be found.
 
-    - Encapsulate a computation that uses manual memory management.
+    - Use manual memory management.
 
       .. code-block:: nim
         import nim_iterator_stream_experiment/monad/[io]
@@ -143,81 +143,88 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"IO[T]" should obey the monad laws.""":
-      proc doTest [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
-        spec: MonadLawsSpec[LA, LMA, LMB, Unit, RT, RM, Unit, AA, AB, AMA, AMB, AMC, Unit]
-      ) =
-        check:
-          spec.checkMonadLaws()
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"IO[T]" should obey the monad laws.""":
+        proc doTest [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
+          spec: MonadLawsSpec[LA, LMA, LMB, Unit, RT, RM, Unit, AA, AB, AMA, AMB, AMC, Unit]
+        ) =
+          check:
+            spec.checkMonadLaws()
 
 
-      doTest(
-        monadLawsSpec(
-          leftIdentitySpec(-5, toIO, i => toIO(-i), unit()),
-          rightIdentitySpec(() => newStringOfCap(10), toIO, unit()),
-          associativitySpec(
-            ('a', true),
-            toIO,
-            t => (t[0], not t[1]).toIO(),
-            (t: (char, bool)) => t[0].`$`().len().toIO(),
-            unit()
+        doTest(
+          monadLawsSpec(
+            leftIdentitySpec(-5, toIO, i => toIO(-i), unit()),
+            rightIdentitySpec(() => newStringOfCap(10), toIO, unit()),
+            associativitySpec(
+              ('a', true),
+              toIO,
+              t => (t[0], not t[1]).toIO(),
+              (t: (char, bool)) => t[0].`$`().len().toIO(),
+              unit()
+            )
           )
         )
-      )
 
 
 
-    test """"IO[T]" without side effects should be compatible with compile time execution.""":
-      template doTest [T](
-        sut: IO[T]{noSideEffect};
-        expected: static T
-      ): proc () {.nimcall.} =
-        (
-          proc () =
-            const actual = sut.run()
+      test """"IO[T]" without side effects should be compatible with compile time execution.""":
+        template doTest [T](
+          sut: IO[T]{noSideEffect};
+          expected: static T
+        ): proc () =
+          (
+            proc () =
+              const actual = sut.run()
 
-            check:
-              actual == expected
-        )
-
-
-      func expected1 (): int =
-        1
+              check:
+                actual == expected
+          )
 
 
-      func expected2 (): int =
-        toSeq(1 .. 10).foldl(a + b, 0)
-
-      func sut2 (): IO[expected2.returnType()] =
-        lambda(1 .. 10)
-          .map(slice => toSeq(slice.items()))
-          .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
+        func expected1 (): int =
+          1
 
 
-      for t in [
-        doTest(expected1, expected1.call()),
-        doTest(sut2.call(), expected2.call())
-      ]:
-        t.call()
+        func expected2 (): int =
+          toSeq(1 .. 10).foldl(a + b, 0)
+
+        func sut2 (): IO[expected2.returnType()] =
+          lambda(1 .. 10)
+            .map(slice => toSeq(slice.items()))
+            .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
 
 
-
-    test """"after" in "self.bracket(between, after)" should be executed after "between".""":
-      proc doTest () =
-        var address = new byte
-
-        let
-          expected = address.read()
-          actual =
-            unit()
-              .toIO()
-              .bracket(_ => address.read(), _ => address.write(nil).doNothing())
-              .run()
-
-        check:
-          actual == expected
+        for t in [
+          doTest(expected1, expected1.call()),
+          doTest(sut2.call(), expected2.call())
+        ]:
+          t.call()
 
 
 
-      doTest()
+      test """"after" in "self.bracket(between, after)" should be executed after "between".""":
+        proc doTest () =
+          var address = new byte
+
+          let
+            expected = address.read()
+            actual =
+              unit()
+                .toIO()
+                .bracket(
+                  _ => address.read(),
+                  _ => address.write(nil).doNothing()
+                ).run()
+
+          check:
+            actual == expected
+
+
+
+        doTest()
+
+
+
+  main()
