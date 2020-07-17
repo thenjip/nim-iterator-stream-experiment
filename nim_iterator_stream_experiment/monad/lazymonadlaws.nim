@@ -11,6 +11,9 @@
 
   Concepts cannot currently be used to implement the monad concept in Nim.
   See this related `issue <https://github.com/nim-lang/Nim/issues/5650>`_.
+
+  Examples:
+    - `Test the identity monad <https://github.com/thenjip/nim-iterator-stream-experiment/blob/2f44f44911f746b84c1e4164fead90a738e84084/nim_iterator_stream_experiment/monad/lazymonadlaws.nim#L180-L234>`_.
 ]##
 
 
