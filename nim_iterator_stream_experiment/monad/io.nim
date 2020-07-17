@@ -5,78 +5,8 @@
   It can also be used as a wrapper for computations that interact with external
   resources such as memory management, FFI, I/O, etc. .
 
-  Examples:
-    - Open the currently compiled source file to read its size in bytes, then close it.
-
-      .. code-block:: nim
-        import nim_iterator_stream_experiment/monad/[io]
-        import nim_iterator_stream_experiment/utils/[unit]
-
-        import std/[sugar]
-
-
-        proc withFile [T](file: () -> File; f: File -> T): IO[T] =
-          file.bracket(f, proc (f: File): Unit = f.close())
-
-        proc openCurrentSrcFile (): File =
-          currentSourcePath().open()
-
-
-        when isMainModule:
-          let fileSize = openCurrentSrcFile.withFile(getFileSize).run()
-
-          echo(fileSize) # This should print a natural.
-
-      This can compiled to C or C++ and checked for file descriptor leaks with
-      ``valgrind --track-fds=yes``. No leaks should be found.
-
-    - Use manual memory management.
-
-      .. code-block:: nim
-        import nim_iterator_stream_experiment/monad/[io]
-        import nim_iterator_stream_experiment/utils/[chain, lambda, unit]
-
-        import std/[sugar]
-
-
-        proc derefer [T](p: ptr T): T =
-          p[]
-
-        proc withMemory [M; T](mem: () -> ptr M; f: M -> T): IO[T] =
-          mem.bracket(derefer[M].chain(f), proc (m: ptr M): Unit = m.dealloc())
-
-        proc createInit [T](init: T): ptr T =
-          T
-            .create()
-            .lambda()
-            .bracket(m => m, proc (m: ptr T): Unit = m[] = init)
-            .run()
-
-
-        when isMainModule:
-          let nDigits = 12u.createInit().lambda().withMemory(i => len($i)).run()
-
-          echo(nDigits) # This should print: 2
-
-      This can compiled to C or C++ and checked for memory leaks with
-      ``valgrind``. No leaks should be found.
-
-    - Chain the first example with the second one.
-
-      .. code-block:: nim
-        # Assuming the procedures and imports in the previous examples are declared here.
-
-        proc readCurrentSrcFileSize (): int64 =
-          openCurrentSrcFile.withFile(getFileSize).run()
-
-        proc countDigits [I: SomeInteger](i: I): Natural =
-          i.createInit().lambda().withMemory(i => len($i)).run()
-
-
-        when isMainModule:
-          let nDigits = readCurrentSrcFileSize.map(countDigits).run()
-
-          echo(nDigits)
+  Examples can be found
+  `here <https://github.com/thenjip/nim-iterator-stream-experiment/examples/monad/io/>`_.
 ]##
 
 
