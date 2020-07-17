@@ -5,8 +5,7 @@
   It can also be used as a wrapper for computations that interact with external
   resources such as memory management, FFI, I/O, etc. .
 
-  Examples can be found
-  `here <https://github.com/thenjip/nim-iterator-stream-experiment/examples/monad/io/>`_.
+  Examples can be found `here <https://github.com/thenjip/nim-iterator-stream-experiment/tree/d55b81bcdc94d01372305befb9accbf9fdad32aa/examples/monad/io>`_.
 ]##
 
 
