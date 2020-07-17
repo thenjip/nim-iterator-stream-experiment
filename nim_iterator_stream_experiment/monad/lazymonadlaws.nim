@@ -178,9 +178,57 @@ template checkMonadLaws* [LA; LMA; LMB; LR; RT; RM; RR; AA; AB; AMA; AMB; AMC; A
 
 
 when isMainModule:
+  import ../utils/[unit]
+
   import std/[os, unittest]
 
 
 
-  suite currentSourcePath().splitFile().name:
-    discard
+  type Id [T] = T
+
+
+
+  func toId [T](value: T): Id[T] =
+    value
+
+
+  proc flatMap [A; B](self: Id[A]; f: A -> Id[B]): Id[B] =
+    self.f()
+
+
+  func run [T](self: Id[T]; _: Unit): T =
+    self
+
+
+
+  static:
+    doAssert(Id[bool] is LazyMonad[bool, Unit])
+
+
+
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test "Id[T] should verify the lazy monad laws.":
+        proc doTest [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
+          spec: MonadLawsSpec[LA, LMA, LMB, Unit, RT, RM, Unit, AA, AB, AMA, AMB, AMC, Unit]
+        ) =
+          check:
+            spec.checkMonadLaws()
+
+        doTest(
+          monadLawsSpec(
+            leftIdentitySpec(0, toId, a => `$`(a + 10), unit()),
+            rightIdentitySpec(nil.pointer, toId, unit()),
+            associativitySpec(
+              'a',
+              toId,
+              a => a.Natural,
+              (b: Natural) => b.`$`().toId(),
+              unit()
+            )
+          )
+        )
+
+
+
+  main()
