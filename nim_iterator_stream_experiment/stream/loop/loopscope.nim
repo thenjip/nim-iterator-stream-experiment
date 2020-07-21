@@ -86,7 +86,7 @@
 
 
 import ../../monad/[identity, optional, predicate, reader]
-import ../../optics/[focus, plens, lens]
+import ../../optics/[plens, lens]
 import ../../utils/[convert, ifelse, ignore, partialprocs, unit, variables]
 
 import std/[sugar]

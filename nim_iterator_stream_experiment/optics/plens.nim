@@ -163,6 +163,27 @@ func chain* [SR; R1; W1; SW; R2; W2](
 
 
 
+proc read* [SR; R; W; SW](state: SR; lens: PLens[SR, R, W, SW]): R =
+  lens.read().run(state)
+
+
+proc write* [SR; R; W; SW](
+  state: SR;
+  lens: PLens[SR, R, W, SW];
+  value: W
+): SW =
+  lens.write(() => value).run(state)
+
+
+proc modify* [SR; R; W; SW](
+  state: SR;
+  lens: PLens[SR, R, W, SW];
+  f: R -> W
+): SW =
+  lens.modify(f).run(state)
+
+
+
 when isMainModule:
   import plens/private/test/["block", conditionalblock]
   import ../utils/[call]

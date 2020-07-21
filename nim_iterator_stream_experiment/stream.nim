@@ -1,5 +1,5 @@
 import monad/[identity, io, optional, predicate, reader]
-import optics/[focus, lens]
+import optics/[lens]
 import stream/[loop, streamsteps]
 import stream/loop/[loopscope]
 import types/[somenatural]
