@@ -64,6 +64,10 @@ import std/[sugar]
 
 
 
+export reader
+
+
+
 type
   MemberReader* [S; T] = Reader[S, T]
   MemberUpdater* [SR; W; SW] = (state: SR, value: W) -> SW
