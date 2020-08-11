@@ -11,7 +11,7 @@
 
 
 import reader
-import ../utils/[chain, unit]
+import ../utils/[chain, lambda, ignore, unit]
 
 import std/[sugar]
 
@@ -53,10 +53,20 @@ func bracket* [A; B](before: IO[A]; between: A -> B; after: A -> Unit): IO[B] =
   before.map(between.flatMap((b: B) => after.chain(_ => b)))
 
 
+func tryBracket* [T](`try`: IO[T]; `finally`: IO[Unit]): IO[T] =
+  lambda:
+    try:
+      `try`.run()
+    except:
+      raise getCurrentException()
+    finally:
+      `finally`.run().ignore()
+
+
 
 when isMainModule:
   import lazymonadlaws
-  import ../utils/[call, lambda, proctypes, variables]
+  import ../utils/[call, proctypes, variables]
 
   import std/[os, sequtils, unittest]
 
@@ -74,6 +84,13 @@ when isMainModule:
 
   proc main () =
     suite currentSourcePath().splitFile().name:
+      type
+        ExecBlock {.pure.} = enum
+          Try
+          Finally
+
+
+
       test """"IO[T]" should obey the monad laws.""":
         proc doTest [LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](
           spec: MonadLawsSpec[LA, LMA, LMB, Unit, RT, RM, Unit, AA, AB, AMA, AMB, AMC, Unit]
@@ -141,7 +158,7 @@ when isMainModule:
             expected = address.read()
             actual =
               unit()
-                .toIO()
+                .lambda()
                 .bracket(
                   _ => address.read(),
                   _ => address.write(nil).doNothing()
@@ -153,6 +170,65 @@ when isMainModule:
 
 
         doTest()
+
+
+
+      test """"tryBracket" should run the "try" and "finally" procs once and in this order when no exception is raised.""":
+        proc runTryBracket [T](
+          `try`: IO[T];
+          `finally`: IO[Unit]
+        ): tuple[`result`: T; execOrder: seq[ExecBlock]] =
+          var execOrder: result.execOrder.typeof() = @[]
+
+          let execResult =
+            `try`
+              .map(
+                proc (`out`: T): T =
+                  execOrder.add(ExecBlock.Try)
+
+                  out
+              ).tryBracket(
+                `finally`
+                  .map(proc (_: auto): Unit = execOrder.add(ExecBlock.Finally))
+              ).run()
+
+          (execResult, execOrder)
+
+
+
+        proc doTest [T](`try`: IO[T]; `finally`: IO[Unit]; expectedResult: T) =
+          let
+            expected = (expectedResult, @[ExecBlock.Try, ExecBlock.Finally])
+            actual = `try`.runTryBracket(`finally`)
+
+          check:
+            actual == expected
+
+
+
+        doTest(() => "abc", () => unit(), "abc")
+
+
+
+      test """"tryBracket" should re-raise the exception when an exception has been raised in the "try" proc and after running the "finally" proc.""":
+        proc doTest [T](`try`: IO[T]; `finally`: IO[Unit]) =
+          var finallyExecuted = false
+
+          let tryBlock =
+            `try`
+              .map(proc (_: auto): Unit = raise ValueError.newException(""))
+              .tryBracket(
+                `finally`.map(proc (_: auto): Unit = finallyExecuted = true)
+              )
+
+          expect Exception:
+            tryBlock.run().ignore()
+
+          check:
+            finallyExecuted
+
+
+        doTest(() => 12, () => unit())
 
 
 
