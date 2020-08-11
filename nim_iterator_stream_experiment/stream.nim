@@ -26,7 +26,8 @@
 
   Intermediate stateless operations always return a stream without changing the
   step type (`S`).
-  Examples: `map<#map>`_, `filter<#filter>`_.
+
+  Examples: `map`, `filter`.
 
   Stateful
   ~~~~~~~~
