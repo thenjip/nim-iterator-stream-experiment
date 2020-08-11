@@ -12,8 +12,8 @@ import std/[sugar]
 
 
 
-proc withFile* [T](file: () -> File; f: File -> T): IO[T] =
-  file.bracket(f, proc (f: File): Unit = f.close())
+proc withFile* [T](file: () -> File; compute: File -> T): IO[T] =
+  file.tryBracket(compute, proc (f: File): Unit = f.close())
 
 
 proc openCurrentSrcFile* (): File =
