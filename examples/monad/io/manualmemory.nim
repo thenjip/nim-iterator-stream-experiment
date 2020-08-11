@@ -5,7 +5,7 @@
 
 
 
-import nim_iterator_stream_experiment/monad/[io]
+import nim_iterator_stream_experiment/monad/[identity, io]
 import nim_iterator_stream_experiment/utils/[chain, lambda, unit]
 
 import std/[sugar]
@@ -24,7 +24,7 @@ proc createInit* [T](init: T): ptr T =
   T
     .create()
     .lambda()
-    .bracket(m => m, proc (m: ptr T): Unit = m[] = init)
+    .bracket(itself, proc (m: ptr T): Unit = m[] = init)
     .run()
 
 
