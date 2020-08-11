@@ -6,7 +6,7 @@
 ]##
 
 
-
+import loopscope/[runonceresult]
 import ../../monad/[identity, optional, predicate, reader]
 import ../../optics/[plens, lens]
 import ../../utils/[convert, ifelse, ignore, partialprocs, unit, variables]
@@ -18,10 +18,6 @@ import std/[sugar]
 type
   Condition* [T] = Predicate[T]
   Stepper* [S] = Reader[S, S]
-
-  RunOnceResult* [S; T] = object
-    step: S
-    item: Optional[T]
 
   LoopScope* [S] = object
     condition: Condition[S]
@@ -38,44 +34,12 @@ func stepper* [S](reader: Reader[S, S]): Stepper[S] =
 
 
 
-func runOnceResult* [S; T](step: S; item: Optional[T]): RunOnceResult[S, T] =
-  RunOnceResult[S, T](step: step, item: item)
-
-
-
 template stepType* [S](X: typedesc[LoopScope[S]]): typedesc[S] =
   S
 
 
 template stepType* [S](self: LoopScope[S]): typedesc[S] =
   self.typeof().stepType()
-
-
-
-func step* [SA; T](
-  X: typedesc[RunOnceResult[SA, T]]; SB: typedesc
-): PLens[X, SA, SB, RunOnceResult[SB, T]] =
-  lens(
-    (self: X) => self.step,
-    (self: X, step: SB) => runOnceResult(step, self.item)
-  )
-
-
-func step* [S; T](X: typedesc[RunOnceResult[S, T]]): Lens[X, S] =
-  X.step(S)
-
-
-func item* [S; A](
-  X: typedesc[RunOnceResult[S, A]]; B: typedesc
-): PLens[X, Optional[A], Optional[B], RunOnceResult[S, B]] =
-  lens(
-    (self: X) => self.item,
-    (self: X, item: Optional[B]) => runOnceResult(self.step, item)
-  )
-
-
-func item* [S; T](X: typedesc[RunOnceResult[S, T]]): Lens[X, Optional[T]] =
-  X.item(T)
 
 
 
@@ -250,48 +214,6 @@ when isMainModule:
 
 
         runTest1()
-
-
-
-      test """"RunOnceResult[S, T].step()" should return a lens that verifies the lens laws.""":
-        proc doTest [S; T](spec: LensLawsSpec[RunOnceResult[S, T], S]) =
-          check:
-            RunOnceResult[S, T].step().checkLensLaws(spec)
-
-
-        doTest(
-          lensLawsSpec(
-            identitySpec(runOnceResult(1, char.toNone())),
-            retentionSpec(runOnceResult(-1, 'a'.toSome()), 0),
-            doubleWriteSpec(
-              runOnceResult(int.low(), char.high().toSome()),
-              int.high(),
-              -942
-            )
-          )
-        )
-
-
-
-      test """"RunOnceResult[S, T].item()" should return a lens that verifies the lens laws.""":
-        proc doTest [S; T](
-          spec: LensLawsSpec[RunOnceResult[S, T], Optional[T]]
-        ) =
-          check:
-            RunOnceResult[S, T].item().checkLensLaws(spec)
-
-
-        doTest(
-          lensLawsSpec(
-            identitySpec(runOnceResult(1, char.toNone())),
-            retentionSpec(runOnceResult(-1, 'a'.toSome()), char.toNone()),
-            doubleWriteSpec(
-              runOnceResult(int.low(), char.high().toSome()),
-              char.low().toSome(),
-              '\a'.toSome()
-            )
-          )
-        )
 
 
 

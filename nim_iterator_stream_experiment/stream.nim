@@ -2,7 +2,7 @@ import monad/[identity, io, optional, predicate, reader]
 import optics/[lens]
 import stream/[loop, streamsteps]
 import stream/loop/[loopscope]
-import types/[somenatural]
+import stream/loop/loopscope/[runonceresult]
 import
   utils/[
     convert,
@@ -11,6 +11,7 @@ import
     operators,
     partialprocs,
     reducer,
+    somenatural,
     unit,
     variables
   ]

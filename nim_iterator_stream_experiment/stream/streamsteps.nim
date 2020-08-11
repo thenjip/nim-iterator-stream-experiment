@@ -1,6 +1,6 @@
 import ../monad/[optional]
 import ../optics/[lens]
-import ../types/[somenatural]
+import ../utils/[somenatural]
 
 import std/[sugar]
 
