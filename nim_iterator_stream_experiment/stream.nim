@@ -1,3 +1,51 @@
+##[
+  A stream behaves like an iterator. It generates items in a loop and the user
+  does something with them.
+
+  A stream is meant to be consumed once, when a final operation is executed.
+  Therefore, a stream must release all the resources it held when closing
+  (file handles, non GC-ed memory, etc.).
+
+  Types of operations
+  ===================
+
+  Final
+  -----
+
+  An operation is final if it does not return a stream or a procedure that
+  returns one.
+
+  Intermediate
+  ------------
+
+  Operations that return a stream or a lambda that will are called intermediate.
+  They can be stateless or stateful.
+
+  Stateless
+  ~~~~~~~~~
+
+  Intermediate stateless operations always return a stream without changing the
+  step type (`S`).
+  Examples: `map<#map>`_, `filter<#filter>`_.
+
+  Stateful
+  ~~~~~~~~
+
+  Intermediate stateful operations can return:
+    - A stream with a different step type.
+
+      Examples: `takeWhile`, `limit`
+
+    - A lambda that returns a stream.
+
+      Examples: `dropWhile`, `skip`
+
+      This is to prevent the parallelization of this kind of operation (API to
+      be done).
+]##
+
+
+
 import monad/[identity, io, optional, predicate, reader]
 import optics/[lens]
 import stream/[loop, streamsteps]
