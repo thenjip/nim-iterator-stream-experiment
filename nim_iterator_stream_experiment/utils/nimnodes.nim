@@ -41,7 +41,7 @@ when isMainModule:
   suite currentSourcePath().splitFile().name:
     test """"self.high()" should return -1 when "self.len() == 0".""":
       proc doTest () =
-        let
+        const
           actual = newEmptyNode().high()
           expected = -1
 

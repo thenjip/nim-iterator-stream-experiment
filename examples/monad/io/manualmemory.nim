@@ -5,7 +5,7 @@
 
 
 
-import nim_iterator_stream_experiment/monad/[io]
+import nim_iterator_stream_experiment/monad/[identity, io]
 import nim_iterator_stream_experiment/utils/[chain, lambda, unit]
 
 import std/[sugar]
@@ -17,14 +17,14 @@ proc derefer [T](p: ptr T): T =
 
 
 proc withMemory* [M; T](mem: () -> ptr M; f: M -> T): IO[T] =
-  mem.bracket(derefer[M].chain(f), proc (m: ptr M): Unit = m.dealloc())
+  mem.tryBracket(derefer[M].chain(f), proc (m: ptr M): Unit = m.dealloc())
 
 
 proc createInit* [T](init: T): ptr T =
   T
     .create()
     .lambda()
-    .bracket(m => m, proc (m: ptr T): Unit = m[] = init)
+    .bracket(itself, proc (m: ptr T): Unit = m[] = init)
     .run()
 
 

@@ -1,5 +1,6 @@
-import ../loop, ../stream
-import ../loop/[loopscope]
+import ../stream
+import ../stream/loop
+import ../stream/loop/[loopscope]
 import ../monad/[reader]
 import ../optics/[lens]
 import ../utils/[convert, nimnodes, operators, partialprocs]

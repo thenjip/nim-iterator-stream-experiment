@@ -6,6 +6,9 @@
   Therefore, a stream must release all the resources it held when closing
   (file handles, non GC-ed memory, etc.).
 
+  Any exception raised while generating items in a stream will be re-raised
+  after closing the stream.
+
   Types of operations
   ===================
 
@@ -180,7 +183,10 @@ func stepper* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]] =
 
 
 proc run* [S](self: Stream[S, Unit]): S =
-  self.initialStep.bracket(partial(self.loop.run(?_)), self.onCloseEvent).run()
+  self
+    .initialStep
+    .tryBracket(partial(self.loop.run(?_)), self.onCloseEvent)
+    .run()
 
 
 
@@ -426,13 +432,12 @@ proc findFirst* [S; T](
     .dropWhile(not predicate)
     .flatMap(
       (self: self.typeof()) =>
-        self.initialStep.bracket(
-          partial(self.loop.runOnce(?:S))
-            .map(RunOnceResult[S, T].item().read())
-          ,
+        self.initialStep.tryBracket(
+          partial(self.loop.runOnce(?:S)),
           self.onCloseEvent
         )
-    ).run()
+    ).map(RunOnceResult[S, T].item().read())
+    .run()
 
 
 proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
@@ -455,6 +460,7 @@ proc none* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
 
 when isMainModule:
   import optics/[lenslaws]
+  import utils/[ignore]
 
   import std/[os, strutils, unittest]
 
@@ -580,6 +586,34 @@ when isMainModule:
 
 
         runTest1()
+
+
+
+      test """Raising an exception in a stream's loop should close the stream and raise that exception again.""":
+        proc doTest () =
+          var streamClosed = false
+
+          let stream =
+            partial(?:int < 10)
+              .looped(next)
+              .generating(
+                partial(?:int == 4).ifElse(
+                  proc (_: auto): int = raise ValueError.newException(""),
+                  itself
+                )
+              ).startingAt(
+                () => 0,
+                proc (_: int): Unit = streamClosed = true
+              )
+
+          expect Exception:
+            stream.sum().ignore()
+
+          check:
+            streamClosed
+
+
+        doTest()
 
 
 
