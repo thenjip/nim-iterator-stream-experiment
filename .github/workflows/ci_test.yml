@@ -7,10 +7,10 @@ jobs:
       fail-fast: false
       matrix:
         backend: [cc, cpp]
-        allow-failure: [false]
+        experimental: [false]
         include:
           - backend: js
-            allow-failure: true
+            experimental: true
 
     name: 'Backend ${{ matrix.backend }}'
     runs-on: ubuntu-latest
@@ -19,11 +19,11 @@ jobs:
       env:
         NIM_BACKEND: '${{ matrix.backend }}'
     timeout-minutes: 15
-    continue-on-error: ${{ matrix.allow-failure }}
+    continue-on-error: ${{ matrix.experimental }}
 
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@v2
+        uses: 'actions/checkout@v2'
       - name: 'Nim version'
         run: nim --version
       - name: 'Build and run the tests'
