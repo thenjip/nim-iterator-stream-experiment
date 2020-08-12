@@ -19,7 +19,7 @@ jobs:
       env:
         NIM_BACKEND: '${{ matrix.backend }}'
     timeout-minutes: 30
-    continue-on-error: '${{ matrix.allow-failure }}'
+    continue-on-error: ${{ matrix.allow-failure }}
 
     steps:
       - name: 'Checkout'
