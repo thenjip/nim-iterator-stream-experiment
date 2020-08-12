@@ -73,7 +73,7 @@ func tryBracket* [A; B](
 
 when isMainModule:
   import identity, lazymonadlaws
-  import ../utils/[call, lambda, proctypes, variables]
+  import ../utils/[call, lambda, partialprocs, proctypes, variables]
 
   import std/[os, sequtils, unittest]
 
@@ -180,7 +180,7 @@ when isMainModule:
           Finally
 
 
-        proc addExecBlockAndReturn [T](
+        proc addAndReturn [T](
           order: var seq[ExecBlock];
           added: ExecBlock;
           returned: T
@@ -199,18 +199,15 @@ when isMainModule:
 
           let execResult =
             before
-              .map(a => execOrder.addExecBlockAndReturn(ExecBlock.Before, a))
+              .map(partial(execOrder.addAndReturn(ExecBlock.Before, ?_)))
               .tryBracket(
-                `try`.map(
-                  b => execOrder.addExecBlockAndReturn(ExecBlock.Try, b)
-                ),
+                `try`.map(partial(execOrder.addAndReturn(ExecBlock.Try, ?_))),
                 `finally`.map(
-                  u => execOrder.addExecBlockAndReturn(ExecBlock.Finally, u)
+                  partial(execOrder.addAndReturn(ExecBlock.Finally, ?_))
                 )
               ).run()
 
           (execResult, execOrder)
-
 
 
         proc doTest [A; B](
@@ -225,7 +222,6 @@ when isMainModule:
 
           check:
             actual == expected
-
 
 
         proc runTest1 () =
@@ -244,9 +240,7 @@ when isMainModule:
 
           let tryBlock =
             before.tryBracket(
-              `try`.map(
-                proc (_: B): B = raise ValueError.newException("")
-              ),
+              `try`.map(proc (_: B): B = raise ValueError.newException("")),
               `finally`.map(proc (_: auto): Unit = finallyExecuted = true)
             )
 
