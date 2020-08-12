@@ -41,7 +41,7 @@ func pairs* (s: string): Stream[SeqStep, tuple[index: SeqIndex; item: char]] =
 
 when isMainModule:
   import ../monad/[io]
-  import ../types/[somenatural]
+  import ../utils/[somenatural]
 
   import std/[os, unittest]
 
