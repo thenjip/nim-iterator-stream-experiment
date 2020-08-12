@@ -12,21 +12,21 @@ jobs:
           - backend: js
             allow-failure: true
 
-    name: Backend ${{ matrix.backend }}
+    name: 'Backend ${{ matrix.backend }}'
     runs-on: ubuntu-latest
     container:
-      image: nimlang/nim:latest-alpine
+      image: 'nimlang/nim:latest-alpine'
       env:
-        NIM_BACKEND: ${{ matrix.backend }}
+        NIM_BACKEND: '${{ matrix.backend }}'
     timeout-minutes: 30
-    continue-on-error: ${{ matrix.allow-failure }}
+    continue-on-error: '${{ matrix.allow-failure }}'
 
     steps:
-      - name: Checkout
+      - name: 'Checkout'
         uses: actions/checkout@v2
-      - name: Nim version
+      - name: 'Nim version'
         run: nim --version
-      - name: Build and run the tests
+      - name: 'Build and run the tests'
         run: |
           nimble install -dy
           nimble test
