@@ -18,7 +18,7 @@ jobs:
       image: 'nimlang/nim:latest-alpine'
       env:
         NIM_BACKEND: '${{ matrix.backend }}'
-    timeout-minutes: 30
+    timeout-minutes: 15
     continue-on-error: ${{ matrix.allow-failure }}
 
     steps:
