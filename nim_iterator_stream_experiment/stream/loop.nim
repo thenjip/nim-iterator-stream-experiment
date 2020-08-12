@@ -8,6 +8,10 @@ import std/[sugar]
 
 
 
+export loopscope
+
+
+
 type
   Generator* [S; T] = Reader[S, T]
 

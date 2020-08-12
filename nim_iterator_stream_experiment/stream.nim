@@ -24,16 +24,19 @@
   Operations that return a stream or a lambda that will are called intermediate.
   They can be stateless or stateful.
 
-  Stateless
-  ~~~~~~~~~
+  Operation properties
+  ====================
 
-  Intermediate stateless operations always return a stream without changing the
-  step type (`S`).
+  Stateless
+  ---------
+
+  Stateless operations always return a stream without changing the step type
+  (`S`).
 
   Examples: `map`, `filter`.
 
   Stateful
-  ~~~~~~~~
+  --------
 
   Intermediate stateful operations can return:
     - A stream with a different step type.
@@ -46,6 +49,16 @@
 
       This is to prevent the parallelization of this kind of operation (API to
       be done).
+
+  Final operations can also be stateful, such as `findFirst`.
+
+  Short-circuiting
+  ----------------
+
+  Short-circuiting operations can terminate a stream if it is unnecesary to keep
+  generating items.
+
+  Examples: `takeWhile`, `any`, `all`, `none`.
 ]##
 
 
@@ -69,6 +82,10 @@ import
   ]
 
 import std/[sugar]
+
+
+
+export loop, loopscope
 
 
 
@@ -182,11 +199,12 @@ func stepper* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]] =
 
 
 
-proc run* [S](self: Stream[S, Unit]): S =
+proc run* [S](self: Stream[S, Unit]): Unit =
   self
     .initialStep
     .tryBracket(partial(self.loop.run(?_)), self.onCloseEvent)
     .run()
+    .doNothing()
 
 
 
@@ -234,10 +252,15 @@ func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
 
 
 
-func onClose* [S; T](self: Stream[S, T]; callBack: () -> Unit): Stream[S, T] =
+func onClose* [S; T](self: Stream[S, T]; callback: () -> Unit): Stream[S, T] =
+  ##[
+    Registers a callback to be called when closing `self`.
+
+    Callbacks will be called in the order of registration.
+  ]##
   self.modify(
     self.typeof().onCloseEvent(),
-    partial(map(?_, _ => callBack.run()))
+    partial(map(?_, _ => callback.run()))
   )
 
 
@@ -256,6 +279,7 @@ func filter* [S; T](self: Stream[S, T]; predicate: Predicate[T]): Stream[S, T] =
 
 
 func peek* [S; T](self: Stream[S, T]; f: T -> Unit): Stream[S, T] =
+  ## Useful when debugging a stream.
   self.map(it => f.run(it).apply(_ => it))
 
 
@@ -264,6 +288,7 @@ func limit* [S; T; N: SomeNatural](
   self: Stream[S, T];
   n: N
 ): Stream[LimitStep[S, N], T] =
+  ## Limits `self` to at most `n` items to be generated.
   let limitLenses =
     (step: LimitStep[S, N].step(), count: LimitStep[S, N].count())
 
@@ -280,10 +305,18 @@ func limit* [S; T; N: SomeNatural](
     )
 
 
-func skip* [S; T; N: SomeNatural](self: Stream[S, T]; n: N): IO[Stream[S, T]] =
+func skip* [S; T; N: SomeNatural](
+  self: Stream[S, T];
+  n: N
+): () -> Stream[S, T] =
+  ##[
+    Returns a proc that will:
+      - Skip `n` items from `self`.
+      - Return a stream starting at the next item after the skipped ones, if it
+        exists.
+  ]##
   let
-    skLenses =
-      (step: SkipStep[S, N].step(), count: SkipStep[S, N].count())
+    skLenses = (step: SkipStep[S, N].step(), count: SkipStep[S, N].count())
     readSkStep = skLenses.step.read()
     skipSteps =
       self
@@ -341,6 +374,10 @@ func takeWhile* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
 ): Stream[TakeWhileStep[S, T], T] =
+  ##[
+    Returns a stream that will generate items while there are and they verify
+    `predicate`.
+  ]##
   let twLoop = self.loop.takeWhile(predicate)
 
   twLoop.startingAt(
@@ -356,7 +393,12 @@ func takeWhile* [S; T](
 func dropWhile* [S; T](
   self: Stream[S, T];
   predicate: Predicate[T]
-): IO[Stream[S, T]] =
+): () -> Stream[S, T] =
+  ##[
+    Returns a proc that will:
+      - Skip the items in `self` while they verify `predicate`.
+      - Return a stream starting at the next item after the skipped ones.
+  ]##
   self
     .modify(
       self.typeof().initialStep(),
@@ -366,7 +408,7 @@ func dropWhile* [S; T](
 
 
 proc forEach* [S; T](self: Stream[S, T]; action: T -> Unit): Unit =
-  self.map(action).run().doNothing()
+  self.map(action).run()
 
 
 
@@ -452,14 +494,29 @@ proc findFirst* [S; T](self: Stream[S, T]): Optional[T] =
 
 
 proc any* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
+  ##[
+    Returns whether any items in `self` verifies `predicate`.
+
+    If `self` is empty, ``false`` is returned.
+  ]##
   self.findFirst(predicate).isSome()
 
 
 proc all* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
+  ##[
+    Returns whether all the items in `self` verifies `predicate`.
+
+    If `self` is empty, ``true`` is returned.
+  ]##
   not self.any(not predicate)
 
 
 proc none* [S; T](self: Stream[S, T]; predicate: Predicate[T]): bool =
+  ##[
+    Returns whether none of the items in `self` verifies `predicate`.
+
+    If `self` is empty, `true` is returned.
+  ]##
   self.all(not predicate)
 
 
@@ -609,7 +666,7 @@ when isMainModule:
                 )
               ).startingAt(
                 () => 0,
-                proc (_: int): Unit = streamClosed = true
+                (_: int) => streamClosed.write(true).doNothing()
               )
 
           expect Exception:
