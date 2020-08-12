@@ -225,9 +225,11 @@ when isMainModule:
 
 
         proc runTest1 () =
-          let start = "abc"
+          let
+            start = "abc"
+            tryBlock = partial(len(?:start.typeof()))
 
-          doTest(() => start, s => s.len(), _ => unit(), start.len())
+          doTest(() => start, tryBlock, _ => unit(), start.tryBlock())
 
 
         runTest1()
@@ -241,7 +243,7 @@ when isMainModule:
           let tryBlock =
             before.tryBracket(
               `try`.map(proc (_: B): B = raise ValueError.newException("")),
-              `finally`.map(proc (_: auto): Unit = finallyExecuted = true)
+              `finally`.map(_ => finallyExecuted.write(true).doNothing())
             )
 
           expect Exception:
