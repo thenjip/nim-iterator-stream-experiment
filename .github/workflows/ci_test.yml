@@ -10,7 +10,8 @@ jobs:
         backend: ['c', 'cxx']
         experimental: [false]
         include:
-          - backend: 'js'
+          - nim-version: '1.2.6'
+            backend: 'js'
             experimental: true
 
     name: 'Nim ${{ matrix.nim-version }}, backend ${{ matrix.backend }}'
