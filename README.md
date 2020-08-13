@@ -15,7 +15,7 @@ nimble install 'https://github.com/thenjip/nim-iterator-stream-experiment'
 
 ### Dependencies
 
-`nim` >= `1.2.2`
+`nim` >= `1.2.0`
 
 ## Rationale
 

@@ -1,149 +1,95 @@
+import std/[strutils]
+
+
+
+func stripTrailing (input: string; chars: set[char]): string =
+  result = input
+
+  result.removeSuffix(chars)
+
+
+func nimbleProjectName (): string =
+  projectName().stripTrailing(Digits).stripTrailing({'_'})
+
+
+
 version = "0.1.0"
 author = "thenjip"
 description = "An attempt at providing a replacement for closure iterators in Nim with an API similar to Java 8 Stream."
 license = "MIT"
-srcDir = packageName
 
-requires "nim >= 1.2.2"
+requires "nim >= 1.2.0"
 
-
-
-import std/[options, os, sequtils, strformat, strutils, sugar]
+installDirs = @[nimbleProjectName()]
 
 
 
-type
-  AbsolutePath = string
-  RelativePath = string
+import nimble/[envvar, paths]
 
-  Backend {.pure.} = enum
-    C
-    Cxx
-    Js
+import std/[options, os, sequtils, strformat]
 
-  InvalidEnvVarValueError = object of CatchableError
-
-
-
-func newInvalidEnvVarValueError (
-  name: string;
-  value: string
-): ref InvalidEnvVarValueError =
-  InvalidEnvVarValueError.newException(fmt"""{name}="{value}"""")
-
-
-func findFirst [I, T](a: array[I, T]; predicate: I -> bool): Option[I] =
-  result = I.none()
-
-  for i, item in a:
-    if i.predicate():
-      return i.some()
-
-
-
-func projectName (): string =
-  const name = "nim_iterator_stream_experiment"
-
-  name
-
-
-
-proc moduleDir (): RelativePath =
-  srcDir / projectName()
 
 
 func nimcacheDirName (): string =
-  const name = ".nimcache"
-
-  name
+  ".nimcache"
 
 
-func nimcacheDir (): AbsolutePath =
-  const dir = projectDir() / nimcacheDirName()
-
-  dir
-
-
-
-func backendEnvVarName (): string =
-  const name = "NIM_BACKEND"
-
-  name
-
-
-func nimCmdNames (): array[Backend, string] =
-  const names = ["cc", "cpp", "js"]
-
-  names
-
-
-func nimCmdName (backend: Backend): string =
-  nimCmdNames()[backend]
-
-
-proc readBackendFromEnv (): Option[Backend] {.
-  raises: [InvalidEnvVarValueError, ValueError]
-.} =
-  let envVarName = backendEnvVarName()
-
-  if envVarName.existsEnv():
-    let
-      envVarValue = envVarName.getEnv()
-      backendFound = nimCmdNames().findFirst(b => b.nimCmdName() == envVarValue)
-
-    if backendFound.isSome():
-      backendFound
-    else:
-      raise newInvalidEnvVarValueError(envVarName, envVarValue)
-  else:
-    Backend.none()
+func nimcacheDir (): AbsoluteDir =
+  projectDir() / nimcacheDirName()
 
 
 
 func testTaskDescription (): string =
   func backendChoice (): string =
-    nimCmdNames().`@`().foldl(a & '|' & b)
+    nimBackendShellValues().`@`().foldl(a & '|' & b)
 
   @[
-    fmt"""Build the test suite in "{nimcacheDir()}{DirSep}" and run it.""",
-    fmt"""The backend can be specified in the environment variable "{backendEnvVarName()}=({backendChoice()})"."""
+    fmt"""Build the tests in "{nimcacheDir()}{DirSep}" and run them.""",
+    "The backend can be specified with the environment variable " &
+      fmt""""{EnvVar.NimBackend.shellName()}=({backendChoice()})"."""
   ].foldl(a & ' ' & b)
 
 
 
 task test, testTaskDescription():
-  func buildGenDir (module: RelativePath; backend: Backend): AbsolutePath =
-    let (dir, file) = module.splitPath()
-
-    nimcacheDir() / backend.nimCmdName() / dir / file
+  func buildBaseOutDir (module: RelativeFile; backend: Backend): AbsoluteFile =
+    nimcacheDir() / backend.shellValue() / module
 
 
-  proc buildCmdLineParts (
-    module: RelativePath;
-    backendSupplier: () -> Option[Backend]
-  ): seq[string] =
-    func handleJsFlags (backend: Backend): seq[string] =
-      if backend == Backend.Js:
-        @["-d:nodejs"]
-      else:
-        @[]
+  func binOutDirName (): string =
+    "bin"
 
+
+  func handleJsFlags (backend: Backend): seq[string] =
+    if backend == Backend.Js:
+      @["-d:nodejs"]
+    else:
+      @[]
+
+
+  proc buildCmdLineParts (module: RelativeFile; backend: Backend): seq[string] =
     let
-      backend = backendSupplier().get(Backend.C)
-      genDir = module.buildGenDir(backend).quoteShell()
       nimCmd = backend.nimCmdName()
-      shortOptions = @["-r"] & backend.handleJsFlags()
-      longOptions = @[fmt"--nimcache:{genDir}", fmt"--outdir:{genDir}"]
+      baseOutDir = module.buildBaseOutDir(backend)
+      binOutDir = baseOutDir / binOutDirName()
+      options =
+        @["-r"].concat(
+          backend.handleJsFlags(),
+          @[
+            fmt"--nimcache:{baseOutDir.quoteShell()}",
+            fmt"--outdir:{binOutDir.quoteShell()}"
+          ]
+        )
 
-    @[nimCmd].concat(shortOptions, longOptions, @[module])
+    @[nimCmd].concat(options, @[module.quoteShell()])
 
 
-  withDir moduleDir():
+  withDir nimbleProjectName():
     for file in system.getCurrentDir().walkDirRec(relative = true):
       if file.endsWith(fmt"{ExtSep}nim"):
         file
-          .buildCmdLineParts(readBackendFromEnv)
-          .foldl(a & $' ' & b.quoteShell())
+          .buildCmdLineParts(readNimBackendFromEnv().get(Backend.C))
+          .foldl(a & $' ' & b)
           .selfExec()
 
 

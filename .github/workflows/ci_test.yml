@@ -6,16 +6,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        backend: [cc, cpp]
+        nim-version: ['1.2.0', '1.2.2', '1.2.4', '1.2.6']
+        backend: ['c', 'cxx']
         experimental: [false]
         include:
-          - backend: js
+          - backend: 'js'
             experimental: true
 
-    name: 'Backend ${{ matrix.backend }}'
+    name: 'Nim ${{ matrix.nim-version }}, backend ${{ matrix.backend }}'
     runs-on: ubuntu-latest
     container:
-      image: 'nimlang/nim:latest-alpine'
+      image: 'nimlang/nim:${{ matrix.nim-version }}-alpine'
       env:
         NIM_BACKEND: '${{ matrix.backend }}'
     timeout-minutes: 15
