@@ -1,6 +1,6 @@
 # nim-iterator-stream-experiment
 
-[![Build Status](https://travis-ci.org/thenjip/nim-iterator-stream-experiment.svg?branch=master)](https://travis-ci.org/thenjip/nim-iterator-stream-experiment)
+[![Build Status](https://github.com/thenjip/nim-iterator-stream-experiment/workflows/CI%20test/badge.svg)](https://github.com/thenjip/nim-iterator-stream-experiment/actions?query=workflow%3A"CI+Test"+branch%3A"master")
 [![licence](https://img.shields.io/github/license/thenjip/nim-iterator-stream-experiment.svg?style=flat-square)](https://raw.githubusercontent.com/thenjip/nim-iterator-stream-experiment/master/LICENSE)
 
 An attempt at providing a replacement for [first class iterators](
@@ -42,7 +42,7 @@ The results below are based on the status of CI builds.
 | :--- | :--- | :--- |
 | C | Supported | Supported |
 | C++ | Supported | Supported |
-| JavaScript | Not ready yet. The test suite does not compile. | Same as "@ run time" |
+| JavaScript | Not ready yet. The unit tests do not compile. | Same as "@ run time" |
 | NimScript | To be tested | To be tested |
 
 ## Usage
@@ -82,15 +82,12 @@ To be documented.
 
 ### Defining new sources of streams
 
-To be documented.
+See the [`streams`](./nim_iterator_stream_experiment/streams) modules.
 
 ## To do
 
-- [ ] API documentation.
 - [ ] Reimplement the `mitems` iterator family (or test them if the current API
       already supports them somehow), although the C++ backend has this [issue](
       https://github.com/nim-lang/Nim/issues/10219).
-- [ ] Working with I/O.
 - [ ] Parallelization API.
 - [ ] Find a new shorter name for this project.
-- [ ] Performance comparison ?
