@@ -1,15 +1,11 @@
-import std/[strutils]
+import nimble/[envvar, paths, utils]
 
+import std/[options, os, sequtils, strformat, sugar]
 
-
-func stripTrailing (input: string; chars: set[char]): string =
-  result = input
-
-  result.removeSuffix(chars)
 
 
 func nimbleProjectName (): string =
-  projectName().stripTrailing(Digits).stripTrailing({'_'})
+  projectName().stripTrailing(Digits).stripTrailing('_')
 
 
 
@@ -24,18 +20,16 @@ installDirs = @[nimbleProjectName()]
 
 
 
-import nimble/[envvar, paths]
-
-import std/[options, os, sequtils, strformat]
-
-
-
 func nimcacheDirName (): string =
   ".nimcache"
 
 
 func nimcacheDir (): AbsoluteDir =
   projectDir() / nimcacheDirName()
+
+
+proc tryReadEnv (key: string): Option[string] =
+  key.some().filter(existsEnv).map(k => k.getEnv())
 
 
 
@@ -88,7 +82,7 @@ task test, testTaskDescription():
     for file in system.getCurrentDir().walkDirRec(relative = true):
       if file.endsWith(fmt"{ExtSep}nim"):
         file
-          .buildCmdLineParts(readNimBackendFromEnv().get(Backend.C))
+          .buildCmdLineParts(readNimBackendFromEnv(tryReadEnv).get(Backend.C))
           .foldl(a & $' ' & b)
           .selfExec()
 

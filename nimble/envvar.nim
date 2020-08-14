@@ -1,6 +1,6 @@
 import utils
 
-import std/[options, os, strformat, sugar]
+import std/[options, strformat, sugar]
 
 
 
@@ -65,8 +65,12 @@ func newInvalidEnvVarValueError* (
 
 
 
-proc readFromEnv* [T](self: EnvVar; parseValue: string -> T): Option[T] =
-  self.shellName().some().filter(existsEnv).map(ev => ev.getEnv().parseValue())
+proc readFromEnv* [T](
+  self: EnvVar;
+  fetchEnvValue: (shellName: string) -> Option[string];
+  parseValue: (envValue: string) -> T
+): Option[T] =
+  self.shellName().fetchEnvValue().map(parseValue)
 
 
 
@@ -74,7 +78,9 @@ func tryParseBackend* (envValue: string): Option[Backend] =
   nimBackendShellValues().findFirst(value => value == envValue)
 
 
-proc readNimBackendFromEnv* (): Option[Backend] =
+proc readNimBackendFromEnv* (
+  fetchEnvValue: (shellName: string) -> Option[string]
+): Option[Backend] =
   const envVar = EnvVar.NimBackend
 
   func parseBackendOrRaise (envValue: string): Backend =
@@ -85,4 +91,4 @@ proc readNimBackendFromEnv* (): Option[Backend] =
     else:
       raise newInvalidEnvVarValueError(envVar, envValue)
 
-  envVar.readFromEnv(parseBackendOrRaise)
+  envVar.readFromEnv(fetchEnvValue, parseBackendOrRaise)
