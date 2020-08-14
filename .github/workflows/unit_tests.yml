@@ -26,8 +26,7 @@ jobs:
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@v2'
-      - name: 'Nim version'
-        run: nim --version
+
       - name: 'Build and run the tests'
         run: |
           nimble install -dy
