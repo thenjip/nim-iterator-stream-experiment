@@ -1,6 +1,6 @@
 # nim-iterator-stream-experiment
 
-[![Build Status](https://github.com/thenjip/nim-iterator-stream-experiment/workflows/CI%20test/badge.svg)](https://github.com/thenjip/nim-iterator-stream-experiment/actions?query=workflow%3A"CI+Test"+branch%3A"master")
+[![Build Status](https://github.com/thenjip/nim-iterator-stream-experiment/workflows/Unit%20tests/badge.svg)](https://github.com/thenjip/nim-iterator-stream-experiment/actions?query=workflow%3A"Unit+tests"+branch%3A"master")
 [![licence](https://img.shields.io/github/license/thenjip/nim-iterator-stream-experiment.svg?style=flat-square)](https://raw.githubusercontent.com/thenjip/nim-iterator-stream-experiment/master/LICENSE)
 
 An attempt at providing a replacement for [first class iterators](
