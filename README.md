@@ -17,6 +17,10 @@ nimble install 'https://github.com/thenjip/nim-iterator-stream-experiment'
 
 `nim` >= `1.2.0`
 
+## Documentation
+
+[Read the docs](https://thenjip.github.io/nim-iterator-stream-experiment).
+
 ## Rationale
 
 First class iterators are not available in Nim's VM and JavaScript back ends.
