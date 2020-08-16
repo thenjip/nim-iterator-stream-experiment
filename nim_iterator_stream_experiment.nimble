@@ -126,6 +126,7 @@ define Task.Docs:
 
   withDir Task.Docs.outputDir().get():
     ["buildIndex", $CurDir].join($' ').selfExec()
+    fmt"theindex{ExtSep}html".mvFile(fmt"index{ExtSep}html")
 
 
 
