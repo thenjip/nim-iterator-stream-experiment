@@ -1,34 +1,39 @@
 name: Unit tests
-on: [push, pull_request]
+on:
+  push:
+    branches-ignore:
+      - gh-pages
+  pull_request:
+    branches-ignore:
+      - gh-pages
+
 
 jobs:
   test:
     strategy:
       fail-fast: false
       matrix:
-        nim-version: ['1.2.0', '1.2.2', '1.2.4', '1.2.6']
+        nim_version: ['1.2.0', '1.2.2', '1.2.4', '1.2.6']
         backend: ['c', 'cxx']
         experimental: [false]
         include:
-          - nim-version: '1.2.6'
+          - nim_version: '1.2.6'
             backend: 'js'
             experimental: true
 
-    name: 'Nim ${{ matrix.nim-version }}, backend ${{ matrix.backend }}'
+    name: 'Nim ${{ matrix.nim_version }}, backend ${{ matrix.backend }}'
     runs-on: ubuntu-latest
-    container:
-      image: 'nimlang/nim:${{ matrix.nim-version }}-alpine'
-      env:
-        NIM_BACKEND: '${{ matrix.backend }}'
+    container: 'nimlang/nim:${{ matrix.nim_version }}-alpine'
     timeout-minutes: 15
     continue-on-error: ${{ matrix.experimental }}
 
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@v2'
-      - name: 'Nim version'
-        run: nim --version
+
       - name: 'Build and run the tests'
+        env:
+          NIM_BACKEND: '${{ matrix.backend }}'
         run: |
           nimble install -dy
           nimble test

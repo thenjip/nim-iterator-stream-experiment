@@ -1,4 +1,6 @@
-import std/[options, strutils, sugar]
+import paths
+
+import std/[options, os, strformat, strutils, sugar]
 
 
 
@@ -19,3 +21,15 @@ func stripTrailing* (input: string; chars: set[char]): string =
 
 func stripTrailing* (input: string; c: char): string =
   input.stripTrailing({c})
+
+
+
+func joinWithSpace* (a: openArray[string]): string =
+  a.join($' ')
+
+
+
+iterator relativeNimModules* (dir: AbsoluteDir): RelativeFile =
+  for file in dir.walkDirRec(relative = true):
+    if file.endsWith(fmt"{ExtSep}nim"):
+      yield file
