@@ -1,0 +1,22 @@
+Condition	stream/loop/loopscope.html#Condition	loopscope: Condition	
+Stepper	stream/loop/loopscope.html#Stepper	loopscope: Stepper	
+LoopScope	stream/loop/loopscope.html#LoopScope	loopscope: LoopScope	
+condition	stream/loop/loopscope.html#condition,Predicate[T]	loopscope: condition[T](predicate: Predicate[T]): Condition[T]	
+stepper	stream/loop/loopscope.html#stepper,Reader[S,S]	loopscope: stepper[S](reader: Reader[S, S]): Stepper[S]	
+stepType	stream/loop/loopscope.html#stepType.t,typedesc[LoopScope[S]]	loopscope: stepType[S; ](X: typedesc[LoopScope[S]]): typedesc[S]	
+stepType	stream/loop/loopscope.html#stepType.t,LoopScope[S]	loopscope: stepType[S; ](self: LoopScope[S]): typedesc[S]	
+looped	stream/loop/loopscope.html#looped,Condition[S],Stepper[S]	loopscope: looped[S](condition: Condition[S]; stepper: Stepper[S]): LoopScope[S]	
+looped	stream/loop/loopscope.html#looped,Condition[S],	loopscope: looped[S](condition: Condition[S]; stepper: S -&gt; S): LoopScope[S]	
+emptyLoopScope	stream/loop/loopscope.html#emptyLoopScope,typedesc	loopscope: emptyLoopScope(S: typedesc): LoopScope[S]	
+infinite	stream/loop/loopscope.html#infinite,Stepper[S]	loopscope: infinite[S](stepper: Stepper[S]): LoopScope[S]	
+condition	stream/loop/loopscope.html#condition,typedesc[LoopScope[S]]	loopscope: condition[S](X: typedesc[LoopScope[S]]): Lens[X, Condition[S]]	
+stepper	stream/loop/loopscope.html#stepper,typedesc[LoopScope[S]]	loopscope: stepper[S](X: typedesc[LoopScope[S]]): Lens[X, Stepper[S]]	
+run	stream/loop/loopscope.html#run,LoopScope[S],S,	loopscope: run[S](self: LoopScope[S]; initial: S; body: S -&gt; Unit): S	
+run	stream/loop/loopscope.html#run,LoopScope[S],S	loopscope: run[S](self: LoopScope[S]; initial: S): S	
+asReader	stream/loop/loopscope.html#asReader,LoopScope[S],	loopscope: asReader[S](self: LoopScope[S]; body: S -&gt; Unit): Reader[S, S]	
+asReader	stream/loop/loopscope.html#asReader,LoopScope[S]	loopscope: asReader[S](self: LoopScope[S]): Reader[S, S]	
+runOnce	stream/loop/loopscope.html#runOnce,LoopScope[S],S,	loopscope: runOnce[S; T](self: LoopScope[S]; start: S; body: S -&gt; T): RunOnceResult[S, T]	
+mapSteps	stream/loop/loopscope.html#mapSteps,LoopScope[SA],,	loopscope: mapSteps[SA; SB](self: LoopScope[SA];\n                conditionMapper: Condition[SA] -&gt; Condition[SB];\n                stepperMapper: Stepper[SA] -&gt; Stepper[SB]): LoopScope[SB]	
+mapSteps	stream/loop/loopscope.html#mapSteps,LoopScope[SA],,_2	loopscope: mapSteps[SA; SB](self: LoopScope[SA]; extractor: SB -&gt; SA;\n                stepperMapper: Stepper[SA] -&gt; Stepper[SB]): LoopScope[SB]	
+mapSteps	stream/loop/loopscope.html#mapSteps,LoopScope[SA],,_3	loopscope: mapSteps[SA; SB](self: LoopScope[SA]; extractor: SB -&gt; SA; wrapper: SA -&gt; SB): LoopScope[SB]	
+breakIf	stream/loop/loopscope.html#breakIf,LoopScope[S],Predicate[S]	loopscope: breakIf[S](self: LoopScope[S]; predicate: Predicate[S]): LoopScope[S]	

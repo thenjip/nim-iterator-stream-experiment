@@ -1,0 +1,12 @@
+Condition	optics/plens/private/test/conditionalblock.html#Condition	conditionalblock: Condition	
+ThenBlock	optics/plens/private/test/conditionalblock.html#ThenBlock	conditionalblock: ThenBlock	
+ConditionalBlock	optics/plens/private/test/conditionalblock.html#ConditionalBlock	conditionalblock: ConditionalBlock	
+conditionalBlock	optics/plens/private/test/conditionalblock.html#conditionalBlock,Condition,ThenBlock[T]	conditionalblock: conditionalBlock[T](condition: Condition; then: ThenBlock[T]): ConditionalBlock[T]	
+condition	optics/plens/private/test/conditionalblock.html#condition,ConditionalBlock[T]	conditionalblock: condition[T](self: ConditionalBlock[T]): Condition	
+thenBlock	optics/plens/private/test/conditionalblock.html#thenBlock,ConditionalBlock[T]	conditionalblock: thenBlock[T](self: ConditionalBlock[T]): ThenBlock[T]	
+thenLabel	optics/plens/private/test/conditionalblock.html#thenLabel,ConditionalBlock[T]	conditionalblock: thenLabel[T](self: ConditionalBlock[T]): BlockLabel	
+thenBody	optics/plens/private/test/conditionalblock.html#thenBody,ConditionalBlock[T]	conditionalblock: thenBody[T](self: ConditionalBlock[T]): BlockBody[T]	
+condition	optics/plens/private/test/conditionalblock.html#condition,typedesc[ConditionalBlock[T]]	conditionalblock: condition[T](X: typedesc[ConditionalBlock[T]]): PLens[X, Condition, Condition, X]	
+thenBlock	optics/plens/private/test/conditionalblock.html#thenBlock,typedesc[ConditionalBlock[A]],typedesc	conditionalblock: thenBlock[A](X: typedesc[ConditionalBlock[A]]; B: typedesc): PLens[X, ThenBlock[A],\n    ThenBlock[B], ConditionalBlock[B]]	
+thenLabel	optics/plens/private/test/conditionalblock.html#thenLabel,typedesc[ConditionalBlock[T]]	conditionalblock: thenLabel[T](X: typedesc[ConditionalBlock[T]]): PLens[X, BlockLabel, BlockLabel, X]	
+thenBody	optics/plens/private/test/conditionalblock.html#thenBody,typedesc[ConditionalBlock[A]],typedesc	conditionalblock: thenBody[A](X: typedesc[ConditionalBlock[A]]; B: typedesc): PLens[X, BlockBody[A],\n    BlockBody[B], ConditionalBlock[B]]	

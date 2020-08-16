@@ -1,0 +1,14 @@
+plus	utils/operators.html#plus,T,T	operators: plus[T](x, y: T): T	
+plus1	utils/operators.html#plus1,T	operators: plus1[T](x: T): T	
+minus	utils/operators.html#minus,T,T	operators: minus[T](x, y: T): T	
+mult	utils/operators.html#mult,T,T	operators: mult[T](x, y: T): T	
+divInt	utils/operators.html#divInt,T,T	operators: divInt[T: SomeInteger](x, y: T): T	
+divFloat	utils/operators.html#divFloat,T,T	operators: divFloat[T: SomeFloat](x, y: T): T	
+modulo	utils/operators.html#modulo,T,T	operators: modulo[T: SomeInteger](x, y: T): T	
+next	utils/operators.html#next,T	operators: next[T: Ordinal](x: T): T	
+prev	utils/operators.html#prev,T	operators: prev[T: Ordinal](x: T): T	
+less	utils/operators.html#less,T,T	operators: less[T](x, y: T): bool	
+lessOrEq	utils/operators.html#lessOrEq,T,T	operators: lessOrEq[T](x, y: T): bool	
+equal	utils/operators.html#equal,T,T	operators: equal[T](x, y: T): bool	
+greaterOrEq	utils/operators.html#greaterOrEq,T,T	operators: greaterOrEq[T](x, y: T): bool	
+greater	utils/operators.html#greater,T,T	operators: greater[T](x, y: T): bool	

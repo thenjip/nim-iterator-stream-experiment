@@ -1,0 +1,23 @@
+Generator	stream/loop.html#Generator	loop: Generator	
+Loop	stream/loop.html#Loop	loop: Loop	
+generator	stream/loop.html#generator,Reader[S,T]	loop: generator[S; T](g: Reader[S, T]): Generator[S, T]	
+stepType	stream/loop.html#stepType.t,typedesc[Loop[S,T]]	loop: stepType[S; T; ](X: typedesc[Loop[S, T]]): typedesc[S]	
+stepType	stream/loop.html#stepType.t,Loop[S,T]	loop: stepType[S; T; ](self: Loop[S, T]): typedesc[S]	
+itemType	stream/loop.html#itemType.t,typedesc[Loop[S,T]]	loop: itemType[S; T; ](X: typedesc[Loop[S, T]]): typedesc[T]	
+itemType	stream/loop.html#itemType.t,Loop[S,T]	loop: itemType[S; T; ](self: Loop[S, T]): typedesc[T]	
+generating	stream/loop.html#generating,LoopScope[S],Generator[S,T]	loop: generating[S; T](scope: LoopScope[S]; generator: Generator[S, T]): Loop[S, T]	
+scope	stream/loop.html#scope,typedesc[Loop[S,T]]	loop: scope[S; T](X: typedesc[Loop[S, T]]): Lens[X, LoopScope[S]]	
+generator	stream/loop.html#generator,typedesc[Loop[S,A]],typedesc	loop: generator[S; A](X: typedesc[Loop[S, A]]; B: typedesc): PLens[X, Generator[S, A],\n    Generator[S, B], Loop[S, B]]	
+generator	stream/loop.html#generator,typedesc[Loop[S,T]]	loop: generator[S; T](X: typedesc[Loop[S, T]]): Lens[X, Generator[S, T]]	
+condition	stream/loop.html#condition,typedesc[Loop[S,T]]	loop: condition[S; T](X: typedesc[Loop[S, T]]): Lens[X, Condition[S]]	
+stepper	stream/loop.html#stepper,typedesc[Loop[S,T]]	loop: stepper[S; T](X: typedesc[Loop[S, T]]): Lens[X, Stepper[S]]	
+mapSteps	stream/loop.html#mapSteps,Loop[SA,T],,	loop: mapSteps[SA; SB; T](self: Loop[SA, T]; extractor: SB -&gt; SA;\n                  stepperMapper: Stepper[SA] -&gt; Stepper[SB]): Loop[SB, T]	
+mapSteps	stream/loop.html#mapSteps,Loop[SA,T],,_2	loop: mapSteps[SA; SB; T](self: Loop[SA, T]; extractor: SB -&gt; SA; wrapper: SA -&gt; SB): Loop[SB, T]	
+emptyLoop	stream/loop.html#emptyLoop,typedesc,typedesc	loop: emptyLoop(S: typedesc; T: typedesc): Loop[S, T]	
+infiniteLoop	stream/loop.html#infiniteLoop,Stepper[S],Generator[S,T]	loop: infiniteLoop[S; T](stepper: Stepper[S]; generator: Generator[S, T]): Loop[S, T]	
+infiniteLoop	stream/loop.html#infiniteLoop,,Generator[S,T]	loop: infiniteLoop[S; T](stepper: S -&gt; S; generator: Generator[S, T]): Loop[S, T]	
+run	stream/loop.html#run,Loop[S,Unit],S	loop: run[S](self: Loop[S, Unit]; initial: S): S	
+asReader	stream/loop.html#asReader,Loop[S,Unit]	loop: asReader[S](self: Loop[S, Unit]): Reader[S, S]	
+runOnce	stream/loop.html#runOnce,Loop[S,T],S	loop: runOnce[S; T](self: Loop[S, T]; start: S): RunOnceResult[S, T]	
+map	stream/loop.html#map,Loop[S,A],	loop: map[S; A; B](self: Loop[S, A]; f: A -&gt; B): Loop[S, B]	
+dropWhile	stream/loop.html#dropWhile,Loop[S,T],Predicate[T]	loop: dropWhile[S; T](self: Loop[S, T]; predicate: Predicate[T]): Reader[S, S]	

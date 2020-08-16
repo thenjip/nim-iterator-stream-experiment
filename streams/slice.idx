@@ -1,0 +1,11 @@
+SliceStepSignedIndex	streams/slice.html#SliceStepSignedIndex	slice: SliceStepSignedIndex	
+SliceStep	streams/slice.html#SliceStep	slice: SliceStep	
+SliceStepSigned	streams/slice.html#SliceStepSigned	slice: SliceStepSigned	
+slice	streams/slice.html#slice,T,T	slice: slice[T](low, high: T): Slice[T]	
+low	streams/slice.html#low,Slice[T]	slice: low[T](self: Slice[T]): T	
+high	streams/slice.html#high,Slice[T]	slice: high[T](self: Slice[T]): T	
+sliceStep	streams/slice.html#sliceStep,T	slice: sliceStep[T](i: T): SliceStep[T]	
+sliceStepSigned	streams/slice.html#sliceStepSigned,T	slice: sliceStepSigned[T: Ordinal](i: T): SliceStepSigned	
+current	streams/slice.html#current,typedesc[SliceStep[T]]	slice: current[T](S: typedesc[SliceStep[T]]): Lens[S, T]	
+ordinals	streams/slice.html#ordinals,Slice[T: Ordinal]	slice: ordinals[T: Ordinal](s: Slice[T]): Stream[SliceStepSigned, T]	
+items	streams/slice.html#items,Slice[T: Ordinal]	slice: items[T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T]	

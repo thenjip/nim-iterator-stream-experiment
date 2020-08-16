@@ -1,0 +1,12 @@
+LeftIdentitySpec	monad/monadlaws.html#LeftIdentitySpec	monadlaws: LeftIdentitySpec	
+RightIdentitySpec	monad/monadlaws.html#RightIdentitySpec	monadlaws: RightIdentitySpec	
+AssociativitySpec	monad/monadlaws.html#AssociativitySpec	monadlaws: AssociativitySpec	
+MonadLawsSpec	monad/monadlaws.html#MonadLawsSpec	monadlaws: MonadLawsSpec	
+leftIdentitySpec	monad/monadlaws.html#leftIdentitySpec,A,,	monadlaws: leftIdentitySpec[A; MA; MB](initial: A; lift: A -&gt; MA; f: A -&gt; MB): LeftIdentitySpec[A, MA, MB]	
+rightIdentitySpec	monad/monadlaws.html#rightIdentitySpec,T,	monadlaws: rightIdentitySpec[T; M](expected: T; lift: T -&gt; M): RightIdentitySpec[T, M]	
+associativitySpec	monad/monadlaws.html#associativitySpec,A,,,	monadlaws: associativitySpec[A; B; MA; MB; MC](initial: A; lift: A -&gt; MA; f: A -&gt; MB; g: B -&gt; MC): AssociativitySpec[\n    A, B, MA, MB, MC]	
+monadLawsSpec	monad/monadlaws.html#monadLawsSpec,LeftIdentitySpec[LA,LMA,LMB],RightIdentitySpec[RT,RM],AssociativitySpec[AA,AB,AMA,AMB,AMC]	monadlaws: monadLawsSpec[LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](\n    leftIdentity: LeftIdentitySpec[LA, LMA, LMB];\n    rightIdentity: RightIdentitySpec[RT, RM];\n    associativity: AssociativitySpec[AA, AB, AMA, AMB, AMC]): MonadLawsSpec[LA, LMA,\n    LMB, RT, RM, AA, AB, AMA, AMB, AMC]	
+checkLeftIdentity	monad/monadlaws.html#checkLeftIdentity.t,LeftIdentitySpec[A,MA,MB]	monadlaws: checkLeftIdentity[A; MA; MB](spec: LeftIdentitySpec[A, MA, MB]): bool	
+checkRightIdentity	monad/monadlaws.html#checkRightIdentity.t,RightIdentitySpec[T,M]	monadlaws: checkRightIdentity[T; M](spec: RightIdentitySpec[T, M]): bool	
+checkAssociativity	monad/monadlaws.html#checkAssociativity.t,AssociativitySpec[A,B,MA,MB,MC]	monadlaws: checkAssociativity[A; B; MA; MB; MC](spec: AssociativitySpec[A, B, MA, MB, MC]): bool	
+checkMonadLaws	monad/monadlaws.html#checkMonadLaws.t,MonadLawsSpec[LA,LMA,LMB,RT,RM,AA,AB,AMA,AMB,AMC]	monadlaws: checkMonadLaws[LA; LMA; LMB; RT; RM; AA; AB; AMA; AMB; AMC](\n    spec: MonadLawsSpec[LA, LMA, LMB, RT, RM, AA, AB, AMA, AMB, AMC]): bool	

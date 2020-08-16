@@ -1,0 +1,17 @@
+EmptyStep	stream/streamsteps.html#EmptyStep	streamsteps: EmptyStep	
+SingleStep	stream/streamsteps.html#SingleStep	streamsteps: SingleStep	
+LimitStep	stream/streamsteps.html#LimitStep	streamsteps: LimitStep	
+SkipStep	stream/streamsteps.html#SkipStep	streamsteps: SkipStep	
+TakeWhileStep	stream/streamsteps.html#TakeWhileStep	streamsteps: TakeWhileStep	
+emptyStep	stream/streamsteps.html#emptyStep_2	streamsteps: emptyStep(): EmptyStep	
+singleStep	stream/streamsteps.html#singleStep,bool	streamsteps: singleStep(consumed: bool): SingleStep	
+isConsumed	stream/streamsteps.html#isConsumed,typedesc[SingleStep]	streamsteps: isConsumed(X: typedesc[SingleStep]): Lens[X, bool]	
+limitStep	stream/streamsteps.html#limitStep,S,N	streamsteps: limitStep[S; N: SomeNatural](step: S; count: N): LimitStep[S, N]	
+step	stream/streamsteps.html#step,typedesc[LimitStep[S,N: SomeNatural]]	streamsteps: step[S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, S]	
+count	stream/streamsteps.html#count,typedesc[LimitStep[S,N: SomeNatural]]	streamsteps: count[S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, N]	
+skipStep	stream/streamsteps.html#skipStep,S,N	streamsteps: skipStep[S; N: SomeNatural](step: S; count: N): SkipStep[S, N]	
+step	stream/streamsteps.html#step,typedesc[SkipStep[S,N: SomeNatural]]	streamsteps: step[S; N: SomeNatural](X: typedesc[SkipStep[S, N]]): Lens[X, S]	
+count	stream/streamsteps.html#count,typedesc[SkipStep[S,N: SomeNatural]]	streamsteps: count[S; N: SomeNatural](X: typedesc[SkipStep[S, N]]): Lens[X, N]	
+takeWhileStep	stream/streamsteps.html#takeWhileStep,S,Optional[T]	streamsteps: takeWhileStep[S; T](step: S; item: Optional[T]): TakeWhileStep[S, T]	
+step	stream/streamsteps.html#step,typedesc[TakeWhileStep[S,T]]	streamsteps: step[S; T](X: typedesc[TakeWhileStep[S, T]]): Lens[X, S]	
+item	stream/streamsteps.html#item,typedesc[TakeWhileStep[S,T]]	streamsteps: item[S; T](X: typedesc[TakeWhileStep[S, T]]): Lens[X, Optional[T]]	

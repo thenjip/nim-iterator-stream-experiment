@@ -1,0 +1,6 @@
+RunOnceResult	stream/loop/loopscope/runonceresult.html#RunOnceResult	runonceresult: RunOnceResult	
+runOnceResult	stream/loop/loopscope/runonceresult.html#runOnceResult,S,Optional[T]	runonceresult: runOnceResult[S; T](step: S; item: Optional[T]): RunOnceResult[S, T]	
+step	stream/loop/loopscope/runonceresult.html#step,typedesc[RunOnceResult[SA,T]],typedesc	runonceresult: step[SA; T](X: typedesc[RunOnceResult[SA, T]]; SB: typedesc): PLens[X, SA, SB,\n    RunOnceResult[SB, T]]	
+step	stream/loop/loopscope/runonceresult.html#step,typedesc[RunOnceResult[S,T]]	runonceresult: step[S; T](X: typedesc[RunOnceResult[S, T]]): Lens[X, S]	
+item	stream/loop/loopscope/runonceresult.html#item,typedesc[RunOnceResult[S,A]],typedesc	runonceresult: item[S; A](X: typedesc[RunOnceResult[S, A]]; B: typedesc): PLens[X, Optional[A],\n    Optional[B], RunOnceResult[S, B]]	
+item	stream/loop/loopscope/runonceresult.html#item,typedesc[RunOnceResult[S,T]]	runonceresult: item[S; T](X: typedesc[RunOnceResult[S, T]]): Lens[X, Optional[T]]	

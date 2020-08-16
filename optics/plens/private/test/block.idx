@@ -1,0 +1,8 @@
+BlockBody	optics/plens/private/test/block.html#BlockBody	block: BlockBody	
+BlockLabel	optics/plens/private/test/block.html#BlockLabel	block: BlockLabel	
+Block	optics/plens/private/test/block.html#Block	block: Block	
+`block`	optics/plens/private/test/block.html#block,string,BlockBody[T]	block: `block`[T](label: string; body: BlockBody[T]): Block[T]	
+label	optics/plens/private/test/block.html#label,Block[T]	block: label[T](self: Block[T]): BlockLabel	
+body	optics/plens/private/test/block.html#body,Block[T]	block: body[T](self: Block[T]): BlockBody[T]	
+label	optics/plens/private/test/block.html#label,typedesc[Block[T]]	block: label[T](X: typedesc[Block[T]]): PLens[X, BlockLabel, BlockLabel, X]	
+body	optics/plens/private/test/block.html#body,typedesc[Block[A]],typedesc	block: body[A](X: typedesc[Block[A]]; B: typedesc): PLens[X, BlockBody[A], BlockBody[B],\n    Block[B]]	

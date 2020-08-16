@@ -1,0 +1,2 @@
+itself	monad/identity.html#itself,T	identity: itself[T](value: T): T	
+apply	monad/identity.html#apply,A,	identity: apply[A; B](self: A; f: A -&gt; B): B	

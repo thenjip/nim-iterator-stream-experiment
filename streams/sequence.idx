@@ -1,0 +1,8 @@
+SeqIndex	streams/sequence.html#SeqIndex	sequence: SeqIndex	
+SeqStep	streams/sequence.html#SeqStep	sequence: SeqStep	
+indexes	streams/sequence.html#indexes,seq[T]	sequence: indexes[T](s: seq[T]): Stream[SeqStep, SeqIndex]	
+items	streams/sequence.html#items,seq[T]	sequence: items[T](s: seq[T]): Stream[SeqStep, T]	
+pairs	streams/sequence.html#pairs,seq[T]	sequence: pairs[T](s: seq[T]): Stream[SeqStep, tuple[index: SeqIndex, item: T]]	
+indexes	streams/sequence.html#indexes,string	sequence: indexes(s: string): Stream[SeqStep, SeqIndex]	
+chars	streams/sequence.html#chars,string	sequence: chars(s: string): Stream[SeqStep, char]	
+pairs	streams/sequence.html#pairs,string	sequence: pairs(s: string): Stream[SeqStep, tuple[index: SeqIndex, item: char]]	

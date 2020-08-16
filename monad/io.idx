@@ -1,0 +1,7 @@
+IO	monad/io.html#IO	io: IO	
+toIO	monad/io.html#toIO,T	io: toIO[T](value: T): IO[T]	
+run	monad/io.html#run,IO[T]	io: run[T](self: IO[T]): T	
+map	monad/io.html#map,IO[A],	io: map[A; B](self: IO[A]; f: A -&gt; B): IO[B]	
+flatMap	monad/io.html#flatMap,IO[A],	io: flatMap[A; B](self: IO[A]; f: A -&gt; IO[B]): IO[B]	
+bracket	monad/io.html#bracket,IO[A],,	io: bracket[A; B](before: IO[A]; between: A -&gt; B; after: A -&gt; Unit): IO[B]	
+tryBracket	monad/io.html#tryBracket,IO[A],,	io: tryBracket[A; B](before: IO[A]; `try`: A -&gt; B; `finally`: A -&gt; Unit): IO[B]	

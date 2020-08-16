@@ -1,0 +1,8 @@
+RoadName	optics/lens/private/test/road.html#RoadName	road: RoadName	
+RoadKind	optics/lens/private/test/road.html#RoadKind	road: RoadKind	
+Road	optics/lens/private/test/road.html#Road	road: Road	
+road	optics/lens/private/test/road.html#road,RoadKind,RoadName	road: road(kind: RoadKind; name: RoadName): Road	
+name	optics/lens/private/test/road.html#name,Road	road: name(self: Road): RoadName	
+kind	optics/lens/private/test/road.html#kind,Road	road: kind(self: Road): RoadKind	
+kind	optics/lens/private/test/road.html#kind	road: kind[X: Road](): Lens[X, RoadKind]	
+name	optics/lens/private/test/road.html#name	road: name[X: Road](): Lens[X, RoadName]	

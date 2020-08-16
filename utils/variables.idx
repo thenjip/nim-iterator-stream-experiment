@@ -1,0 +1,3 @@
+read	utils/variables.html#read,T	variables: read[T](self: var T): T	
+write	utils/variables.html#write,T,T	variables: write[T](self: var T; value: T): var T	
+modify	utils/variables.html#modify,T,	variables: modify[T](self: var T; f: T -&gt; T): var T	

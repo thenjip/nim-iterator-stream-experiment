@@ -1,0 +1,5 @@
+partialParamPrefix	utils/partialprocs.html#partialParamPrefix	partialprocs: partialParamPrefix(): string	
+partialTypedParamPrefix	utils/partialprocs.html#partialTypedParamPrefix	partialprocs: partialTypedParamPrefix(): string	
+newLambda	utils/partialprocs.html#newLambda,seq[NimNode],NimNode,NimNode	partialprocs: newLambda(params: seq[NimNode]; body: NimNode; returnType: NimNode): NimNode	
+isUnderscore	utils/partialprocs.html#isUnderscore,NimNode	partialprocs: isUnderscore(n: NimNode): bool	
+partial	utils/partialprocs.html#partial.m	partialprocs: partial(call: untyped{call}): untyped	

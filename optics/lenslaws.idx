@@ -1,0 +1,12 @@
+IdentitySpec	optics/lenslaws.html#IdentitySpec	lenslaws: IdentitySpec	
+RetentionSpec	optics/lenslaws.html#RetentionSpec	lenslaws: RetentionSpec	
+DoubleWriteSpec	optics/lenslaws.html#DoubleWriteSpec	lenslaws: DoubleWriteSpec	
+LensLawsSpec	optics/lenslaws.html#LensLawsSpec	lenslaws: LensLawsSpec	
+identitySpec	optics/lenslaws.html#identitySpec,S	lenslaws: identitySpec[S](expected: S): IdentitySpec[S]	
+retentionSpec	optics/lenslaws.html#retentionSpec,S,T	lenslaws: retentionSpec[S; T](input: S; expected: T): RetentionSpec[S, T]	
+doubleWriteSpec	optics/lenslaws.html#doubleWriteSpec,S,T,T	lenslaws: doubleWriteSpec[S; T](input: S; first: T; second: T): DoubleWriteSpec[S, T]	
+lensLawsSpec	optics/lenslaws.html#lensLawsSpec,IdentitySpec[S],RetentionSpec[S,T],DoubleWriteSpec[S,T]	lenslaws: lensLawsSpec[S; T](identity: IdentitySpec[S]; retention: RetentionSpec[S, T];\n                  doubleWrite: DoubleWriteSpec[S, T]): LensLawsSpec[S, T]	
+checkIdentityLaw	optics/lenslaws.html#checkIdentityLaw.t,Lens[S,T],IdentitySpec[S]	lenslaws: checkIdentityLaw[S; T](lens: Lens[S, T]; spec: IdentitySpec[S]): bool	
+checkRetentionLaw	optics/lenslaws.html#checkRetentionLaw.t,Lens[S,T],RetentionSpec[S,T]	lenslaws: checkRetentionLaw[S; T](lens: Lens[S, T]; spec: RetentionSpec[S, T]): bool	
+checkDoubleWriteLaw	optics/lenslaws.html#checkDoubleWriteLaw.t,Lens[S,T],DoubleWriteSpec[S,T]	lenslaws: checkDoubleWriteLaw[S; T](lens: Lens[S, T]; spec: DoubleWriteSpec[S, T]): bool	
+checkLensLaws	optics/lenslaws.html#checkLensLaws.t,Lens[S,T],LensLawsSpec[S,T]	lenslaws: checkLensLaws[S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]): bool	

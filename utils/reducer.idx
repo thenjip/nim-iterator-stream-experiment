@@ -1,0 +1,3 @@
+Reducer	utils/reducer.html#Reducer	reducer: Reducer	
+run	utils/reducer.html#run,Reducer[R,T],R,T	reducer: run[R; T](self: Reducer[R, T]; reduction: R; item: T): R	
+map	utils/reducer.html#map,Reducer[R,T],	reducer: map[R; T](self: Reducer[R, T]; f: R -&gt; R): Reducer[R, T]	
