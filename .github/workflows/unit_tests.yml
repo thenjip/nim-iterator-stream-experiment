@@ -17,7 +17,7 @@ jobs:
         backend: ['c', 'cxx']
         experimental: [false]
         include:
-          - nim_version: '1.2.6'
+          - nim_version: ['1.2.0', '1.2.2', '1.2.4', '1.2.6']
             backend: 'js'
             experimental: true
 
