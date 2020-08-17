@@ -190,7 +190,7 @@ when isMainModule:
         doTest(
           monadLawsSpec(
             leftIdentitySpec(0, toId, a => `$`(a + 10)),
-            rightIdentitySpec(nil.pointer, toId),
+            rightIdentitySpec((string -> string)(nil), toId),
             associativitySpec(
               'a',
               toId,

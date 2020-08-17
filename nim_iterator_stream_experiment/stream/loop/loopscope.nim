@@ -234,20 +234,23 @@ when isMainModule:
 
 
       test """Using "self.run(0)" to count up to "expected" at compile time should return "expected".""":
-        proc doTest [N: SomeUnsignedInt](expected: static N) =
-          const actual =
-            partial(?:N < expected)
-              .looped(plus1[N].stepper())
-              .run(0.N)
+        when defined(js):
+          skip()
+        else:
+          proc doTest [N: SomeUnsignedInt](expected: static N) =
+            const actual =
+              partial(?:N < expected)
+                .looped(plus1[N].stepper())
+                .run(0.N)
 
-          check:
-            actual == expected
+            check:
+              actual == expected
 
 
-        doTest(56u8)
-        doTest(4u32)
-        doTest(0u)
-        doTest(1u64)
+          doTest(56u8)
+          doTest(4u32)
+          doTest(0u)
+          doTest(1u64)
 
 
 
@@ -292,9 +295,7 @@ when isMainModule:
       test """Running an "infinite(next[I])" to count up starting at "start" should raise an "OverflowError".""":
         proc doTest [I: SomeSignedInt](start: I) =
           when defined(js):
-            #[
-              The generated JS does not seem to raise an "OverflowError".
-            ]#
+            # The generated JS code does not raise an "OverflowError".
             skip()
           else:
             expect OverflowError:

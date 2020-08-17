@@ -14,18 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         nim_version: ['1.2.0', '1.2.2', '1.2.4', '1.2.6']
-        backend: ['c', 'cxx']
-        experimental: [false]
-        include:
-          - nim_version: '1.2.6'
-            backend: 'js'
-            experimental: true
+        backend: ['c', 'cxx', 'js']
 
     name: 'Nim ${{ matrix.nim_version }}, backend ${{ matrix.backend }}'
     runs-on: ubuntu-latest
     container: 'nimlang/nim:${{ matrix.nim_version }}-alpine'
     timeout-minutes: 15
-    continue-on-error: ${{ matrix.experimental }}
 
     steps:
       - name: 'Checkout'

@@ -23,9 +23,9 @@ nimble install 'https://github.com/thenjip/nim-iterator-stream-experiment'
 
 ## Rationale
 
-First class iterators are not available in Nim's VM and JavaScript back ends.
+First class iterators are not available in Nim's VM and JavaScript backends.
 This project exists to see if implementing an iterator API compatible with all
-Nim's back ends is possible (including compile time execution).
+Nim's backends is possible (including compile time execution).
 
 First class iterators are the priority, but it turns out any iterator that does
 not rely on compiler magic can be replaced (example: the [iterator](
@@ -38,15 +38,15 @@ Many types used to implement this API rely on closure procedures. So they can
 not be assigned to `const` symbols, but they can still be part of computations
 at compile time.
 
-## Back end compatibility
+## Backend compatibility
 
 The results below are based on the status of CI builds.
 
-| Back end | @ Run time | @ Compile time |
+| Backend | @ Run time | @ Compile time |
 | :--- | :--- | :--- |
 | C | Supported | Supported |
 | C++ | Supported | Supported |
-| JavaScript | Not ready yet. The unit tests do not compile. | Same as "@ run time" |
+| JavaScript | Supported | Unsupported. <p></p>Compile time tests are currently skipped, they do not compile yet. |
 | NimScript | To be tested | To be tested |
 
 ## Usage

@@ -155,7 +155,7 @@ func `==`* [T](self, other: Optional[T]): bool =
 
 when isMainModule:
   import monadlaws
-  import ../utils/[call, convert, ignore, partialprocs, proctypes, unit]
+  import ../utils/[call, ignore, partialprocs, proctypes, unit]
 
   import std/[os, unittest]
 
@@ -170,7 +170,8 @@ when isMainModule:
 
 
         doTest(ptr cstring)
-        doTest(pointer)
+        when not defined(js):
+          doTest(pointer)
         doTest(ref tuple[a: Unit; b: char])
         doTest(int -> string)
         doTest(cstring)
@@ -198,21 +199,25 @@ when isMainModule:
             nil.T.toSome().ignore()
 
 
-        doTest(pointer)
+        when defined(js):
+          doTest(ref RootObj)
+        else:
+          doTest(pointer)
 
 
 
       test """"nil.toOptional()" should return "none".""":
         proc doTest (T: typedesc[Nilable]) =
           let
-            actual = nil.convert(T).toOptional()
+            actual = nil.T.toOptional()
             expected = T.toNone()
 
           check:
             actual == expected
 
 
-        doTest(pointer)
+        when not defined(js):
+          doTest(pointer)
         doTest(Predicate[uint16])
         doTest(ref Exception)
 
@@ -262,40 +267,45 @@ when isMainModule:
 
 
       test """Computations that use "Optional[T]" and without side effects should be compatible with compile time execution.""":
-        proc doTest [A; B](
-          sut: static[proc (argument: Optional[A]): B {.noSideEffect.}];
-          argument: static[proc (): Optional[A] {.noSideEffect.}];
-          expected: static B
-        ) =
-          const actual = sut.call(argument.call())
+        when defined(js):
+          skip()
+        else:
+          proc doTest [A; B](
+            sut:
+              static[proc (argument: Optional[A]): B {.nimcall, noSideEffect.}]
+            ;
+            argument: static[proc (): Optional[A] {.nimcall, noSideEffect.}];
+            expected: static B
+          ) =
+            const actual = sut.call(argument.call())
 
-          check:
-            actual == expected
-
-
-
-        func sut1 [T](arg: Optional[T]): T =
-          arg.unbox()
-
-        func expected1 (): int =
-          -2
-
-        func argument1 (): Optional[expected1.returnType()] =
-          expected1().toSome()
+            check:
+              actual == expected
 
 
-        func sut2 [T: Nilable](arg: Optional[T]): T =
-          arg.ifSome(itself, () => nil.T)
 
-        func expected2 (): ref char =
-          nil
+          func sut1 [T](arg: Optional[T]): T =
+            arg.unbox()
 
-        func argument2 (): Optional[expected2.returnType()] =
-          expected2.returnType().toNone()
+          func expected1 (): int =
+            -2
+
+          func argument1 (): Optional[expected1.returnType()] =
+            expected1().toSome()
 
 
-        doTest(sut1[expected1.returnType()], argument1, expected1())
-        doTest(sut2[expected2.returnType()], argument2, expected2())
+          func sut2 [T: Nilable](arg: Optional[T]): T =
+            arg.unboxOr(() => nil.T)
+
+          func expected2 (): ref char =
+            nil
+
+          func argument2 (): Optional[expected2.returnType()] =
+            expected2.returnType().toNone()
+
+
+          doTest(sut1[expected1.returnType()], argument1, expected1())
+          doTest(sut2[expected2.returnType()], argument2, expected2())
 
 
 
@@ -395,7 +405,10 @@ when isMainModule:
 
 
         doTest("abc".cstring)
-        doTest(partial($ ?:uint))
+        when defined(js):
+          doTest(partial($ ?:int))
+        else:
+          doTest(partial($ ?:uint))
         doTest(0)
 
 

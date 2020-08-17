@@ -116,37 +116,40 @@ when isMainModule:
 
 
       test """"IO[T]" without side effects should be compatible with compile time execution.""":
-        template doTest [T](
-          sut: IO[T]{noSideEffect};
-          expected: static T
-        ): proc () =
-          (
-            proc () =
-              const actual = sut.run()
+        when defined(js):
+          skip()
+        else:
+          template doTest [T](
+            sut: IO[T]{noSideEffect};
+            expected: static T
+          ): proc () =
+            (
+              proc () =
+                const actual = sut.run()
 
-              check:
-                actual == expected
-          )
-
-
-        func expected1 (): int =
-          1
-
-
-        func expected2 (): int =
-          toSeq(1 .. 10).foldl(a + b, 0)
-
-        func sut2 (): IO[expected2.returnType()] =
-          lambda(1 .. 10)
-            .map(slice => toSeq(slice.items()))
-            .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
+                check:
+                  actual == expected
+            )
 
 
-        for t in [
-          doTest(expected1, expected1.call()),
-          doTest(sut2.call(), expected2.call())
-        ]:
-          t.call()
+          func expected1 (): int =
+            1
+
+
+          func expected2 (): int =
+            toSeq(1 .. 10).foldl(a + b, 0)
+
+          func sut2 (): IO[expected2.returnType()] =
+            lambda(1 .. 10)
+              .map(slice => toSeq(slice.items()))
+              .flatMap((s: seq[int]) => s.foldl(a + b, 0).toIO())
+
+
+          for t in [
+            doTest(expected1, expected1()),
+            doTest(sut2(), expected2())
+          ]:
+            t.call()
 
 
 
