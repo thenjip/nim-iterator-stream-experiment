@@ -76,27 +76,30 @@ when isMainModule:
 
 
     test """Skip the first "n" items of a sequence and collect the rest at compile time.""":
-      func skipAndCollect [T; N: SomeNatural](s: seq[T]; n: N): seq[T] =
-        result = @[]
+      when defined(js):
+        skip()
+      else:
+        func skipAndCollect [T; N: SomeNatural](s: seq[T]; n: N): seq[T] =
+          result = @[]
 
-        for i in n ..< s.len().convert(N):
-          result.add(s[i])
-
-
-      proc doTest [T; N: SomeNatural](s: static seq[T]; n: static N) =
-        const
-          actual =
-            s
-              .items()
-              .skip(n)
-              .run()
-              .reduce((res: seq[T], it: T) => res & it, @[])
-          expected = s.skipAndCollect(n)
-
-        check:
-          actual == expected
+          for i in n ..< s.len().convert(N):
+            result.add(s[i])
 
 
-      doTest(@[-5, -18, 0, 894, 135], 3u)
-      doTest(@[].seq[:pointer], 2u)
-      doTest(@["", "a", "0", "ab"], 0u)
+        proc doTest [T; N: SomeNatural](s: static seq[T]; n: static N) =
+          const
+            actual =
+              s
+                .items()
+                .skip(n)
+                .run()
+                .reduce((res: seq[T], it: T) => res & it, @[])
+            expected = s.skipAndCollect(n)
+
+          check:
+            actual == expected
+
+
+        doTest(@[-5, -18, 0, 894, 135], 3u)
+        doTest(@[].seq[:pointer], 2u)
+        doTest(@["", "a", "0", "ab"], 0u)

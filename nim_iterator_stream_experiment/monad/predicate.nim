@@ -144,29 +144,32 @@ when isMainModule:
 
 
       test """"self.test(value)" at compile time should return the expected boolean.""":
-        template doTest [T](
-          self: Predicate[T]{noSideEffect};
-          value: static T;
-          expected: static bool
-        ): proc () =
-          (
-            proc () =
-              const actual = predicate.test(self, value)
+        when defined(js):
+          skip()
+        else:
+          template doTest [T](
+            self: Predicate[T]{noSideEffect};
+            value: static T;
+            expected: static bool
+          ): proc () =
+            (
+              proc () =
+                const actual = predicate.test(self, value)
 
-              check:
-                actual == expected
-          )
+                check:
+                  actual == expected
+            )
 
 
-        for t in [
-          doTest(partial(?:int > 0), -1, false),
-          doTest(
-            partial(?:char in Letters) and partial(?:char != '\0'),
-            'a',
-            true
-          )
-        ]:
-          t.call()
+          for t in [
+            doTest(partial(?:int > 0), -1, false),
+            doTest(
+              partial(?:char in Letters) and partial(?:char != '\0'),
+              'a',
+              true
+            )
+          ]:
+            t.call()
 
 
 

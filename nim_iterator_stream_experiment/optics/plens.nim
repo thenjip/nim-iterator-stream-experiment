@@ -251,51 +251,55 @@ when isMainModule:
 
 
       test """Modifying the body of a "ConditionalBlock[T]" through a lens at compile time should return a "ConditionalBlock[T]" with only the body modified.""":
-        skip() # Skipped because of https://github.com/nim-lang/Nim/issues/9679.
+        # Skipped because of https://github.com/nim-lang/Nim/issues/9679.
+        when true:
+          skip()
+        else:
+          proc doTest [A; B](
+            lens:
+              static[
+                proc ():
+                  PLens[
+                    ConditionalBlock[A],
+                    BlockBody[A],
+                    BlockBody[B],
+                    ConditionalBlock[B]
+                  ]
+                  {.nimcall, noSideEffect.}
+              ]
+            ;
+            modifier:
+              static[
+                proc (input: BlockBody[A]): BlockBody[B] {.
+                  nimcall,
+                  noSideEffect
+                .}
+              ]
+            ;
+            input: static proc (): ConditionalBlock[A] {.nimcall, noSideEffect.}
+          ) =
+            const
+              modifiedBody = lens.call().read().map(modifier).run(input.call())
+              actual = lens.call().modify(_ => modifiedBody).run(input.call())
+              expected =
+                conditionalBlock(
+                  input.call().condition(),
+                  `block`(input.call().thenLabel(), modifiedBody)
+                )
+
+            check:
+              actual == expected
 
 
-        proc doTest [A; B](
-          lens:
-            static[
-              proc ():
-                PLens[
-                  ConditionalBlock[A],
-                  BlockBody[A],
-                  BlockBody[B],
-                  ConditionalBlock[B]
-                ]
-                {.nimcall, noSideEffect.}
-            ]
-          ;
-          modifier:
-            static[
-              proc (input: BlockBody[A]): BlockBody[B] {.nimcall, noSideEffect.}
-            ]
-          ;
-          input: static proc (): ConditionalBlock[A] {.nimcall, noSideEffect.}
-        ) =
-          const
-            modifiedBody = lens.call().read().map(modifier).run(input.call())
-            actual = lens.call().modify(_ => modifiedBody).run(input.call())
-            expected =
-              conditionalBlock(
-                input.call().condition(),
-                `block`(input.call().thenLabel(), modifiedBody)
-              )
-
-          check:
-            actual == expected
+          func modifier (input: BlockBody[int]): BlockBody[string] =
+            () => $input.call()
 
 
-        func modifier (input: BlockBody[int]): BlockBody[string] =
-          () => $input.call()
-
-
-        #[ doTest(
-          () => ConditionalBlock[int].thenBody(string),
-          modifier,
-          () => conditionalBlock(() => true, `block`("abc", () => 1))
-        ) ]#
+          doTest(
+            () => ConditionalBlock[int].thenBody(string),
+            modifier,
+            () => conditionalBlock(() => true, `block`("abc", () => 1))
+          )
 
 
 

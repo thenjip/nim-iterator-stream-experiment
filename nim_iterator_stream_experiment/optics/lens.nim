@@ -116,33 +116,36 @@ when isMainModule:
 
 
       test """Modifying the "Road" kind of a "CityAddress" through a lens at compile time should return a "CityAddress" with only the input kind changed.""":
-        proc doTest (
-          lens:
-            static[
-              proc (): Lens[CityAddress, RoadKind] {.nimcall, noSideEffect.}
-            ]
-          ;
-          modifier:
-            static proc (old: RoadKind): RoadKind {.nimcall, noSideEffect.};
-          input: static CityAddress
-        ) =
-          const
-            actual = lens.call().modify(modifier).run(input)
-            expected =
-              cityAddress(
-                input.number(),
-                road(modifier.run(input.road().kind()), input.road().name())
-              )
+        when defined(js):
+          skip()
+        else:
+          proc doTest (
+            lens:
+              static[
+                proc (): Lens[CityAddress, RoadKind] {.nimcall, noSideEffect.}
+              ]
+            ;
+            modifier:
+              static proc (old: RoadKind): RoadKind {.nimcall, noSideEffect.};
+            input: static CityAddress
+          ) =
+            const
+              actual = lens.call().modify(modifier).run(input)
+              expected =
+                cityAddress(
+                  input.number(),
+                  road(modifier.run(input.road().kind()), input.road().name())
+                )
 
-          check:
-            actual == expected
+            check:
+              actual == expected
 
 
-        doTest(
-          () => CityAddress.roadKind(),
-          next[RoadKind],
-          cityAddress(2, road(RoadKind.Street, "a a"))
-        )
+          doTest(
+            () => CityAddress.roadKind(),
+            next[RoadKind],
+            cityAddress(2, road(RoadKind.Street, "a a"))
+          )
 
 
 

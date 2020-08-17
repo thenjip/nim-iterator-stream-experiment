@@ -113,28 +113,31 @@ when isMainModule:
 
 
       test """"Reader[S, T]" without side effects should be compatible with compile time execution.""":
-        template doTest [S; T](
-          sut: Reader[S, T]{noSideEffect};
-          state: static S;
-          expected: static T
-        ): proc () =
-          (
-            proc () =
-              const actual = sut.run(state)
+        when defined(js):
+          skip()
+        else:
+          template doTest [S; T](
+            sut: Reader[S, T]{noSideEffect};
+            state: static S;
+            expected: static T
+          ): proc () =
+            (
+              proc () =
+                const actual = sut.run(state)
 
-              check:
-                actual == expected
-          )
-
-
-        func expected1 (): string =
-          "abc"
-
-        func sut1 (): Reader[Unit, expected1.returnType()] =
-          (_: Unit) => expected1.call()
+                check:
+                  actual == expected
+            )
 
 
-        doTest(sut1.call(), unit(), expected1.call()).call()
+          func expected1 (): string =
+            "abc"
+
+          func sut1 (): Reader[Unit, expected1.returnType()] =
+            map((_: Unit) => expected1.call(), itself)
+
+
+          doTest(sut1(), unit(), expected1()).call()
 
 
 
