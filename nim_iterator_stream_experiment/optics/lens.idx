@@ -1,0 +1,5 @@
+Lens	nim_iterator_stream_experiment/optics/lens.html#Lens	lens: Lens	
+stateType	nim_iterator_stream_experiment/optics/lens.html#stateType.t,typedesc[Lens[S,T]]	lens: stateType[S; T; ](X: typedesc[Lens[S, T]]): typedesc[S]	
+memberType	nim_iterator_stream_experiment/optics/lens.html#memberType.t,typedesc[Lens[S,T]]	lens: memberType[S; T; ](X: typedesc[Lens[S, T]]): typedesc[T]	
+stateType	nim_iterator_stream_experiment/optics/lens.html#stateType.t,Lens[S,T]	lens: stateType[S; T; ](self: Lens[S, T]): typedesc[S]	
+memberType	nim_iterator_stream_experiment/optics/lens.html#memberType.t,Lens[S,T]	lens: memberType[S; T; ](self: Lens[S, T]): typedesc[T]	

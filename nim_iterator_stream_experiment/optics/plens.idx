@@ -1,0 +1,19 @@
+MemberReader	nim_iterator_stream_experiment/optics/plens.html#MemberReader	plens: MemberReader	
+MemberUpdater	nim_iterator_stream_experiment/optics/plens.html#MemberUpdater	plens: MemberUpdater	
+PLens	nim_iterator_stream_experiment/optics/plens.html#PLens	plens: PLens	
+readStateType	nim_iterator_stream_experiment/optics/plens.html#readStateType.t,typedesc[PLens[SR,R,W,SW]]	plens: readStateType[SR; R; W; SW; ](X: typedesc[PLens[SR, R, W, SW]]): typedesc[SR]	
+readMemberType	nim_iterator_stream_experiment/optics/plens.html#readMemberType.t,typedesc[PLens[SR,R,W,SW]]	plens: readMemberType[SR; R; W; SW; ](X: typedesc[PLens[SR, R, W, SW]]): typedesc[R]	
+writtenMemberType	nim_iterator_stream_experiment/optics/plens.html#writtenMemberType.t,typedesc[PLens[SR,R,W,SW]]	plens: writtenMemberType[SR; R; W; SW; ](X: typedesc[PLens[SR, R, W, SW]]): typedesc[W]	
+writtenStateType	nim_iterator_stream_experiment/optics/plens.html#writtenStateType.t,typedesc[PLens[SR,R,W,SW]]	plens: writtenStateType[SR; R; W; SW; ](X: typedesc[PLens[SR, R, W, SW]]): typedesc[SW]	
+readStateType	nim_iterator_stream_experiment/optics/plens.html#readStateType.t,PLens[SR,R,W,SW]	plens: readStateType[SR; R; W; SW; ](self: PLens[SR, R, W, SW]): typedesc[SR]	
+readMemberType	nim_iterator_stream_experiment/optics/plens.html#readMemberType.t,PLens[SR,R,W,SW]	plens: readMemberType[SR; R; W; SW; ](self: PLens[SR, R, W, SW]): typedesc[R]	
+writtenMemberType	nim_iterator_stream_experiment/optics/plens.html#writtenMemberType.t,PLens[SR,R,W,SW]	plens: writtenMemberType[SR; R; W; SW; ](self: PLens[SR, R, W, SW]): typedesc[W]	
+writtenStateType	nim_iterator_stream_experiment/optics/plens.html#writtenStateType.t,PLens[SR,R,W,SW]	plens: writtenStateType[SR; R; W; SW; ](self: PLens[SR, R, W, SW]): typedesc[SW]	
+lens	nim_iterator_stream_experiment/optics/plens.html#lens,MemberReader[SR,R],MemberUpdater[SR,W,SW]	plens: lens[SR; R; W; SW](reader: MemberReader[SR, R]; writer: MemberUpdater[SR, W, SW]): PLens[\n    SR, R, W, SW]	
+read	nim_iterator_stream_experiment/optics/plens.html#read,PLens[SR,R,W,SW]	plens: read[SR; R; W; SW](self: PLens[SR, R, W, SW]): Reader[SR, R]	
+write	nim_iterator_stream_experiment/optics/plens.html#write,PLens[SR,R,W,SW],	plens: write[SR; R; W; SW](self: PLens[SR, R, W, SW]; value: () -&gt; W): Reader[SR, SW]	
+modify	nim_iterator_stream_experiment/optics/plens.html#modify,PLens[SR,R,W,SW],	plens: modify[SR; R; W; SW](self: PLens[SR, R, W, SW]; f: R -&gt; W): Reader[SR, SW]	
+chain	nim_iterator_stream_experiment/optics/plens.html#chain,PLens[SR,R1,W1,SW],PLens[R1,R2,W2,W1]	plens: chain[SR; R1; W1; SW; R2; W2](self: PLens[SR, R1, W1, SW]; other: PLens[R1, R2, W2, W1]): PLens[\n    SR, R2, W2, SW]	
+read	nim_iterator_stream_experiment/optics/plens.html#read,SR,PLens[SR,R,W,SW]	plens: read[SR; R; W; SW](state: SR; lens: PLens[SR, R, W, SW]): R	
+write	nim_iterator_stream_experiment/optics/plens.html#write,SR,PLens[SR,R,W,SW],W	plens: write[SR; R; W; SW](state: SR; lens: PLens[SR, R, W, SW]; value: W): SW	
+modify	nim_iterator_stream_experiment/optics/plens.html#modify,SR,PLens[SR,R,W,SW],	plens: modify[SR; R; W; SW](state: SR; lens: PLens[SR, R, W, SW]; f: R -&gt; W): SW	

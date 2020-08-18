@@ -1,2 +1,0 @@
-returnType	utils/proctypes.html#returnType.m,typedesc[proc]	proctypes: returnType(T: typedesc[proc]): typedesc	
-returnType	utils/proctypes.html#returnType.t,proc	proctypes: returnType(p: proc): typedesc	

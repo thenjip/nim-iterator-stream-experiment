@@ -1,0 +1,17 @@
+EmptyStep	nim_iterator_stream_experiment/stream/streamsteps.html#EmptyStep	streamsteps: EmptyStep	
+SingleStep	nim_iterator_stream_experiment/stream/streamsteps.html#SingleStep	streamsteps: SingleStep	
+LimitStep	nim_iterator_stream_experiment/stream/streamsteps.html#LimitStep	streamsteps: LimitStep	
+SkipStep	nim_iterator_stream_experiment/stream/streamsteps.html#SkipStep	streamsteps: SkipStep	
+TakeWhileStep	nim_iterator_stream_experiment/stream/streamsteps.html#TakeWhileStep	streamsteps: TakeWhileStep	
+emptyStep	nim_iterator_stream_experiment/stream/streamsteps.html#emptyStep_2	streamsteps: emptyStep(): EmptyStep	
+singleStep	nim_iterator_stream_experiment/stream/streamsteps.html#singleStep,bool	streamsteps: singleStep(consumed: bool): SingleStep	
+isConsumed	nim_iterator_stream_experiment/stream/streamsteps.html#isConsumed,typedesc[SingleStep]	streamsteps: isConsumed(X: typedesc[SingleStep]): Lens[X, bool]	
+limitStep	nim_iterator_stream_experiment/stream/streamsteps.html#limitStep,S,N	streamsteps: limitStep[S; N: SomeNatural](step: S; count: N): LimitStep[S, N]	
+step	nim_iterator_stream_experiment/stream/streamsteps.html#step,typedesc[LimitStep[S,N: SomeNatural]]	streamsteps: step[S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, S]	
+count	nim_iterator_stream_experiment/stream/streamsteps.html#count,typedesc[LimitStep[S,N: SomeNatural]]	streamsteps: count[S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, N]	
+skipStep	nim_iterator_stream_experiment/stream/streamsteps.html#skipStep,S,N	streamsteps: skipStep[S; N: SomeNatural](step: S; count: N): SkipStep[S, N]	
+step	nim_iterator_stream_experiment/stream/streamsteps.html#step,typedesc[SkipStep[S,N: SomeNatural]]	streamsteps: step[S; N: SomeNatural](X: typedesc[SkipStep[S, N]]): Lens[X, S]	
+count	nim_iterator_stream_experiment/stream/streamsteps.html#count,typedesc[SkipStep[S,N: SomeNatural]]	streamsteps: count[S; N: SomeNatural](X: typedesc[SkipStep[S, N]]): Lens[X, N]	
+takeWhileStep	nim_iterator_stream_experiment/stream/streamsteps.html#takeWhileStep,S,Optional[T]	streamsteps: takeWhileStep[S; T](step: S; item: Optional[T]): TakeWhileStep[S, T]	
+step	nim_iterator_stream_experiment/stream/streamsteps.html#step,typedesc[TakeWhileStep[S,T]]	streamsteps: step[S; T](X: typedesc[TakeWhileStep[S, T]]): Lens[X, S]	
+item	nim_iterator_stream_experiment/stream/streamsteps.html#item,typedesc[TakeWhileStep[S,T]]	streamsteps: item[S; T](X: typedesc[TakeWhileStep[S, T]]): Lens[X, Optional[T]]	

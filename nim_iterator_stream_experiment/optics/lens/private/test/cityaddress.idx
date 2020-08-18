@@ -1,0 +1,9 @@
+HouseNumber	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#HouseNumber	cityaddress: HouseNumber	
+CityAddress	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#CityAddress	cityaddress: CityAddress	
+cityAddress	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#cityAddress,Natural,Road	cityaddress: cityAddress(number: Natural; road: Road): CityAddress	
+number	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#number,CityAddress	cityaddress: number(self: CityAddress): HouseNumber	
+road	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#road,CityAddress	cityaddress: road(self: CityAddress): Road	
+number	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#number	cityaddress: number[X: CityAddress](): Lens[X, HouseNumber]	
+road	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#road	cityaddress: road[X: CityAddress](): Lens[X, Road]	
+roadKind	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#roadKind,typedesc[CityAddress]	cityaddress: roadKind(X: typedesc[CityAddress]): Lens[X, RoadKind]	
+roadName	nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.html#roadName,typedesc[CityAddress]	cityaddress: roadName(X: typedesc[CityAddress]): Lens[X, RoadName]	

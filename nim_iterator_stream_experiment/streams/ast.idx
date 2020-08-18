@@ -1,0 +1,4 @@
+NimNodeStep	nim_iterator_stream_experiment/streams/ast.html#NimNodeStep	ast: NimNodeStep	
+indexes	nim_iterator_stream_experiment/streams/ast.html#indexes,NimNode	ast: indexes(n: NimNode): Stream[NimNodeStep, NimNodeIndex]	
+children	nim_iterator_stream_experiment/streams/ast.html#children,NimNode	ast: children(n: NimNode): Stream[NimNodeStep, NimNode]	
+pairs	nim_iterator_stream_experiment/streams/ast.html#pairs,NimNode	ast: pairs(n: NimNode): Stream[NimNodeStep, tuple[index: NimNodeIndex, node: NimNode]]	

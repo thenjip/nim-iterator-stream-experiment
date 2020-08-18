@@ -1,0 +1,50 @@
+Types of operations	stream.html#types-of-operations	 Types of operations	
+Final	stream.html#types-of-operations-final	  Final	
+Intermediate	stream.html#types-of-operations-intermediate	  Intermediate	
+Operation properties	stream.html#operation-properties	 Operation properties	
+Stateless	stream.html#operation-properties-stateless	  Stateless	
+Stateful	stream.html#operation-properties-stateful	  Stateful	
+Short-circuiting	stream.html#operation-properties-shortminuscircuiting	  Short-circuiting	
+Initializer	nim_iterator_stream_experiment/stream.html#Initializer	stream: Initializer	
+OnCloseEvent	nim_iterator_stream_experiment/stream.html#OnCloseEvent	stream: OnCloseEvent	
+Stream	nim_iterator_stream_experiment/stream.html#Stream	stream: Stream	
+initializer	nim_iterator_stream_experiment/stream.html#initializer,IO[T]	stream: initializer[T](self: IO[T]): Initializer[T]	
+onCloseEvent	nim_iterator_stream_experiment/stream.html#onCloseEvent,Reader[T,Unit]	stream: onCloseEvent[T](self: Reader[T, Unit]): OnCloseEvent[T]	
+stepType	nim_iterator_stream_experiment/stream.html#stepType.t,typedesc[Stream[S,T]]	stream: stepType[S; T; ](X: typedesc[Stream[S, T]]): typedesc[S]	
+stepType	nim_iterator_stream_experiment/stream.html#stepType.t,Stream[S,T]	stream: stepType[S; T; ](self: Stream[S, T]): typedesc[S]	
+itemType	nim_iterator_stream_experiment/stream.html#itemType.t,typedesc[Stream[S,T]]	stream: itemType[S; T; ](X: typedesc[Stream[S, T]]): typedesc[T]	
+itemType	nim_iterator_stream_experiment/stream.html#itemType.t,Stream[S,T]	stream: itemType[S; T; ](self: Stream[S, T]): typedesc[T]	
+startingAt	nim_iterator_stream_experiment/stream.html#startingAt,Loop[S,T],Initializer[S],OnCloseEvent[S]	stream: startingAt[S; T](loop: Loop[S, T]; initialStep: Initializer[S];\n                onCloseEvent: OnCloseEvent[S]): Stream[S, T]	
+startingAt	nim_iterator_stream_experiment/stream.html#startingAt,Loop[S,T],Initializer[S]	stream: startingAt[S; T](loop: Loop[S, T]; initialStep: Initializer[S]): Stream[S, T]	
+initialStep	nim_iterator_stream_experiment/stream.html#initialStep,typedesc[Stream[S,T]]	stream: initialStep[S; T](X: typedesc[Stream[S, T]]): Lens[X, Initializer[S]]	
+onCloseEvent	nim_iterator_stream_experiment/stream.html#onCloseEvent,typedesc[Stream[S,T]]	stream: onCloseEvent[S; T](X: typedesc[Stream[S, T]]): Lens[X, OnCloseEvent[S]]	
+loop	nim_iterator_stream_experiment/stream.html#loop,typedesc[Stream[S,A]],typedesc	stream: loop[S; A](X: typedesc[Stream[S, A]]; B: typedesc): PLens[X, Loop[S, A], Loop[S, B],\n    Stream[S, B]]	
+loop	nim_iterator_stream_experiment/stream.html#loop,typedesc[Stream[S,T]]	stream: loop[S; T](X: typedesc[Stream[S, T]]): Lens[X, Loop[S, T]]	
+scope	nim_iterator_stream_experiment/stream.html#scope,typedesc[Stream[S,T]]	stream: scope[S; T](X: typedesc[Stream[S, T]]): Lens[X, LoopScope[S]]	
+condition	nim_iterator_stream_experiment/stream.html#condition,typedesc[Stream[S,T]]	stream: condition[S; T](X: typedesc[Stream[S, T]]): Lens[X, Condition[S]]	
+generator	nim_iterator_stream_experiment/stream.html#generator,typedesc[Stream[S,A]],typedesc	stream: generator[S; A](X: typedesc[Stream[S, A]]; B: typedesc): PLens[X, Generator[S, A],\n    Generator[S, B], Stream[S, B]]	
+generator	nim_iterator_stream_experiment/stream.html#generator,typedesc[Stream[S,T]]	stream: generator[S; T](X: typedesc[Stream[S, T]]): Lens[X, Generator[S, T]]	
+stepper	nim_iterator_stream_experiment/stream.html#stepper,typedesc[Stream[S,T]]	stream: stepper[S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]]	
+run	nim_iterator_stream_experiment/stream.html#run,Stream[S,Unit]	stream: run[S](self: Stream[S, Unit]): Unit	
+mapSteps	nim_iterator_stream_experiment/stream.html#mapSteps,Stream[SA,T],,,	stream: mapSteps[SA; SB; T](self: Stream[SA, T]; extractor: SB -&gt; SA;\n                  stepperMapper: Stepper[SA] -&gt; Stepper[SB];\n                  initialStepMapper: SA -&gt; SB): Stream[SB, T]	
+emptyStream	nim_iterator_stream_experiment/stream.html#emptyStream,typedesc	stream: emptyStream(T: typedesc): Stream[EmptyStep, T]	
+singleItemStream	nim_iterator_stream_experiment/stream.html#singleItemStream	stream: singleItemStream[T](item: () -&gt; T): Stream[SingleStep, T]	
+onClose	nim_iterator_stream_experiment/stream.html#onClose,Stream[S,T],	stream: onClose[S; T](self: Stream[S, T]; callback: () -&gt; Unit): Stream[S, T]	
+map	nim_iterator_stream_experiment/stream.html#map,Stream[S,A],	stream: map[S; A; B](self: Stream[S, A]; f: A -&gt; B): Stream[S, B]	
+filter	nim_iterator_stream_experiment/stream.html#filter,Stream[S,T],Predicate[T]	stream: filter[S; T](self: Stream[S, T]; predicate: Predicate[T]): Stream[S, T]	
+peek	nim_iterator_stream_experiment/stream.html#peek,Stream[S,T],	stream: peek[S; T](self: Stream[S, T]; f: T -&gt; Unit): Stream[S, T]	
+limit	nim_iterator_stream_experiment/stream.html#limit,Stream[S,T],N	stream: limit[S; T; N: SomeNatural](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T]	
+skip	nim_iterator_stream_experiment/stream.html#skip,Stream[S,T],N	stream: skip[S; T; N: SomeNatural](self: Stream[S, T]; n: N): () -&gt; Stream[S, T]	
+takeWhile	nim_iterator_stream_experiment/stream.html#takeWhile,Stream[S,T],Predicate[T]	stream: takeWhile[S; T](self: Stream[S, T]; predicate: Predicate[T]): Stream[\n    TakeWhileStep[S, T], T]	
+dropWhile	nim_iterator_stream_experiment/stream.html#dropWhile,Stream[S,T],Predicate[T]	stream: dropWhile[S; T](self: Stream[S, T]; predicate: Predicate[T]): () -&gt; Stream[S, T]	
+forEach	nim_iterator_stream_experiment/stream.html#forEach,Stream[S,T],	stream: forEach[S; T](self: Stream[S, T]; action: T -&gt; Unit): Unit	
+reduce	nim_iterator_stream_experiment/stream.html#reduce,Stream[S,T],Reducer[R,T],R	stream: reduce[S; T; R](self: Stream[S, T]; reducer: Reducer[R, T]; initialResult: R): R	
+reduceIfNotEmpty	nim_iterator_stream_experiment/stream.html#reduceIfNotEmpty,Stream[S,T],Reducer[R,T],	stream: reduceIfNotEmpty[S; T; R](self: Stream[S, T]; reducer: Reducer[R, T];\n                        initialResult: () -&gt; R): Optional[R]	
+sum	nim_iterator_stream_experiment/stream.html#sum,Stream[S,N]	stream: sum[S; N](self: Stream[S, N]): N	
+count	nim_iterator_stream_experiment/stream.html#count,Stream[S,T],typedesc[SomeNatural]	stream: count[S; T](self: Stream[S, T]; N: typedesc[SomeNatural]): N:type	
+count	nim_iterator_stream_experiment/stream.html#count,Stream[S,T]	stream: count[S; T; N: SomeNatural](self: Stream[S, T]): N	
+findFirst	nim_iterator_stream_experiment/stream.html#findFirst,Stream[S,T],Predicate[T]	stream: findFirst[S; T](self: Stream[S, T]; predicate: Predicate[T]): Optional[T]	
+findFirst	nim_iterator_stream_experiment/stream.html#findFirst,Stream[S,T]	stream: findFirst[S; T](self: Stream[S, T]): Optional[T]	
+any	nim_iterator_stream_experiment/stream.html#any,Stream[S,T],Predicate[T]	stream: any[S; T](self: Stream[S, T]; predicate: Predicate[T]): bool	
+all	nim_iterator_stream_experiment/stream.html#all,Stream[S,T],Predicate[T]	stream: all[S; T](self: Stream[S, T]; predicate: Predicate[T]): bool	
+none	nim_iterator_stream_experiment/stream.html#none,Stream[S,T],Predicate[T]	stream: none[S; T](self: Stream[S, T]; predicate: Predicate[T]): bool	

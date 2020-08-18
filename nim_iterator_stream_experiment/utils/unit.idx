@@ -1,0 +1,5 @@
+Unit	nim_iterator_stream_experiment/utils/unit.html#Unit	unit: Unit	
+unit	nim_iterator_stream_experiment/utils/unit.html#unit_2	unit: unit(): Unit	
+default	nim_iterator_stream_experiment/utils/unit.html#default,typedesc[Unit]	unit: default(T: typedesc[Unit]): Unit	
+default	nim_iterator_stream_experiment/utils/unit.html#default	unit: default[T: Unit](): Unit	
+doNothing	nim_iterator_stream_experiment/utils/unit.html#doNothing,T	unit: doNothing[T](_: T): Unit	

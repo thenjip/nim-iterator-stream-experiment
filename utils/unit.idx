@@ -1,5 +1,0 @@
-Unit	utils/unit.html#Unit	unit: Unit	
-unit	utils/unit.html#unit_2	unit: unit(): Unit	
-default	utils/unit.html#default,typedesc[Unit]	unit: default(T: typedesc[Unit]): Unit	
-default	utils/unit.html#default	unit: default[T: Unit](): Unit	
-doNothing	utils/unit.html#doNothing,T	unit: doNothing[T](_: T): Unit	

@@ -1,4 +1,0 @@
-NimNodeStep	streams/ast.html#NimNodeStep	ast: NimNodeStep	
-indexes	streams/ast.html#indexes,NimNode	ast: indexes(n: NimNode): Stream[NimNodeStep, NimNodeIndex]	
-children	streams/ast.html#children,NimNode	ast: children(n: NimNode): Stream[NimNodeStep, NimNode]	
-pairs	streams/ast.html#pairs,NimNode	ast: pairs(n: NimNode): Stream[NimNodeStep, tuple[index: NimNodeIndex, node: NimNode]]	

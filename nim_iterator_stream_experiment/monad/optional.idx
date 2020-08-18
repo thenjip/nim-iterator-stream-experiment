@@ -1,0 +1,22 @@
+Nilable	nim_iterator_stream_experiment/monad/optional.html#Nilable	optional: Nilable	
+UnboxError	nim_iterator_stream_experiment/monad/optional.html#UnboxError	optional: UnboxError	
+Optional	nim_iterator_stream_experiment/monad/optional.html#Optional	optional: Optional	
+valueType	nim_iterator_stream_experiment/monad/optional.html#valueType.t,typedesc[Optional[T]]	optional: valueType[T; ](X: typedesc[Optional[T]]): typedesc[T]	
+valueType	nim_iterator_stream_experiment/monad/optional.html#valueType.t,Optional[T]	optional: valueType[T; ](self: Optional[T]): typedesc[T]	
+toNone	nim_iterator_stream_experiment/monad/optional.html#toNone,typedesc[Nilable]	optional: toNone(T: typedesc[Nilable]): Optional[T]	
+toNone	nim_iterator_stream_experiment/monad/optional.html#toNone,typedesc[]	optional: toNone(T: typedesc[not Nilable]): Optional[T]	
+toNone	nim_iterator_stream_experiment/monad/optional.html#toNone	optional: toNone[T](): Optional[T]	
+toSome	nim_iterator_stream_experiment/monad/optional.html#toSome,T	optional: toSome[T: Nilable](value: T): Optional[T]	
+toSome	nim_iterator_stream_experiment/monad/optional.html#toSome,T_2	optional: toSome[T: not Nilable](value: T): Optional[T]	
+toOptional	nim_iterator_stream_experiment/monad/optional.html#toOptional,T	optional: toOptional[T: Nilable](value: T): Optional[T]	
+isNone	nim_iterator_stream_experiment/monad/optional.html#isNone,Optional[T: Nilable]	optional: isNone[T: Nilable](self: Optional[T]): bool	
+isNone	nim_iterator_stream_experiment/monad/optional.html#isNone,Optional[T: not Nilable]	optional: isNone[T: not Nilable](self: Optional[T]): bool	
+isSome	nim_iterator_stream_experiment/monad/optional.html#isSome,Optional[T]	optional: isSome[T](self: Optional[T]): bool	
+ifNone	nim_iterator_stream_experiment/monad/optional.html#ifNone,Optional[A],,	optional: ifNone[A; B](self: Optional[A]; then: () -&gt; B; `else`: A -&gt; B): B	
+ifSome	nim_iterator_stream_experiment/monad/optional.html#ifSome,Optional[A],,	optional: ifSome[A; B](self: Optional[A]; then: A -&gt; B; `else`: () -&gt; B): B	
+flatMap	nim_iterator_stream_experiment/monad/optional.html#flatMap,Optional[A],	optional: flatMap[A; B](self: Optional[A]; f: A -&gt; Optional[B]): Optional[B]	
+map	nim_iterator_stream_experiment/monad/optional.html#map,Optional[A],	optional: map[A; B](self: Optional[A]; f: A -&gt; B): Optional[B]	
+unboxOr	nim_iterator_stream_experiment/monad/optional.html#unboxOr,Optional[T],	optional: unboxOr[T](self: Optional[T]; `else`: () -&gt; T): T	
+unbox	nim_iterator_stream_experiment/monad/optional.html#unbox,Optional[T]	optional: unbox[T](self: Optional[T]): T	
+filter	nim_iterator_stream_experiment/monad/optional.html#filter,Optional[T],Predicate[T]	optional: filter[T](self: Optional[T]; predicate: Predicate[T]): Optional[T]	
+`==`	nim_iterator_stream_experiment/monad/optional.html#==,Optional[T],Optional[T]	optional: `==`[T](self, other: Optional[T]): bool	

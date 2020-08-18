@@ -1,0 +1,4 @@
+convert	nim_iterator_stream_experiment/utils/convert.html#convert,A,typedesc	convert: convert[A](a: A; B: typedesc): B:type	
+convert	nim_iterator_stream_experiment/utils/convert.html#convert,A	convert: convert[A; B](a: A): B	
+`as`	nim_iterator_stream_experiment/utils/convert.html#as,A,typedesc	convert: `as`[A](a: A; B: typedesc): B:type	
+`as`	nim_iterator_stream_experiment/utils/convert.html#as,A	convert: `as`[A; B](a: A): B	

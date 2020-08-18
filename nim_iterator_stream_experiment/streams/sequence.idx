@@ -1,0 +1,8 @@
+SeqIndex	nim_iterator_stream_experiment/streams/sequence.html#SeqIndex	sequence: SeqIndex	
+SeqStep	nim_iterator_stream_experiment/streams/sequence.html#SeqStep	sequence: SeqStep	
+indexes	nim_iterator_stream_experiment/streams/sequence.html#indexes,seq[T]	sequence: indexes[T](s: seq[T]): Stream[SeqStep, SeqIndex]	
+items	nim_iterator_stream_experiment/streams/sequence.html#items,seq[T]	sequence: items[T](s: seq[T]): Stream[SeqStep, T]	
+pairs	nim_iterator_stream_experiment/streams/sequence.html#pairs,seq[T]	sequence: pairs[T](s: seq[T]): Stream[SeqStep, tuple[index: SeqIndex, item: T]]	
+indexes	nim_iterator_stream_experiment/streams/sequence.html#indexes,string	sequence: indexes(s: string): Stream[SeqStep, SeqIndex]	
+chars	nim_iterator_stream_experiment/streams/sequence.html#chars,string	sequence: chars(s: string): Stream[SeqStep, char]	
+pairs	nim_iterator_stream_experiment/streams/sequence.html#pairs,string	sequence: pairs(s: string): Stream[SeqStep, tuple[index: SeqIndex, item: char]]	

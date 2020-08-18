@@ -1,0 +1,2 @@
+itself	nim_iterator_stream_experiment/monad/identity.html#itself,T	identity: itself[T](value: T): T	
+apply	nim_iterator_stream_experiment/monad/identity.html#apply,A,	identity: apply[A; B](self: A; f: A -&gt; B): B	

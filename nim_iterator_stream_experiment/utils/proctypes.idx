@@ -1,0 +1,2 @@
+returnType	nim_iterator_stream_experiment/utils/proctypes.html#returnType.m,typedesc[proc]	proctypes: returnType(T: typedesc[proc]): typedesc	
+returnType	nim_iterator_stream_experiment/utils/proctypes.html#returnType.t,proc	proctypes: returnType(p: proc): typedesc	

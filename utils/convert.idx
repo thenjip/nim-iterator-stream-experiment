@@ -1,4 +1,0 @@
-convert	utils/convert.html#convert,A,typedesc	convert: convert[A](a: A; B: typedesc): B:type	
-convert	utils/convert.html#convert,A	convert: convert[A; B](a: A): B	
-`as`	utils/convert.html#as,A,typedesc	convert: `as`[A](a: A; B: typedesc): B:type	
-`as`	utils/convert.html#as,A	convert: `as`[A; B](a: A): B	

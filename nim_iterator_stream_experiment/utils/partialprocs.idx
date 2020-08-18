@@ -1,0 +1,5 @@
+partialParamPrefix	nim_iterator_stream_experiment/utils/partialprocs.html#partialParamPrefix	partialprocs: partialParamPrefix(): string	
+partialTypedParamPrefix	nim_iterator_stream_experiment/utils/partialprocs.html#partialTypedParamPrefix	partialprocs: partialTypedParamPrefix(): string	
+newLambda	nim_iterator_stream_experiment/utils/partialprocs.html#newLambda,seq[NimNode],NimNode,NimNode	partialprocs: newLambda(params: seq[NimNode]; body: NimNode; returnType: NimNode): NimNode	
+isUnderscore	nim_iterator_stream_experiment/utils/partialprocs.html#isUnderscore,NimNode	partialprocs: isUnderscore(n: NimNode): bool	
+partial	nim_iterator_stream_experiment/utils/partialprocs.html#partial.m	partialprocs: partial(call: untyped{call}): untyped	

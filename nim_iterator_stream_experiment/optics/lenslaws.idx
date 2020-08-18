@@ -1,0 +1,12 @@
+IdentitySpec	nim_iterator_stream_experiment/optics/lenslaws.html#IdentitySpec	lenslaws: IdentitySpec	
+RetentionSpec	nim_iterator_stream_experiment/optics/lenslaws.html#RetentionSpec	lenslaws: RetentionSpec	
+DoubleWriteSpec	nim_iterator_stream_experiment/optics/lenslaws.html#DoubleWriteSpec	lenslaws: DoubleWriteSpec	
+LensLawsSpec	nim_iterator_stream_experiment/optics/lenslaws.html#LensLawsSpec	lenslaws: LensLawsSpec	
+identitySpec	nim_iterator_stream_experiment/optics/lenslaws.html#identitySpec,S	lenslaws: identitySpec[S](expected: S): IdentitySpec[S]	
+retentionSpec	nim_iterator_stream_experiment/optics/lenslaws.html#retentionSpec,S,T	lenslaws: retentionSpec[S; T](input: S; expected: T): RetentionSpec[S, T]	
+doubleWriteSpec	nim_iterator_stream_experiment/optics/lenslaws.html#doubleWriteSpec,S,T,T	lenslaws: doubleWriteSpec[S; T](input: S; first: T; second: T): DoubleWriteSpec[S, T]	
+lensLawsSpec	nim_iterator_stream_experiment/optics/lenslaws.html#lensLawsSpec,IdentitySpec[S],RetentionSpec[S,T],DoubleWriteSpec[S,T]	lenslaws: lensLawsSpec[S; T](identity: IdentitySpec[S]; retention: RetentionSpec[S, T];\n                  doubleWrite: DoubleWriteSpec[S, T]): LensLawsSpec[S, T]	
+checkIdentityLaw	nim_iterator_stream_experiment/optics/lenslaws.html#checkIdentityLaw.t,Lens[S,T],IdentitySpec[S]	lenslaws: checkIdentityLaw[S; T](lens: Lens[S, T]; spec: IdentitySpec[S]): bool	
+checkRetentionLaw	nim_iterator_stream_experiment/optics/lenslaws.html#checkRetentionLaw.t,Lens[S,T],RetentionSpec[S,T]	lenslaws: checkRetentionLaw[S; T](lens: Lens[S, T]; spec: RetentionSpec[S, T]): bool	
+checkDoubleWriteLaw	nim_iterator_stream_experiment/optics/lenslaws.html#checkDoubleWriteLaw.t,Lens[S,T],DoubleWriteSpec[S,T]	lenslaws: checkDoubleWriteLaw[S; T](lens: Lens[S, T]; spec: DoubleWriteSpec[S, T]): bool	
+checkLensLaws	nim_iterator_stream_experiment/optics/lenslaws.html#checkLensLaws.t,Lens[S,T],LensLawsSpec[S,T]	lenslaws: checkLensLaws[S; T](lens: Lens[S, T]; spec: LensLawsSpec[S, T]): bool	
