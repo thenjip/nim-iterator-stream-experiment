@@ -1,6 +1,6 @@
 version = "0.1.0"
 author = "thenjip"
-nimscriptapi.description =
+description =
   "An attempt at providing a replacement for closure iterators in Nim with an API similar to Java 8 Stream."
 license = "MIT"
 
@@ -9,26 +9,6 @@ requires "nim >= 1.2.0"
 
 
 import std/[macros, options, os, sequtils, strformat, strutils, sugar]
-
-
-
-# Paths
-
-type
-  AbsoluteDir = string
-  AbsoluteFile = string
-
-  RelativeDir = string
-  RelativeFile = string
-
-
-
-func nimcacheDirName (): string =
-  ".nimcache"
-
-
-func nimcacheDir (projectDir: AbsoluteDir): AbsoluteDir =
-  projectDir / nimcacheDirName()
 
 
 
@@ -59,7 +39,42 @@ func joinWithSpace (a: openArray[string]): string =
 
 
 
-iterator relativeNimModules (dir: AbsoluteDir): RelativeFile =
+# Paths
+
+type
+  AbsoluteDir = string
+  AbsoluteFile = string
+
+  RelativeDir = string
+  RelativeFile = string
+
+
+
+func nimbleProjectName (): string =
+  projectName().stripTrailing(Digits).stripTrailing('_')
+
+
+func nimcacheDirName (): string =
+  ".nimcache"
+
+
+
+func nimcacheDir (): AbsoluteDir =
+  projectDir() / nimcacheDirName()
+
+
+func libModuleDir (): AbsoluteDir =
+  projectDir() / nimbleProjectName()
+
+
+
+proc tryRmDir (dir: AbsoluteDir) =
+  if system.existsDir(dir):
+    dir.rmDir()
+
+
+
+iterator nimModules (dir: AbsoluteDir): RelativeFile =
   for file in dir.walkDirRec(relative = true):
     if file.endsWith(fmt"{ExtSep}nim"):
       yield file
@@ -143,33 +158,34 @@ func newInvalidEnvVarValueError (
 
 
 
-proc readFromEnv [T](
-  self: EnvVar;
-  fetchEnvValue: (shellName: string) -> Option[string];
-  parseValue: (envValue: string) -> T
-): Option[T] =
-  self.shellName().fetchEnvValue().map(parseValue)
+proc getEnvOrEmpty (key: string): string =
+  key.getEnv()
 
 
+proc tryReadEnv (key: string): Option[string] =
+  key.some().filter(existsEnv).map(getEnvOrEmpty)
 
-func tryParseBackend (value: string): Option[Backend] =
-  nimBackendShellValues().findFirst(shellValue => value == shellValue)
+
+proc tryReadEnv [T](self: EnvVar; parseValue: string -> T): Option[T] =
+  self
+    .shellName()
+    .tryReadEnv()
+    .map(parseValue)
 
 
-proc readNimBackendFromEnv (
-  fetchEnvValue: (shellName: string) -> Option[string]
-): Option[Backend] =
+proc readNimBackendFromEnv (): Option[Backend] =
   const envVar = EnvVar.NimBackend
 
-  func parseBackendOrRaise (envValue: string): Backend =
-    let opt = envValue.tryParseBackend()
+  func parseBackendOrError (envValue: string): Backend =
+    let found =
+      nimBackendShellValues().findFirst(expected => envValue == expected)
 
-    if opt.isSome():
-      opt.get()
+    if found.isSome():
+      found.get()
     else:
       raise newInvalidEnvVarValueError(envVar, envValue)
 
-  envVar.readFromEnv(fetchEnvValue, parseBackendOrRaise)
+  envVar.tryReadEnv(parseBackendOrError)
 
 
 
@@ -183,10 +199,7 @@ type
     CleanDocs
     Clean
 
-  OutputDirBuilder =
-    proc (projectDir: AbsoluteDir): Option[AbsoluteDir] {.
-      nimcall, noSideEffect
-    .}
+  OutputDirBuilder = proc (): Option[AbsoluteDir] {.nimcall, noSideEffect.}
 
 
 
@@ -238,23 +251,23 @@ func description (self: Task): string =
 
 
 
-func baseOutputDir (self: Task; projectDir: AbsoluteDir): AbsoluteDir =
-  projectDir.nimCacheDir() / self.name()
+func baseOutputDir (self: Task): AbsoluteDir =
+  nimCacheDir() / self.name()
 
 
 
-func returnNoOutputDir (_: AbsoluteDir): Option[AbsoluteDir] =
+func noOutputDir (): Option[AbsoluteDir] =
   AbsoluteDir.none()
 
 
 func taskOutputDirBuilders (): array[Task, OutputDirBuilder] =
   const builders =
     [
-      (projectDir: AbsoluteDir) => Task.Test.baseOutputDir(projectDir).some(),
-      (projectDir: AbsoluteDir) => Task.Docs.baseOutputDir(projectDir).some(),
-      returnNoOutputDir,
-      returnNoOutputDir,
-      returnNoOutputDir
+      () => Task.Test.baseOutputDir().some(),
+      () => Task.Docs.baseOutputDir().some(),
+      noOutputDir,
+      noOutputDir,
+      noOutputDir
     ]
 
   builders
@@ -264,46 +277,12 @@ func outputDirBuilder (self: Task): OutputDirBuilder =
   taskOutputDirBuilders()[self]
 
 
-func outputDir (
-  self: Task;
-  projectDir: () -> AbsoluteDir
-): Option[AbsoluteDir] =
-  self
-    .outputDirBuilder()
-    .option()
-    .flatMap((builder: OutputDirBuilder) => projectDir().builder())
+func outputDir (self: Task): Option[AbsoluteDir] =
+  self.outputDirBuilder()()
 
 
 
 # Nimble tasks.
-
-func nimbleProjectName (): string =
-  projectName().stripTrailing(Digits).stripTrailing('_')
-
-
-
-func libraryModuleDir (): AbsoluteDir =
-  projectDir() / nimbleProjectName()
-
-
-func outputDir (self: Task): Option[AbsoluteDir] =
-  self.outputDir(projectDir)
-
-
-
-proc getEnvOrEmpty (key: string): string =
-  key.getEnv()
-
-
-proc tryReadEnv (key: string): Option[string] =
-  key.some().filter(existsEnv).map(getEnvOrEmpty)
-
-
-proc tryRmDir (dir: AbsoluteDir) =
-  if system.existsDir(dir):
-    dir.rmDir()
-
-
 
 macro define (self: static Task; body: untyped): untyped =
   let
@@ -354,10 +333,10 @@ define Task.Test:
       .join($' ')
 
 
-  let backend = readNimBackendFromEnv(tryReadEnv).get(defaultBackend())
+  let backend = readNimBackendFromEnv().get(defaultBackend())
 
-  withDir libraryModuleDir():
-    for module in relativeNimModules($CurDir):
+  withDir libModuleDir():
+    for module in system.getCurrentDir().nimModules():
       module.buildCompileCmd(backend).selfExec()
 
 
@@ -381,9 +360,8 @@ define Task.Docs:
     @["doc"].concat(longOptions, @[module.quoteShell()]).join($' ')
 
 
-  for module in relativeNimModules(projectDir()):
-    if module.startsWith(nimbleProjectName()):
-      module.buildCompileCmd().selfExec()
+  for module in libModuleDir().nimModules():
+    nimbleProjectName().`/`(module).buildCompileCmd().selfExec()
 
   withDir Task.Docs.outputDir().get():
     const cssFile = ["nimdoc", "out", "css"].join($ExtSep)
