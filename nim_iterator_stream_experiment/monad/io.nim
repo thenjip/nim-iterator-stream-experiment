@@ -10,7 +10,7 @@
 
 
 
-import reader
+import identity, reader
 import ../utils/[chain, ignore, unit]
 
 import std/[sugar]
@@ -57,22 +57,22 @@ func tryBracket* [A; B](
     Any exception raised in `try` will be reraised in the returned `IO`.
     Whether an exception was raised, `finally` will be executed once.
   ]##
-  (
-    proc (): B =
-      let a = before.run()
-
-      try:
-        a.`try`()
-      except:
-        raise getCurrentException()
-      finally:
-        a.`finally`().ignore()
+  before.map(
+    a =>
+      itself(
+        try:
+          a.`try`()
+        except:
+          raise getCurrentException()
+        finally:
+          a.`finally`().ignore()
+      )
   )
 
 
 
 when isMainModule:
-  import identity, lazymonadlaws
+  import lazymonadlaws
   import ../utils/[call, lambda, partialprocs, proctypes, variables]
 
   import std/[os, sequtils, unittest]
