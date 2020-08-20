@@ -199,10 +199,21 @@ func stepper* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]] =
 
 
 
+func bracketImpl [A; B](
+  before: IO[A];
+  between: A -> B;
+  after: A -> Unit
+): IO[B] =
+  when defined(nimscript):
+    before.bracket(between, after)
+  else:
+    before.tryBracket(between, after)
+
+
 proc run* [S](self: Stream[S, Unit]): Unit =
   self
     .initialStep
-    .tryBracket(partial(self.loop.run(?_)), self.onCloseEvent)
+    .bracketImpl(partial(self.loop.run(?:S)), self.onCloseEvent)
     .run()
     .doNothing()
 
@@ -479,7 +490,7 @@ proc findFirst* [S; T](
     .dropWhile(not predicate)
     .flatMap(
       (self: self.typeof()) =>
-        self.initialStep.tryBracket(
+        self.initialStep.bracketImpl(
           partial(self.loop.runOnce(?:S)),
           self.onCloseEvent
         )
