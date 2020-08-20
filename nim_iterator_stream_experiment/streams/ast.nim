@@ -7,7 +7,7 @@ when not defined(js):
 
 
 
-  export stream
+  export nimnodes, stream
 
 
 
