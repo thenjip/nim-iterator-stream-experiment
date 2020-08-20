@@ -63,8 +63,12 @@ func nimcacheDir (): AbsoluteDir =
   projectDir() / nimcacheDirName()
 
 
-func libModuleDir (): AbsoluteDir =
+func libModulesDir (): AbsoluteDir =
   projectDir() / nimbleProjectName()
+
+
+func nimscriptTestsDir (): AbsoluteDir =
+  projectDir() / "tests" / "nimscript"
 
 
 
@@ -74,10 +78,20 @@ proc tryRmDir (dir: AbsoluteDir) =
 
 
 
-iterator nimModules (dir: AbsoluteDir): RelativeFile =
+iterator files (dir: AbsoluteDir; ext: string): RelativeFile =
   for file in dir.walkDirRec(relative = true):
-    if file.endsWith(fmt"{ExtSep}nim"):
+    if file.endsWith(fmt"{ExtSep}{ext}"):
       yield file
+
+
+iterator nimModules (dir: AbsoluteDir): RelativeFile =
+  for file in dir.files("nim"):
+    yield file
+
+
+iterator nimscriptModules (dir: AbsoluteDir): RelativeFile =
+  for file in dir.files("nims"):
+    yield file
 
 
 
@@ -104,7 +118,8 @@ type
   Backend {.pure.} = enum
     C,
     Cxx,
-    Js
+    Js,
+    NimScript
 
   InvalidEnvVarValueError = object of CatchableError
 
@@ -122,7 +137,7 @@ func shellName (self: EnvVar): string =
 
 
 func nimBackendShellValues (): array[Backend, string] =
-  const shellValues = ["c", "cxx", "js"]
+  const shellValues = ["c", "cxx", "js", "nims"]
 
   shellValues
 
@@ -133,7 +148,7 @@ func shellValue (self: Backend): string =
 
 
 func nimBackendNimCmdNames (): array[Backend, string] =
-  const cmdNames = ["cc", "cpp", "js"]
+  const cmdNames = ["cc", "cpp", "js", "e"]
 
   cmdNames
 
@@ -335,9 +350,14 @@ define Task.Test:
 
   let backend = readNimBackendFromEnv().get(defaultBackend())
 
-  withDir libModuleDir():
-    for module in system.getCurrentDir().nimModules():
-      module.buildCompileCmd(backend).selfExec()
+  if backend == Backend.NimScript:
+    withDir nimscriptTestsDir():
+      for module in system.getCurrentDir().nimscriptModules():
+        [backend.nimCmdName(), module].join($' ').selfExec()
+  else:
+    withDir libModulesDir():
+      for module in system.getCurrentDir().nimModules():
+        module.buildCompileCmd(backend).selfExec()
 
 
 
@@ -360,7 +380,7 @@ define Task.Docs:
     @["doc"].concat(longOptions, @[module.quoteShell()]).join($' ')
 
 
-  for module in libModuleDir().nimModules():
+  for module in libModulesDir().nimModules():
     nimbleProjectName().`/`(module).buildCompileCmd().selfExec()
 
   withDir Task.Docs.outputDir().get():
