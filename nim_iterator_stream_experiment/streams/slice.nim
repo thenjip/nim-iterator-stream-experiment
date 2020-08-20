@@ -14,12 +14,12 @@ export stream
 
 
 type
-  SliceStepSignedIndex* = BiggestInt
+  SignedSliceStepIndex* = BiggestInt
 
   SliceStep* [T] = object
     i: T
 
-  SliceStepSigned* = SliceStep[SliceStepSignedIndex]
+  SignedSliceStep* = SliceStep[SignedSliceStepIndex]
 
 
 
@@ -40,8 +40,8 @@ func sliceStep* [T](i: T): SliceStep[T] =
   SliceStep[T](i: i)
 
 
-func sliceStepSigned* [T: Ordinal](i: T): SliceStepSigned =
-  sliceStep(i as SliceStepSignedIndex)
+func sliceStepSigned* [T: Ordinal](i: T): SignedSliceStep =
+  sliceStep(i as SignedSliceStepIndex)
 
 
 func current* [T](S: typedesc[SliceStep[T]]): Lens[S, T] =
@@ -49,13 +49,13 @@ func current* [T](S: typedesc[SliceStep[T]]): Lens[S, T] =
 
 
 
-func ordinals* [T: Ordinal](s: Slice[T]): Stream[SliceStepSigned, T] =
+func ordinals* [T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T] =
   let
     lens = result.typeof().stepType().current()
     readCurrent = lens.read()
 
   readCurrent
-    .map(partial(?_ < s.high().convert(SliceStepSignedIndex).next()))
+    .map(partial(?_ < s.high().convert(SignedSliceStepIndex).next()))
     .looped(lens.modify(next))
     .generating(readCurrent.map(partial(?_ as T)))
     .startingAt(() => sliceStepSigned(s.low()))
