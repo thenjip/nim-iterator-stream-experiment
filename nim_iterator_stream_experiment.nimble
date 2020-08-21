@@ -377,18 +377,21 @@ define Task.Docs:
         ("git.commit", mainGitBranch)
       ].toNimLongOptions()
 
-    @["doc"].concat(longOptions, @[module.quoteShell()]).join($' ')
+    @["doc"]
+      .concat(longOptions & "--project", @[module.quoteShell()])
+      .join($' ')
 
 
-  for module in libModulesDir().nimModules():
-    nimbleProjectName().`/`(module).buildCompileCmd().selfExec()
+  ($CurDir / fmt"{nimbleProjectName()}{ExtSep}nim").buildCompileCmd().selfExec()
 
   withDir Task.Docs.outputDir().get():
-    const cssFile = ["nimdoc", "out", "css"].join($ExtSep)
+    const cmd = [
+      "buildIndex",
+      "out".toNimLongOption(fmt"index{ExtSep}html".quoteShell()),
+      CurDir.`$`().quoteShell()
+    ]
 
-    ["buildIndex", $CurDir].join($' ').selfExec()
-    fmt"theindex{ExtSep}html".cpFile(fmt"index{ExtSep}html")
-    nimbleProjectName().`/`(cssFile).cpFile(system.getCurrentDir() / cssFile)
+    cmd.join($' ').selfExec()
 
 
 
