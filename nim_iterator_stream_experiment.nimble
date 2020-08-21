@@ -74,19 +74,19 @@ proc tryRmDir (dir: AbsoluteDir) =
 
 
 
-iterator files (dir: AbsoluteDir; ext: string): RelativeFile =
-  for file in dir.walkDirRec(relative = true):
+iterator files (dir: AbsoluteDir; ext: string; relative: bool): RelativeFile =
+  for file in dir.walkDirRec(relative = relative):
     if file.endsWith(fmt"{ExtSep}{ext}"):
       yield file
 
 
 iterator nimModules (dir: AbsoluteDir): RelativeFile =
-  for file in dir.files("nim"):
+  for file in dir.files("nim", true):
     yield file
 
 
-iterator nimscriptModules (dir: AbsoluteDir): RelativeFile =
-  for file in dir.files("nims"):
+iterator nimscriptModules (dir: AbsoluteDir): AbsoluteFile =
+  for file in dir.files("nims", false):
     yield file
 
 
@@ -355,7 +355,7 @@ define Task.Test:
 
   if backend == Backend.NimScript:
     for module in nimscriptTestsDir().nimscriptModules():
-      [backend.nimCmdName(), module].join($' ').selfExec()
+      [backend.nimCmdName(), module.quoteShell()].join($' ').selfExec()
   else:
     for module in libNimModules():
       module.buildCompileCmd(backend).selfExec()
