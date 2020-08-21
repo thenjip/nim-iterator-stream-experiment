@@ -1,8 +1,0 @@
-RoadName	nim_iterator_stream_experiment/optics/lens/private/test/road.html#RoadName	road: RoadName	
-RoadKind	nim_iterator_stream_experiment/optics/lens/private/test/road.html#RoadKind	road: RoadKind	
-Road	nim_iterator_stream_experiment/optics/lens/private/test/road.html#Road	road: Road	
-road	nim_iterator_stream_experiment/optics/lens/private/test/road.html#road,RoadKind,RoadName	road: road(kind: RoadKind; name: RoadName): Road	
-name	nim_iterator_stream_experiment/optics/lens/private/test/road.html#name,Road	road: name(self: Road): RoadName	
-kind	nim_iterator_stream_experiment/optics/lens/private/test/road.html#kind,Road	road: kind(self: Road): RoadKind	
-kind	nim_iterator_stream_experiment/optics/lens/private/test/road.html#kind	road: kind[X: Road](): Lens[X, RoadKind]	
-name	nim_iterator_stream_experiment/optics/lens/private/test/road.html#name	road: name[X: Road](): Lens[X, RoadName]	
