@@ -825,7 +825,7 @@ function main() {
           </ul></dd>
 <dt><a name="ordinals" href="#ordinals"><span>ordinals:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="slice: ordinals[T: Ordinal](s: Slice[T]): Stream[SliceStepSigned, T]" href="nim_iterator_stream_experiment/streams/slice.html#ordinals%2CSlice%5BT%3A%20Ordinal%5D">slice: ordinals[T: Ordinal](s: Slice[T]): Stream[SliceStepSigned, T]</a></li>
+          data-doc-search-tag="slice: ordinals[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]" href="nim_iterator_stream_experiment/streams/slice.html#ordinals%2CSlice%5BT%3A%20Ordinal%5D">slice: ordinals[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]</a></li>
           </ul></dd>
 <dt><a name="pairs" href="#pairs"><span>pairs:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1017,6 +1017,14 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="sequence: SeqStep" href="nim_iterator_stream_experiment/streams/sequence.html#SeqStep">sequence: SeqStep</a></li>
           </ul></dd>
+<dt><a name="SignedSliceStep" href="#SignedSliceStep"><span>SignedSliceStep:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="slice: SignedSliceStep" href="nim_iterator_stream_experiment/streams/slice.html#SignedSliceStep">slice: SignedSliceStep</a></li>
+          </ul></dd>
+<dt><a name="SignedSliceStepIndex" href="#SignedSliceStepIndex"><span>SignedSliceStepIndex:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="slice: SignedSliceStepIndex" href="nim_iterator_stream_experiment/streams/slice.html#SignedSliceStepIndex">slice: SignedSliceStepIndex</a></li>
+          </ul></dd>
 <dt><a name="singleItemStream" href="#singleItemStream"><span>singleItemStream:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="stream: singleItemStream[T](item: () -&gt; T): Stream[SingleStep, T]" href="nim_iterator_stream_experiment/stream.html#singleItemStream">stream: singleItemStream[T](item: () -&gt; T): Stream[SingleStep, T]</a></li>
@@ -1053,17 +1061,9 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="slice: sliceStep[T](i: T): SliceStep[T]" href="nim_iterator_stream_experiment/streams/slice.html#sliceStep%2CT">slice: sliceStep[T](i: T): SliceStep[T]</a></li>
           </ul></dd>
-<dt><a name="SliceStepSigned" href="#SliceStepSigned"><span>SliceStepSigned:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="slice: SliceStepSigned" href="nim_iterator_stream_experiment/streams/slice.html#SliceStepSigned">slice: SliceStepSigned</a></li>
-          </ul></dd>
 <dt><a name="sliceStepSigned" href="#sliceStepSigned"><span>sliceStepSigned:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="slice: sliceStepSigned[T: Ordinal](i: T): SliceStepSigned" href="nim_iterator_stream_experiment/streams/slice.html#sliceStepSigned%2CT">slice: sliceStepSigned[T: Ordinal](i: T): SliceStepSigned</a></li>
-          </ul></dd>
-<dt><a name="SliceStepSignedIndex" href="#SliceStepSignedIndex"><span>SliceStepSignedIndex:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="slice: SliceStepSignedIndex" href="nim_iterator_stream_experiment/streams/slice.html#SliceStepSignedIndex">slice: SliceStepSignedIndex</a></li>
+          data-doc-search-tag="slice: sliceStepSigned[T: Ordinal](i: T): SignedSliceStep" href="nim_iterator_stream_experiment/streams/slice.html#sliceStepSigned%2CT">slice: sliceStepSigned[T: Ordinal](i: T): SignedSliceStep</a></li>
           </ul></dd>
 <dt><a name="SomeNatural" href="#SomeNatural"><span>SomeNatural:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1262,7 +1262,7 @@ function main() {
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-08-18 15:17:58 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-08-21 10:11:26 UTC</small>
       </div>
     </div>
   </div>

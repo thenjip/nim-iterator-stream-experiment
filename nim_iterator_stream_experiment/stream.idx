@@ -5,6 +5,9 @@ Operation properties	stream.html#operation-properties	 Operation properties
 Stateless	stream.html#operation-properties-stateless	  Stateless	
 Stateful	stream.html#operation-properties-stateful	  Stateful	
 Short-circuiting	stream.html#operation-properties-shortminuscircuiting	  Short-circuiting	
+Backend restrictions	stream.html#backend-restrictions	 Backend restrictions	
+JavaScript	stream.html#backend-restrictions-javascript	  JavaScript	
+NimScript	stream.html#backend-restrictions-nimscript	  NimScript	
 Initializer	nim_iterator_stream_experiment/stream.html#Initializer	stream: Initializer	
 OnCloseEvent	nim_iterator_stream_experiment/stream.html#OnCloseEvent	stream: OnCloseEvent	
 Stream	nim_iterator_stream_experiment/stream.html#Stream	stream: Stream	

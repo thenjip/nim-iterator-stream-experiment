@@ -106,13 +106,13 @@ function main() {
 <li>
   <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#SliceStepSignedIndex"
-    title="SliceStepSignedIndex = BiggestInt"><wbr />Slice<wbr />Step<wbr />Signed<wbr />Index<span class="attachedType"></span></a></li>
+      <li><a class="reference" href="#SignedSliceStepIndex"
+    title="SignedSliceStepIndex = BiggestInt"><wbr />Signed<wbr />Slice<wbr />Step<wbr />Index<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#SliceStep"
     title="SliceStep[T] = object
   i: T"><wbr />Slice<wbr />Step<span class="attachedType"></span></a></li>
-  <li><a class="reference" href="#SliceStepSigned"
-    title="SliceStepSigned = SliceStep[SliceStepSignedIndex]"><wbr />Slice<wbr />Step<wbr />Signed<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#SignedSliceStep"
+    title="SignedSliceStep = SliceStep[SignedSliceStepIndex]"><wbr />Signed<wbr />Slice<wbr />Step<span class="attachedType"></span></a></li>
 
   </ul>
 </li>
@@ -128,14 +128,20 @@ function main() {
   <li><a class="reference" href="#sliceStep%2CT"
     title="sliceStep[T](i: T): SliceStep[T]"><wbr />slice<wbr />Step<span class="attachedType">SliceStep</span></a></li>
   <li><a class="reference" href="#sliceStepSigned%2CT"
-    title="sliceStepSigned[T: Ordinal](i: T): SliceStepSigned"><wbr />slice<wbr />Step<wbr />Signed<span class="attachedType">SliceStepSigned</span></a></li>
+    title="sliceStepSigned[T: Ordinal](i: T): SignedSliceStep"><wbr />slice<wbr />Step<wbr />Signed<span class="attachedType">SignedSliceStep</span></a></li>
   <li><a class="reference" href="#current%2Ctypedesc%5BSliceStep%5BT%5D%5D"
     title="current[T](S: typedesc[SliceStep[T]]): Lens[S, T]"><wbr />current<span class="attachedType">SliceStep</span></a></li>
   <li><a class="reference" href="#ordinals%2CSlice%5BT%3A+Ordinal%5D"
-    title="ordinals[T: Ordinal](s: Slice[T]): Stream[SliceStepSigned, T]"><wbr />ordinals<span class="attachedType">SliceStepSigned</span></a></li>
+    title="ordinals[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]"><wbr />ordinals<span class="attachedType">SignedSliceStep</span></a></li>
   <li><a class="reference" href="#items%2CSlice%5BT%3A+Ordinal%5D"
     title="items[T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T]"><wbr />items<span class="attachedType">SliceStep</span></a></li>
 
+  </ul>
+</li>
+<li>
+  <a class="reference reference-toplevel" href="#19" id="69">Exports</a>
+  <ul class="simple simple-toc-section">
+    
   </ul>
 </li>
 
@@ -154,15 +160,15 @@ function main() {
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
 <dl class="item">
-<a id="SliceStepSignedIndex"></a>
-<dt><pre><a href="slice.html#SliceStepSignedIndex"><span class="Identifier">SliceStepSignedIndex</span></a> <span class="Other">=</span> <span class="Identifier">BiggestInt</span></pre></dt>
+<a id="SignedSliceStepIndex"></a>
+<dt><pre><a href="slice.html#SignedSliceStepIndex"><span class="Identifier">SignedSliceStepIndex</span></a> <span class="Other">=</span> <span class="Identifier">BiggestInt</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L13"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L17"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L13" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L17" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="SliceStep"></a>
@@ -173,20 +179,20 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L15"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L19"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L15" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L19" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="SliceStepSigned"></a>
-<dt><pre><a href="slice.html#SliceStepSigned"><span class="Identifier">SliceStepSigned</span></a> <span class="Other">=</span> <a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><a href="slice.html#SliceStepSignedIndex"><span class="Identifier">SliceStepSignedIndex</span></a><span class="Other">]</span></pre></dt>
+<a id="SignedSliceStep"></a>
+<dt><pre><a href="slice.html#SignedSliceStep"><span class="Identifier">SignedSliceStep</span></a> <span class="Other">=</span> <a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><a href="slice.html#SignedSliceStepIndex"><span class="Identifier">SignedSliceStepIndex</span></a><span class="Other">]</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L18"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L22"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L18" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L22" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -200,24 +206,13 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L22"
-class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L22" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-<a id="low,Slice[T]"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#low%2CSlice%5BT%5D"><span class="Identifier">low</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
 href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L26"
 class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L26" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="high,Slice[T]"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#high%2CSlice%5BT%5D"><span class="Identifier">high</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T</span></pre></dt>
+<a id="low,Slice[T]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#low%2CSlice%5BT%5D"><span class="Identifier">low</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T</span></pre></dt>
 <dd>
 
 
@@ -227,19 +222,19 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L30" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="sliceStep,T"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#sliceStep%2CT"><span class="Identifier">sliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">i</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<a id="high,Slice[T]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#high%2CSlice%5BT%5D"><span class="Identifier">high</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L35"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L34"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L35" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L34" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="sliceStepSigned,T"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#sliceStepSigned%2CT"><span class="Identifier">sliceStepSigned</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">i</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="slice.html#SliceStepSigned"><span class="Identifier">SliceStepSigned</span></a></pre></dt>
+<a id="sliceStep,T"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#sliceStep%2CT"><span class="Identifier">sliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">i</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span></pre></dt>
 <dd>
 
 
@@ -249,8 +244,8 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L39" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="current,typedesc[SliceStep[T]]"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#current%2Ctypedesc%5BSliceStep%5BT%5D%5D"><span class="Identifier">current</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">S</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../optics/lens.html#Lens"><span class="Identifier">Lens</span></a><span class="Other">[</span><span class="Identifier">S</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<a id="sliceStepSigned,T"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#sliceStepSigned%2CT"><span class="Identifier">sliceStepSigned</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">i</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="slice.html#SignedSliceStep"><span class="Identifier">SignedSliceStep</span></a></pre></dt>
 <dd>
 
 
@@ -260,15 +255,26 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L43" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="ordinals,Slice[T: Ordinal]"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#ordinals%2CSlice%5BT%3A+Ordinal%5D"><span class="Identifier">ordinals</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="slice.html#SliceStepSigned"><span class="Identifier">SliceStepSigned</span></a><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<a id="current,typedesc[SliceStep[T]]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#current%2Ctypedesc%5BSliceStep%5BT%5D%5D"><span class="Identifier">current</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">S</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../optics/lens.html#Lens"><span class="Identifier">Lens</span></a><span class="Other">[</span><span class="Identifier">S</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L48"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L47"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L48" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L47" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="ordinals,Slice[T: Ordinal]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#ordinals%2CSlice%5BT%3A+Ordinal%5D"><span class="Identifier">ordinals</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="slice.html#SignedSliceStep"><span class="Identifier">SignedSliceStep</span></a><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L52"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L52" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="items,Slice[T: Ordinal]"></a>
@@ -277,12 +283,17 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L60"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L64"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L60" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L64" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
+</dl></div>
+<div class="section" id="19">
+<h1><a class="toc-backref" href="#19">Exports</a></h1>
+<dl class="item">
+<a href="../stream.html#onClose"><span class="Identifier">onClose</span></a>, <a href="../stream/loop.html#Loop"><span class="Identifier">Loop</span></a>, <a href="../stream/loop/loopscope.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream/loop/loopscope.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop.html#asReader"><span class="Identifier">asReader</span></a>, <a href="../stream.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#takeWhile"><span class="Identifier">takeWhile</span></a>, <a href="../stream/loop.html#generator"><span class="Identifier">generator</span></a>, <a class="reference external" href="../stream/loop.html">../stream/loop</a>, <a href="../stream/loop/loopscope.html#breakIf"><span class="Identifier">breakIf</span></a>, <a href="../stream.html#all"><span class="Identifier">all</span></a>, <a href="../stream.html#singleItemStream"><span class="Identifier">singleItemStream</span></a>, <a href="../stream.html#scope"><span class="Identifier">scope</span></a>, <a href="../stream.html#startingAt"><span class="Identifier">startingAt</span></a>, <a href="../stream/loop.html#emptyLoop"><span class="Identifier">emptyLoop</span></a>, <a href="../stream/loop.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream.html#reduceIfNotEmpty"><span class="Identifier">reduceIfNotEmpty</span></a>, <a href="../stream/loop.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream.html#skip"><span class="Identifier">skip</span></a>, <a href="../stream/loop/loopscope.html#Condition"><span class="Identifier">Condition</span></a>, <a href="../stream/loop.html#Generator"><span class="Identifier">Generator</span></a>, <a href="../stream.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream.html#sum"><span class="Identifier">sum</span></a>, <a href="../stream/loop/loopscope.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop/loopscope.html#runOnce"><span class="Identifier">runOnce</span></a>, <a href="../stream.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream/loop/loopscope.html#emptyLoopScope"><span class="Identifier">emptyLoopScope</span></a>, <a href="../stream.html#initializer"><span class="Identifier">initializer</span></a>, <a href="../stream/loop/loopscope.html#LoopScope"><span class="Identifier">LoopScope</span></a>, <a href="../stream.html#count"><span class="Identifier">count</span></a>, <a href="../stream.html#peek"><span class="Identifier">peek</span></a>, <a href="../stream/loop/loopscope.html#asReader"><span class="Identifier">asReader</span></a>, <a href="../stream.html#dropWhile"><span class="Identifier">dropWhile</span></a>, <a href="../stream/loop/loopscope.html#infinite"><span class="Identifier">infinite</span></a>, <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a>, <a href="../stream.html#OnCloseEvent"><span class="Identifier">OnCloseEvent</span></a>, <a href="../stream.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream/loop.html#runOnce"><span class="Identifier">runOnce</span></a>, <a href="../stream/loop.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream/loop.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop.html#generating"><span class="Identifier">generating</span></a>, <a href="../stream/loop.html#scope"><span class="Identifier">scope</span></a>, <a href="../stream.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop/loopscope.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream.html#Initializer"><span class="Identifier">Initializer</span></a>, <a href="../stream.html#findFirst"><span class="Identifier">findFirst</span></a>, <a href="../stream.html#limit"><span class="Identifier">limit</span></a>, <a href="../stream.html#map"><span class="Identifier">map</span></a>, <a href="../stream/loop.html#map"><span class="Identifier">map</span></a>, <a href="../stream.html#loop"><span class="Identifier">loop</span></a>, <a href="../stream.html#onCloseEvent"><span class="Identifier">onCloseEvent</span></a>, <a href="../stream/loop.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop/loopscope.html#looped"><span class="Identifier">looped</span></a>, <a href="../stream/loop/loopscope.html#Stepper"><span class="Identifier">Stepper</span></a>, <a href="../stream.html#findFirst"><span class="Identifier">findFirst</span></a>, <a href="../stream.html#count"><span class="Identifier">count</span></a>, <a href="../stream/loop.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#emptyStream"><span class="Identifier">emptyStream</span></a>, <a href="../stream.html#none"><span class="Identifier">none</span></a>, <a href="../stream.html#reduce"><span class="Identifier">reduce</span></a>, <a href="../stream/loop.html#infiniteLoop"><span class="Identifier">infiniteLoop</span></a>, <a class="reference external" href="../stream/loop/loopscope.html">../stream/loop/loopscope</a>, <a href="../stream/loop/loopscope.html#asReader"><span class="Identifier">asReader</span></a>, <a href="../stream/loop.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream.html#any"><span class="Identifier">any</span></a>, <a href="../stream.html#loop"><span class="Identifier">loop</span></a>, <a href="../stream/loop/loopscope.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream.html#filter"><span class="Identifier">filter</span></a>, <a href="../stream/loop.html#infiniteLoop"><span class="Identifier">infiniteLoop</span></a>, <a href="../stream.html#initialStep"><span class="Identifier">initialStep</span></a>, <a href="../stream/loop/loopscope.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop/loopscope.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a class="reference external" href="../stream.html">../stream</a>, <a href="../stream/loop.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream/loop/loopscope.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#onCloseEvent"><span class="Identifier">onCloseEvent</span></a>, <a href="../stream/loop.html#dropWhile"><span class="Identifier">dropWhile</span></a>, <a href="../stream.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream/loop.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream.html#startingAt"><span class="Identifier">startingAt</span></a>, <a href="../stream/loop/loopscope.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream/loop.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream/loop/loopscope.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop/loopscope.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream.html#forEach"><span class="Identifier">forEach</span></a>, <a href="../stream/loop/loopscope.html#looped"><span class="Identifier">looped</span></a>
 </dl></div>
 
   </div>
@@ -292,7 +303,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-08-18 15:17:48 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-08-21 10:11:15 UTC</small>
       </div>
     </div>
   </div>

@@ -131,6 +131,12 @@ function main() {
 
   </ul>
 </li>
+<li>
+  <a class="reference reference-toplevel" href="#19" id="69">Exports</a>
+  <ul class="simple simple-toc-section">
+    
+  </ul>
+</li>
 
 </ul>
 
@@ -153,9 +159,9 @@ function main() {
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L10"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L14"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L10" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L14" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="SeqStep"></a>
@@ -164,9 +170,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L12"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L16"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L12" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L16" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -180,24 +186,13 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L16"
-class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L16" class="link-seesrc" target="_blank" >Edit</a>
-
-</dd>
-<a id="items,seq[T]"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#items%2Cseq%5BT%5D"><span class="Identifier">items</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
-<dd>
-
-
-&nbsp;&nbsp;<a
 href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L20"
 class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L20" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="pairs,seq[T]"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#pairs%2Cseq%5BT%5D"><span class="Identifier">pairs</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">index</span><span class="Other">:</span> <a href="sequence.html#SeqIndex"><span class="Identifier">SeqIndex</span></a><span class="Other">,</span> <span class="Identifier">item</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">]</span><span class="Other">]</span></pre></dt>
+<a id="items,seq[T]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#items%2Cseq%5BT%5D"><span class="Identifier">items</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
 <dd>
 
 
@@ -207,19 +202,19 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L24" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="indexes,string"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#indexes%2Cstring"><span class="Identifier">indexes</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <a href="sequence.html#SeqIndex"><span class="Identifier">SeqIndex</span></a><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="pairs,seq[T]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#pairs%2Cseq%5BT%5D"><span class="Identifier">pairs</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">seq</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">index</span><span class="Other">:</span> <a href="sequence.html#SeqIndex"><span class="Identifier">SeqIndex</span></a><span class="Other">,</span> <span class="Identifier">item</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">]</span><span class="Other">]</span></pre></dt>
 <dd>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L29"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L28"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L29" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L28" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="chars,string"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#chars%2Cstring"><span class="Identifier">chars</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Identifier">char</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="indexes,string"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#indexes%2Cstring"><span class="Identifier">indexes</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <a href="sequence.html#SeqIndex"><span class="Identifier">SeqIndex</span></a><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
@@ -229,9 +224,8 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L33" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="pairs,string"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#pairs%2Cstring"><span class="Identifier">pairs</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">index</span><span class="Other">:</span> <a href="sequence.html#SeqIndex"><span class="Identifier">SeqIndex</span></a><span class="Other">,</span> <span class="Identifier">item</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">]</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
-    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<a id="chars,string"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#chars%2Cstring"><span class="Identifier">chars</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Identifier">char</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
 <dd>
 
 
@@ -241,7 +235,24 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L37" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
+<a id="pairs,string"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#pairs%2Cstring"><span class="Identifier">pairs</span></a><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">string</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="sequence.html#SeqStep"><span class="Identifier">SeqStep</span></a><span class="Other">,</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">index</span><span class="Other">:</span> <a href="sequence.html#SeqIndex"><span class="Identifier">SeqIndex</span></a><span class="Other">,</span> <span class="Identifier">item</span><span class="Other">:</span> <span class="Identifier">char</span><span class="Other">]</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
 
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/sequence.nim#L41"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/sequence.nim#L41" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+
+</dl></div>
+<div class="section" id="19">
+<h1><a class="toc-backref" href="#19">Exports</a></h1>
+<dl class="item">
+<a href="../stream.html#onClose"><span class="Identifier">onClose</span></a>, <a href="../stream/loop.html#Loop"><span class="Identifier">Loop</span></a>, <a href="../stream/loop/loopscope.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream/loop/loopscope.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop.html#asReader"><span class="Identifier">asReader</span></a>, <a href="../stream.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#takeWhile"><span class="Identifier">takeWhile</span></a>, <a href="../stream/loop.html#generator"><span class="Identifier">generator</span></a>, <a class="reference external" href="../stream/loop.html">../stream/loop</a>, <a href="../stream/loop/loopscope.html#breakIf"><span class="Identifier">breakIf</span></a>, <a href="../stream.html#all"><span class="Identifier">all</span></a>, <a href="../stream.html#singleItemStream"><span class="Identifier">singleItemStream</span></a>, <a href="../stream.html#scope"><span class="Identifier">scope</span></a>, <a href="../stream.html#startingAt"><span class="Identifier">startingAt</span></a>, <a href="../stream/loop.html#emptyLoop"><span class="Identifier">emptyLoop</span></a>, <a href="../stream/loop.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream.html#reduceIfNotEmpty"><span class="Identifier">reduceIfNotEmpty</span></a>, <a href="../stream/loop.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream.html#skip"><span class="Identifier">skip</span></a>, <a href="../stream/loop/loopscope.html#Condition"><span class="Identifier">Condition</span></a>, <a href="../stream/loop.html#Generator"><span class="Identifier">Generator</span></a>, <a href="../stream.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream.html#sum"><span class="Identifier">sum</span></a>, <a href="../stream/loop/loopscope.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop/loopscope.html#runOnce"><span class="Identifier">runOnce</span></a>, <a href="../stream.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream/loop/loopscope.html#emptyLoopScope"><span class="Identifier">emptyLoopScope</span></a>, <a href="../stream.html#initializer"><span class="Identifier">initializer</span></a>, <a href="../stream/loop/loopscope.html#LoopScope"><span class="Identifier">LoopScope</span></a>, <a href="../stream.html#count"><span class="Identifier">count</span></a>, <a href="../stream.html#peek"><span class="Identifier">peek</span></a>, <a href="../stream/loop/loopscope.html#asReader"><span class="Identifier">asReader</span></a>, <a href="../stream.html#dropWhile"><span class="Identifier">dropWhile</span></a>, <a href="../stream/loop/loopscope.html#infinite"><span class="Identifier">infinite</span></a>, <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a>, <a href="../stream.html#OnCloseEvent"><span class="Identifier">OnCloseEvent</span></a>, <a href="../stream.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream/loop.html#runOnce"><span class="Identifier">runOnce</span></a>, <a href="../stream/loop.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream/loop.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop.html#generating"><span class="Identifier">generating</span></a>, <a href="../stream/loop.html#scope"><span class="Identifier">scope</span></a>, <a href="../stream.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop/loopscope.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream.html#Initializer"><span class="Identifier">Initializer</span></a>, <a href="../stream.html#findFirst"><span class="Identifier">findFirst</span></a>, <a href="../stream.html#limit"><span class="Identifier">limit</span></a>, <a href="../stream.html#map"><span class="Identifier">map</span></a>, <a href="../stream/loop.html#map"><span class="Identifier">map</span></a>, <a href="../stream.html#loop"><span class="Identifier">loop</span></a>, <a href="../stream.html#onCloseEvent"><span class="Identifier">onCloseEvent</span></a>, <a href="../stream/loop.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop/loopscope.html#looped"><span class="Identifier">looped</span></a>, <a href="../stream/loop/loopscope.html#Stepper"><span class="Identifier">Stepper</span></a>, <a href="../stream.html#findFirst"><span class="Identifier">findFirst</span></a>, <a href="../stream.html#count"><span class="Identifier">count</span></a>, <a href="../stream/loop.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#emptyStream"><span class="Identifier">emptyStream</span></a>, <a href="../stream.html#none"><span class="Identifier">none</span></a>, <a href="../stream.html#reduce"><span class="Identifier">reduce</span></a>, <a href="../stream/loop.html#infiniteLoop"><span class="Identifier">infiniteLoop</span></a>, <a class="reference external" href="../stream/loop/loopscope.html">../stream/loop/loopscope</a>, <a href="../stream/loop/loopscope.html#asReader"><span class="Identifier">asReader</span></a>, <a href="../stream/loop.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream.html#any"><span class="Identifier">any</span></a>, <a href="../stream.html#loop"><span class="Identifier">loop</span></a>, <a href="../stream/loop/loopscope.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream.html#filter"><span class="Identifier">filter</span></a>, <a href="../stream/loop.html#infiniteLoop"><span class="Identifier">infiniteLoop</span></a>, <a href="../stream.html#initialStep"><span class="Identifier">initialStep</span></a>, <a href="../stream/loop/loopscope.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream/loop/loopscope.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a class="reference external" href="../stream.html">../stream</a>, <a href="../stream/loop.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream/loop/loopscope.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#onCloseEvent"><span class="Identifier">onCloseEvent</span></a>, <a href="../stream/loop.html#dropWhile"><span class="Identifier">dropWhile</span></a>, <a href="../stream.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream/loop.html#stepType"><span class="Identifier">stepType</span></a>, <a href="../stream.html#startingAt"><span class="Identifier">startingAt</span></a>, <a href="../stream/loop/loopscope.html#stepper"><span class="Identifier">stepper</span></a>, <a href="../stream.html#itemType"><span class="Identifier">itemType</span></a>, <a href="../stream/loop.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream/loop/loopscope.html#mapSteps"><span class="Identifier">mapSteps</span></a>, <a href="../stream.html#run"><span class="Identifier">run</span></a>, <a href="../stream/loop/loopscope.html#condition"><span class="Identifier">condition</span></a>, <a href="../stream.html#generator"><span class="Identifier">generator</span></a>, <a href="../stream.html#forEach"><span class="Identifier">forEach</span></a>, <a href="../stream/loop/loopscope.html#looped"><span class="Identifier">looped</span></a>
 </dl></div>
 
   </div>
@@ -251,7 +262,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-08-18 15:17:47 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-08-21 10:11:14 UTC</small>
       </div>
     </div>
   </div>
