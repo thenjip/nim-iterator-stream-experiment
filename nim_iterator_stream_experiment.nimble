@@ -63,10 +63,6 @@ func nimcacheDir (): AbsoluteDir =
   projectDir() / nimcacheDirName()
 
 
-func libModulesDir (): AbsoluteDir =
-  projectDir() / nimbleProjectName()
-
-
 func nimscriptTestsDir (): AbsoluteDir =
   projectDir() / "tests" / "nimscript"
 
@@ -78,20 +74,27 @@ proc tryRmDir (dir: AbsoluteDir) =
 
 
 
-iterator files (dir: AbsoluteDir; ext: string): RelativeFile =
-  for file in dir.walkDirRec(relative = true):
+iterator files (dir: AbsoluteDir; ext: string; relative: bool): RelativeFile =
+  for file in dir.walkDirRec(relative = relative):
     if file.endsWith(fmt"{ExtSep}{ext}"):
       yield file
 
 
 iterator nimModules (dir: AbsoluteDir): RelativeFile =
-  for file in dir.files("nim"):
+  for file in dir.files("nim", true):
     yield file
 
 
-iterator nimscriptModules (dir: AbsoluteDir): RelativeFile =
-  for file in dir.files("nims"):
+iterator nimscriptModules (dir: AbsoluteDir): AbsoluteFile =
+  for file in dir.files("nims", false):
     yield file
+
+
+iterator libNimModules (): RelativeFile =
+  yield fmt"{nimbleProjectName()}{ExtSep}nim"
+
+  for module in nimModules(projectDir() / nimbleProjectName()):
+    yield nimbleProjectName() / module
 
 
 
@@ -351,13 +354,11 @@ define Task.Test:
   let backend = readNimBackendFromEnv().get(defaultBackend())
 
   if backend == Backend.NimScript:
-    withDir nimscriptTestsDir():
-      for module in system.getCurrentDir().nimscriptModules():
-        [backend.nimCmdName(), module].join($' ').selfExec()
+    for module in nimscriptTestsDir().nimscriptModules():
+      [backend.nimCmdName(), module.quoteShell()].join($' ').selfExec()
   else:
-    withDir libModulesDir():
-      for module in system.getCurrentDir().nimModules():
-        module.buildCompileCmd(backend).selfExec()
+    for module in libNimModules():
+      module.buildCompileCmd(backend).selfExec()
 
 
 
@@ -377,18 +378,21 @@ define Task.Docs:
         ("git.commit", mainGitBranch)
       ].toNimLongOptions()
 
-    @["doc"].concat(longOptions, @[module.quoteShell()]).join($' ')
+    @["doc"]
+      .concat(longOptions & "--project", @[module.quoteShell()])
+      .join($' ')
 
 
-  for module in libModulesDir().nimModules():
-    nimbleProjectName().`/`(module).buildCompileCmd().selfExec()
+  ($CurDir / fmt"{nimbleProjectName()}{ExtSep}nim").buildCompileCmd().selfExec()
 
   withDir Task.Docs.outputDir().get():
-    const cssFile = ["nimdoc", "out", "css"].join($ExtSep)
+    const cmd = [
+      "buildIndex",
+      "out".toNimLongOption(fmt"index{ExtSep}html".quoteShell()),
+      CurDir.`$`().quoteShell()
+    ]
 
-    ["buildIndex", $CurDir].join($' ').selfExec()
-    fmt"theindex{ExtSep}html".cpFile(fmt"index{ExtSep}html")
-    nimbleProjectName().`/`(cssFile).cpFile(system.getCurrentDir() / cssFile)
+    cmd.join($' ').selfExec()
 
 
 

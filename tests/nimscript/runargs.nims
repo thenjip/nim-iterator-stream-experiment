@@ -4,12 +4,13 @@ when isMainModule:
 
 
   proc main () =
-    for args in [
-      @["a", "b", "c"],
-      @["--abc:on", "a.nim"],
-      @["-a", "'a bc'", "abc", "--run"]
-    ]:
-      @[$'e', fmt"args{ExtSep}nims"].`&`(args).join($' ').selfExec()
+    withDir projectDir():
+      for args in [
+        @["a", "b", "c"],
+        @["--abc:on", "a.nim"],
+        @["-a", "'a bc'", "abc", "--run"]
+      ]:
+        @[$'e', fmt"args{ExtSep}nims"].`&`(args).join($' ').selfExec()
 
 
 
