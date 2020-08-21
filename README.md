@@ -46,8 +46,8 @@ The results below are based on the status of CI builds.
 | :--- | :--- | :--- |
 | C | Supported | Supported |
 | C++ | Supported | Supported |
-| JavaScript | Supported | Unsupported. <p></p>Compile time tests are currently skipped, they do not compile yet. |
-| NimScript | To be tested | To be tested |
+| JavaScript | Supported | Unsupported.<p></p>Compile time tests are currently skipped, they do not compile yet. See [doc](https://thenjip.github.io/nim-iterator-stream-experiment/nim_iterator_stream_experiment/stream.html#backend-restrictions-javascript). |
+| NimScript | Limited support.<p></p>See [doc](https://thenjip.github.io/nim-iterator-stream-experiment/nim_iterator_stream_experiment/stream.html#backend-restrictions-nimscript). | Same as "@ run time". |
 
 ## Usage
 
