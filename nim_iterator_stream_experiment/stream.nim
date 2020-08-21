@@ -9,6 +9,7 @@
   Any exception raised while generating items in a stream will be re-raised
   after closing the stream.
 
+
   Types of operations
   ===================
 
@@ -23,6 +24,7 @@
 
   Operations that return a stream or a lambda that will are called intermediate.
   They can be stateless or stateful.
+
 
   Operation properties
   ====================
@@ -59,6 +61,26 @@
   generating items.
 
   Examples: `takeWhile`, `any`, `all`, `none`.
+
+
+  Backend restrictions
+  ====================
+
+  JavaScript
+  ----------
+
+  There is currently a `bug<https://github.com/nim-lang/Nim/issues/15151>`_ that
+  prevents the compiler from evaluating closures at compile time.
+  So, streams are not available for compile time JavaScript.
+
+  NimScript
+  ---------
+
+  NimScript cannot currently catch exceptions with try-except clauses.
+  Therefore, our implementation cannot guarantee that the "close" event will be
+  triggered when an exception is raised while streaming.
+  Consequently, the event will always do nothing and the API to modify it is not
+  available for NimScript.
 ]##
 
 
@@ -127,12 +149,32 @@ template itemType* [S; T](self: Stream[S, T]): typedesc[T] =
 
 
 
-func startingAt* [S; T](
+func startingAtImpl [S; T](
   loop: Loop[S, T];
   initialStep: Initializer[S];
   onCloseEvent: OnCloseEvent[S]
 ): Stream[S, T] =
-  Stream[S, T](initialStep: initialStep, loop: loop, onCloseEvent: onCloseEvent)
+  Stream[S, T](
+    initialStep: initialStep,
+    loop: loop,
+    onCloseEvent: onCloseEvent
+  )
+
+
+when defined(nimscript):
+  func startingAt [S; T](
+    loop: Loop[S, T];
+    initialStep: Initializer[S];
+    onCloseEvent: OnCloseEvent[S]
+  ): Stream[S, T] =
+    loop.startingAtImpl(initialStep, onCloseEvent)
+else:
+  func startingAt* [S; T](
+    loop: Loop[S, T];
+    initialStep: Initializer[S];
+    onCloseEvent: OnCloseEvent[S]
+  ): Stream[S, T] =
+    loop.startingAtImpl(initialStep, onCloseEvent)
 
 
 func startingAt* [S; T](
@@ -152,12 +194,15 @@ func initialStep* [S; T](X: typedesc[Stream[S, T]]): Lens[X, Initializer[S]] =
   )
 
 
-func onCloseEvent* [S; T](X: typedesc[Stream[S, T]]): Lens[X, OnCloseEvent[S]] =
-  lens(
-    (self: X) => self.onCloseEvent,
-    (self: X, event: OnCloseEvent[S]) =>
-      self.loop.startingAt(self.initialStep, event)
-  )
+when not defined(nimscript):
+  func onCloseEvent* [S; T](
+    X: typedesc[Stream[S, T]]
+  ): Lens[X, OnCloseEvent[S]] =
+    lens(
+      (self: X) => self.onCloseEvent,
+      (self: X, event: OnCloseEvent[S]) =>
+        self.loop.startingAt(self.initialStep, event)
+    )
 
 
 func loop* [S; A](
@@ -263,16 +308,17 @@ func singleItemStream* [T](item: () -> T): Stream[SingleStep, T] =
 
 
 
-func onClose* [S; T](self: Stream[S, T]; callback: () -> Unit): Stream[S, T] =
-  ##[
-    Registers a callback to be called when closing `self`.
+when not defined(nimscript):
+  func onClose* [S; T](self: Stream[S, T]; callback: () -> Unit): Stream[S, T] =
+    ##[
+      Registers a callback to be called when closing `self`.
 
-    Callbacks will be called in the order of registration.
-  ]##
-  self.modify(
-    self.typeof().onCloseEvent(),
-    partial(map(?_, _ => callback.run()))
-  )
+      Callbacks will be called in the order of registration.
+    ]##
+    self.modify(
+      self.typeof().onCloseEvent(),
+      partial(map(?_, _ => callback.run()))
+    )
 
 
 
@@ -397,7 +443,7 @@ func takeWhile* [S; T](
       .map(partial(takeWhileStep(?:S, T.toNone())))
       .map(twLoop.read(twLoop.typeof().stepper()))
     ,
-    twLoop.typeof().S.step().read().map(self.onCloseEvent)
+    twLoop.stepType().step().read().map(self.onCloseEvent)
   )
 
 
