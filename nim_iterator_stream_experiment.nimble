@@ -63,10 +63,6 @@ func nimcacheDir (): AbsoluteDir =
   projectDir() / nimcacheDirName()
 
 
-func libModulesDir (): AbsoluteDir =
-  projectDir() / nimbleProjectName()
-
-
 func nimscriptTestsDir (): AbsoluteDir =
   projectDir() / "tests" / "nimscript"
 
@@ -92,6 +88,13 @@ iterator nimModules (dir: AbsoluteDir): RelativeFile =
 iterator nimscriptModules (dir: AbsoluteDir): RelativeFile =
   for file in dir.files("nims"):
     yield file
+
+
+iterator libNimModules (): RelativeFile =
+  yield fmt"{nimbleProjectName()}{ExtSep}nim"
+
+  for module in nimModules(projectDir() / nimbleProjectName()):
+    yield nimbleProjectName() / module
 
 
 
@@ -351,13 +354,11 @@ define Task.Test:
   let backend = readNimBackendFromEnv().get(defaultBackend())
 
   if backend == Backend.NimScript:
-    withDir nimscriptTestsDir():
-      for module in system.getCurrentDir().nimscriptModules():
-        [backend.nimCmdName(), module].join($' ').selfExec()
+    for module in nimscriptTestsDir().nimscriptModules():
+      [backend.nimCmdName(), module].join($' ').selfExec()
   else:
-    withDir libModulesDir():
-      for module in system.getCurrentDir().nimModules():
-        module.buildCompileCmd(backend).selfExec()
+    for module in libNimModules():
+      module.buildCompileCmd(backend).selfExec()
 
 
 
