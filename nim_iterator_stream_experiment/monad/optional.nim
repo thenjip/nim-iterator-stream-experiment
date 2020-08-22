@@ -7,7 +7,7 @@
   pure functional programming techniques to make it compatible with compile time
   execution.
 
-  Examples can be found `here <https://github.com/thenjip/nim-iterator-stream-experiment/tree/5f1513037640708af8b59f2cf8e3fbca240de31b/examples/monad/optional>`_.
+  Examples can be found `here <https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/examples/monad/optional>`_.
 ]##
 
 

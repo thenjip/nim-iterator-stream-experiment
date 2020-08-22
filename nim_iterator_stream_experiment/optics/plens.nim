@@ -4,9 +4,9 @@
   A lens lets one focus on a subpart of a whole (typically a data structure),
   and manipulate that subpart while keeping the rest of the structure.
 
-  Lenses can be seen as the equivalent of properties in object-oriented
-  programming. However, lenses can be chained together to let one see further in
-  the focused structure.
+  A lens is an abstraction of a structure member.
+  Lenses can be chained together to let one see further in the focused
+  structure.
 
   `Normal lenses <lens.html>`_ let one modify a structure without changing its
   type.
@@ -18,9 +18,9 @@
   Examples:
     - Define polymorphic lenses for a structure type.
 
-      See `block <block.html>`_ and `conditionalblock <conditionalblock.html>`_.
+      See `block <https://github.com/thenjip/nim-iterator-stream-experiment/blob/master/nim_iterator_stream_experiment/optics/plens/private/test/block.nim>`_ and `conditionalblock <https://github.com/thenjip/nim-iterator-stream-experiment/blob/master/nim_iterator_stream_experiment/optics/plens/private/test/conditionalblock.nim>`_.
 
-    - Using polymorphic lenses to `modify parts of a structure <https://github.com/thenjip/nim-iterator-stream-experiment/tree/3938f1b6e1086c6c1799761941eb36a08be1c4c2/examples/optics/plens>`_.
+    - Using polymorphic lenses to `modify parts of a structure <https://github.com/thenjip/nim-iterator-stream-experiment/blob/master/examples/optics/plens/modify.nim>`_.
 ]##
 
 
