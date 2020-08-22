@@ -40,7 +40,7 @@ jobs:
       matrix:
         nim_version: ['1.2.0', '1.2.2', '1.2.4', '1.2.6']
 
-    name: 'Examples: Nim {{ matrix.nim_version }}'
+    name: 'Examples: Nim ${{ matrix.nim_version }}'
     runs-on: ubuntu-latest
     container: 'nimlang/nim:${{ matrix.nim_version }}-alpine'
     timeout-minutes: 15
