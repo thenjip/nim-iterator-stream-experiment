@@ -9,7 +9,7 @@ on:
 
 
 jobs:
-  test:
+  unit_tests:
     strategy:
       fail-fast: false
       matrix:
@@ -31,3 +31,25 @@ jobs:
         run: |
           nimble install -dy
           nimble test
+
+
+  examples:
+    needs: unit_tests
+    strategy:
+      fail-fast: false
+      matrix:
+        nim_version: ['1.2.0', '1.2.2', '1.2.4', '1.2.6']
+
+    name: 'Examples: Nim {{ matrix.nim_version }}'
+    runs-on: ubuntu-latest
+    container: 'nimlang/nim:${{ matrix.nim_version }}-alpine'
+    timeout-minutes: 15
+
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v2'
+
+      - name: 'Build and run the examples'
+        run: |
+          nimble install -dy
+          nimble test_examples
