@@ -2,7 +2,7 @@
   A ``while`` scope defined by a condition and a stepper (a procedure that makes
   the loop go forward).
 
-  `Examples <https://github.com/thenjip/nim-iterator-stream-experiment/tree/d33755d777fe6751a0e635058e52012bcb76d1e2/examples/stream/loop/loopscope>`_.
+  `Examples <https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/examples/stream/loop/loopscope>`_.
 ]##
 
 

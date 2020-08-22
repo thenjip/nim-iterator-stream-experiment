@@ -4,9 +4,9 @@
   Examples:
     - Define lenses for a structure type.
 
-      See `road <road.html>`_ and `cityaddress <cityaddress.html>`_.
+      See `road <https://github.com/thenjip/nim-iterator-stream-experiment/blob/master/nim_iterator_stream_experiment/optics/lens/private/test/road.nim>`_ and `cityaddress <https://github.com/thenjip/nim-iterator-stream-experiment/blob/master/nim_iterator_stream_experiment/optics/lens/private/test/cityaddress.nim>`_.
 
-    - Using lenses to `write parts of a structure <https://github.com/thenjip/nim-iterator-stream-experiment/tree/3938f1b6e1086c6c1799761941eb36a08be1c4c2/examples/optics/lens>`_.
+    - Using lenses to `write parts of a structure <https://github.com/thenjip/nim-iterator-stream-experiment/blob/master/examples/optics/lens/write.nim>`_.
 ]##
 
 
