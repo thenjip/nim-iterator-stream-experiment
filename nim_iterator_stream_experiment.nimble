@@ -58,6 +58,14 @@ func nimcacheDirName (): string =
   ".nimcache"
 
 
+func examplesDirName (): string =
+  "examples"
+
+
+func binOutDirName (): string =
+  "bin"
+
+
 
 func nimcacheDir (): AbsoluteDir =
   projectDir() / nimcacheDirName()
@@ -65,6 +73,10 @@ func nimcacheDir (): AbsoluteDir =
 
 func nimscriptTestsDir (): AbsoluteDir =
   projectDir() / "tests" / "nimscript"
+
+
+func examplesDir (): AbsoluteDir =
+  projectDir() / examplesDirName()
 
 
 
@@ -95,6 +107,11 @@ iterator libNimModules (): RelativeFile =
 
   for module in nimModules(projectDir() / nimbleProjectName()):
     yield nimbleProjectName() / module
+
+
+iterator exampleModules (): RelativeFile =
+  for module in examplesDir().nimModules():
+    yield module
 
 
 
@@ -212,8 +229,10 @@ proc readNimBackendFromEnv (): Option[Backend] =
 type
   Task {.pure.} = enum
     Test
+    TestExamples
     Docs
     CleanTest
+    CleanTestExamples
     CleanDocs
     Clean
 
@@ -222,7 +241,15 @@ type
 
 
 func taskNames (): array[Task, string] =
-  const names = ["test", "docs", "clean_test", "clean_docs", "clean"]
+  const names = [
+    "test",
+    "test_examples",
+    "docs",
+    "clean_test",
+    "clean_test_examples",
+    "clean_docs",
+    "clean"
+  ]
 
   names
 
@@ -255,8 +282,10 @@ func taskDescriptions (): array[Task, string] =
   const descriptions =
     [
       testTaskDescription(),
+      "Compile and run the examples.",
       "Build the API doc.",
       Task.Test.cleanOtherTaskDescription(),
+      Task.TestExamples.cleanOtherTaskDescription(),
       Task.Docs.cleanOtherTaskDescription(),
       "Remove all the build directories."
     ]
@@ -282,7 +311,9 @@ func taskOutputDirBuilders (): array[Task, OutputDirBuilder] =
   const builders =
     [
       () => Task.Test.baseOutputDir().some(),
+      () => Task.TestExamples.baseOutputDir().some(),
       () => Task.Docs.baseOutputDir().some(),
+      noOutputDir,
       noOutputDir,
       noOutputDir,
       noOutputDir
@@ -326,10 +357,6 @@ define Task.Test:
     Task.Test.outputDir().get() / backend.shellValue() / module
 
 
-  func binOutDirName (): string =
-    "bin"
-
-
   func handleJsFlags (backend: Backend): seq[string] =
     if backend == Backend.Js:
       @["-d:nodejs"]
@@ -359,6 +386,33 @@ define Task.Test:
   else:
     for module in libNimModules():
       module.buildCompileCmd(backend).selfExec()
+
+
+
+define Task.TestExamples:
+  func buildSrcGenDir (module: RelativeFile): AbsoluteDir =
+    Task.TestExamples.outputDir().get() / module
+
+
+  func buildBinOutDir (module: RelativeFile): AbsoluteDir =
+    module.buildSrcGenDir() / binOutDirName()
+
+
+  func buildCompileCmd (module: RelativeFile): string =
+    let
+      srcGenDir = module.buildSrcGenDir()
+      binOutDir = module.buildBinOutDir()
+
+      outDirOptions =
+        [("nimcache", srcGenDir), ("outdir", binOutDir)].toNimLongOptions()
+
+    @[Backend.C.nimCmdName(), "-r"]
+      .concat(outDirOptions, @[quoteShell(examplesDirName() / module)])
+      .join($' ')
+
+
+  for module in exampleModules():
+    module.buildCompileCmd().selfExec()
 
 
 
@@ -401,6 +455,11 @@ define Task.CleanTest:
 
 
 
+define Task.CleanTestExamples:
+  Task.TestExamples.outputDir().get().tryRmDir()
+
+
+
 define Task.CleanDocs:
   Task.Docs.outputDir().get().tryRmDir()
 
@@ -408,4 +467,5 @@ define Task.CleanDocs:
 
 define Task.Clean:
   Task.CleanTest.run()
+  Task.CleanTestExamples.run()
   Task.CleanDocs.run()
