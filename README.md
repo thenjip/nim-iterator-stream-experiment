@@ -3,9 +3,7 @@
 [![Build Status](https://github.com/thenjip/nim-iterator-stream-experiment/workflows/Unit%20tests/badge.svg?branch=master)](https://github.com/thenjip/nim-iterator-stream-experiment/actions?query=workflow%3A"Unit+tests"+branch%3A"master")
 [![licence](https://img.shields.io/github/license/thenjip/nim-iterator-stream-experiment.svg)](https://raw.githubusercontent.com/thenjip/nim-iterator-stream-experiment/master/LICENSE)
 
-An attempt at providing a replacement for [first class iterators](
-https://nim-lang.org/docs/manual.html#iterators-and-the-for-statement-first-class-iterators)
-in [Nim](https://nim-lang.org/) with an API similar to Java 8 Stream.
+An attempt at providing a replacement for [first class iterators](https://nim-lang.org/docs/manual.html#iterators-and-the-for-statement-first-class-iterators) in [Nim](https://nim-lang.org/) with an API similar to Java 8 Stream.
 
 ## Installation
 
@@ -82,14 +80,34 @@ when isMainModule:
 
 ### Implementing custom stream operations
 
-To be documented.
+The current public API may not be enough to implement a custom stream operation.
+It may need to modify one or more parts of the stream [structure](https://thenjip.github.io/nim-iterator-stream-experiment/nim_iterator_stream_experiment/stream.html#Stream).
+
+The object types in the library do not expose their members,
+but [lenses](https://thenjip.github.io/nim-iterator-stream-experiment/nim_iterator_stream_experiment/optics/plens.html) on each member are available.
+
+The library internally uses these lenses when:
+
+- A direct access to a member is not possible.
+- Modifying a member through a lens is more convenient than rebuilding the whole
+  structure with the updated member, which can become even worse with structures
+  inside other ones.
+
+Examples:
+
+- [map](https://github.com/thenjip/nim-iterator-stream-experiment/blob/master/nim_iterator_stream_experiment/stream.nim#L325-L326)
+- [dropWhile](https://github.com/thenjip/nim-iterator-stream-experiment/blob/ccf6d7bd1096088a5de26fc8fd670a3fc3dd1e50/nim_iterator_stream_experiment/stream.nim#L450-L463)
+- [filter](https://github.com/thenjip/nim-iterator-stream-experiment/blob/ccf6d7bd1096088a5de26fc8fd670a3fc3dd1e50/nim_iterator_stream_experiment/stream.nim#L329-L334)
+- [limit](https://github.com/thenjip/nim-iterator-stream-experiment/blob/ccf6d7bd1096088a5de26fc8fd670a3fc3dd1e50/nim_iterator_stream_experiment/stream.nim#L344-L362)
 
 ### Defining new sources of streams
 
-See the [`streams`](./nim_iterator_stream_experiment/streams) modules.
+See the [`streams`](nim_iterator_stream_experiment/streams) modules for
+examples.
 
 ## To do
 
+- [ ] Give the ability to provide an in-place stepper and reducer.
 - [ ] Reimplement the `mitems` iterator family (or test them if the current API
       already supports them somehow), although the C++ backend has this [issue](
       https://github.com/nim-lang/Nim/issues/10219).
