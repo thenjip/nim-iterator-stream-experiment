@@ -107,9 +107,11 @@ examples.
 
 ## To do
 
-- [ ] Give the ability to provide an in-place stepper and reducer.
+- [ ] Give the ability to provide an in-place stepper. This would require
+      `var T` return types as well as the `var T from x` syntax
+      [idea](https://nim-lang.org/docs/manual.html#var-return-type-future-directions).
 - [ ] Reimplement the `mitems` iterator family (or test them if the current API
-      already supports them somehow), although the C++ backend has this [issue](
-      https://github.com/nim-lang/Nim/issues/10219).
+      already supports them somehow), although the C++ backend has this
+      [issue](https://github.com/nim-lang/Nim/issues/10219).
 - [ ] Parallelization API.
 - [ ] Find a new shorter name for this project.
