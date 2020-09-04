@@ -154,21 +154,10 @@ func startingAtImpl [S; T](
   initialStep: Initializer[S];
   onCloseEvent: OnCloseEvent[S]
 ): Stream[S, T] =
-  Stream[S, T](
-    initialStep: initialStep,
-    loop: loop,
-    onCloseEvent: onCloseEvent
-  )
+  Stream[S, T](initialStep: initialStep, loop: loop, onCloseEvent: onCloseEvent)
 
 
-when defined(nimscript):
-  func startingAt [S; T](
-    loop: Loop[S, T];
-    initialStep: Initializer[S];
-    onCloseEvent: OnCloseEvent[S]
-  ): Stream[S, T] =
-    loop.startingAtImpl(initialStep, onCloseEvent)
-else:
+when not defined(nimscript):
   func startingAt* [S; T](
     loop: Loop[S, T];
     initialStep: Initializer[S];
@@ -181,8 +170,8 @@ func startingAt* [S; T](
   loop: Loop[S, T];
   initialStep: Initializer[S]
 ): Stream[S, T] =
-  ## An overload that will do nothing when the returned stream is closed.
-  loop.startingAt(initialStep, doNothing[S])
+  ## Returns a stream that will do nothing when it is closed.
+  loop.startingAtImpl(initialStep, doNothing[S])
 
 
 
