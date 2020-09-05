@@ -40,8 +40,18 @@ func sliceStep* [T](i: T): SliceStep[T] =
   SliceStep[T](i: i)
 
 
-func sliceStepSigned* [T: Ordinal](i: T): SignedSliceStep =
+func signedSliceStep* [T: Ordinal](i: T): SignedSliceStep =
+  ## Since 0.2.0.
   sliceStep(i as SignedSliceStepIndex)
+
+
+func sliceStepSigned* [T: Ordinal](i: T): SignedSliceStep {.deprecated.} =
+  ##[
+    Deprecated since 0.2.0.
+
+    Use `signedSliceStep` instead.
+  ]##
+  signedSliceStep(i)
 
 
 func current* [T](S: typedesc[SliceStep[T]]): Lens[S, T] =
@@ -58,7 +68,7 @@ func ordinals* [T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T] =
     .map(partial(?_ < s.high().convert(SignedSliceStepIndex).next()))
     .looped(lens.modify(next))
     .generating(readCurrent.map(partial(?_ as T)))
-    .startingAt(() => sliceStepSigned(s.low()))
+    .startingAt(() => signedSliceStep(s.low()))
 
 
 func items* [T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T] =
