@@ -5,6 +5,7 @@ slice	nim_iterator_stream_experiment/streams/slice.html#slice,T,T	slice: slice[T
 low	nim_iterator_stream_experiment/streams/slice.html#low,Slice[T]	slice: low[T](self: Slice[T]): T	
 high	nim_iterator_stream_experiment/streams/slice.html#high,Slice[T]	slice: high[T](self: Slice[T]): T	
 sliceStep	nim_iterator_stream_experiment/streams/slice.html#sliceStep,T	slice: sliceStep[T](i: T): SliceStep[T]	
+signedSliceStep	nim_iterator_stream_experiment/streams/slice.html#signedSliceStep,T	slice: signedSliceStep[T: Ordinal](i: T): SignedSliceStep	
 sliceStepSigned	nim_iterator_stream_experiment/streams/slice.html#sliceStepSigned,T	slice: sliceStepSigned[T: Ordinal](i: T): SignedSliceStep	
 current	nim_iterator_stream_experiment/streams/slice.html#current,typedesc[SliceStep[T]]	slice: current[T](S: typedesc[SliceStep[T]]): Lens[S, T]	
 ordinals	nim_iterator_stream_experiment/streams/slice.html#ordinals,Slice[T: Ordinal]	slice: ordinals[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]	

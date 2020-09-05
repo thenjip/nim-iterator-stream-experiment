@@ -127,6 +127,8 @@ function main() {
     title="high[T](self: Slice[T]): T"><wbr />high<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#sliceStep%2CT"
     title="sliceStep[T](i: T): SliceStep[T]"><wbr />slice<wbr />Step<span class="attachedType">SliceStep</span></a></li>
+  <li><a class="reference" href="#signedSliceStep%2CT"
+    title="signedSliceStep[T: Ordinal](i: T): SignedSliceStep"><wbr />signed<wbr />Slice<wbr />Step<span class="attachedType">SignedSliceStep</span></a></li>
   <li><a class="reference" href="#sliceStepSigned%2CT"
     title="sliceStepSigned[T: Ordinal](i: T): SignedSliceStep"><wbr />slice<wbr />Step<wbr />Signed<span class="attachedType">SignedSliceStep</span></a></li>
   <li><a class="reference" href="#current%2Ctypedesc%5BSliceStep%5BT%5D%5D"
@@ -244,15 +246,31 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L39" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="sliceStepSigned,T"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#sliceStepSigned%2CT"><span class="Identifier">sliceStepSigned</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">i</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="slice.html#SignedSliceStep"><span class="Identifier">SignedSliceStep</span></a></pre></dt>
+<a id="signedSliceStep,T"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#signedSliceStep%2CT"><span class="Identifier">signedSliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">i</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="slice.html#SignedSliceStep"><span class="Identifier">SignedSliceStep</span></a></pre></dt>
 <dd>
 
-
+Since 0.2.0.
 &nbsp;&nbsp;<a
 href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L43"
 class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L43" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="sliceStepSigned,T"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#sliceStepSigned%2CT"><span class="Identifier">sliceStepSigned</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">i</span><span class="Other">:</span> <span class="Identifier">T</span><span class="Other">)</span><span class="Other">:</span> <a href="slice.html#SignedSliceStep"><span class="Identifier">SignedSliceStep</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">deprecated</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+  <div class="deprecation-message">
+    <b>Deprecated</b> 
+  </div>
+
+<p>Deprecated since 0.2.0.</p>
+<p>Use <tt class="docutils literal"><span class="pre">signedSliceStep</span></tt> instead. </p>
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L48"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L48" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="current,typedesc[SliceStep[T]]"></a>
@@ -261,9 +279,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L47"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L57"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L47" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L57" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="ordinals,Slice[T: Ordinal]"></a>
@@ -272,9 +290,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L52"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L62"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L52" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L62" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="items,Slice[T: Ordinal]"></a>
@@ -283,9 +301,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L64"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L74"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L64" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L74" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -303,7 +321,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-08-26 10:02:20 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-09-05 13:35:17 UTC</small>
       </div>
     </div>
   </div>
