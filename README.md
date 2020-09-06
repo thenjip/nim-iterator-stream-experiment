@@ -3,7 +3,9 @@
 [![Build Status](https://github.com/thenjip/nim-iterator-stream-experiment/workflows/Unit%20tests/badge.svg?branch=master)](https://github.com/thenjip/nim-iterator-stream-experiment/actions?query=workflow%3A"Unit+tests"+branch%3A"master")
 [![licence](https://img.shields.io/github/license/thenjip/nim-iterator-stream-experiment.svg)](https://raw.githubusercontent.com/thenjip/nim-iterator-stream-experiment/master/LICENSE)
 
-An attempt at providing a replacement for [first class iterators](https://nim-lang.org/docs/manual.html#iterators-and-the-for-statement-first-class-iterators) in [Nim](https://nim-lang.org/) with an API similar to Java 8 Stream.
+An attempt at working around [first class iterators](https://nim-lang.org/docs/manual.html#iterators-and-the-for-statement-first-class-iterators)
+in [Nim](https://nim-lang.org/) with an API similar to Java 8 Stream and aiming
+at maximum backend compatibility.
 
 ## Installation
 

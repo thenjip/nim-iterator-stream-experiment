@@ -1,7 +1,7 @@
 version = "0.1.0"
 author = "thenjip"
 description =
-  "An attempt at providing a replacement for closure iterators in Nim with an API similar to Java 8 Stream."
+  "An attempt at working around Nim's closure iterators striving for maximum backend compatibility."
 license = "MIT"
 
 requires "nim >= 1.2.0"
