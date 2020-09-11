@@ -1,4 +1,5 @@
 import nim_iterator_stream_experiment/[stream]
+import nim_iterator_stream_experiment/collections/[seqstack]
 import nim_iterator_stream_experiment/monad/[
   identity, io, lazymonadlaws, monadlaws, optional, predicate, reader
 ]
@@ -28,6 +29,7 @@ import nim_iterator_stream_experiment/utils/[
 
 
 export stream
+export seqstack
 export identity, io, lazymonadlaws, monadlaws, optional, predicate, reader
 export lens, lenslaws, plens
 export loop, streamsteps
