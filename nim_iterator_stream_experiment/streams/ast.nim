@@ -20,8 +20,16 @@ when not defined(js):
     slice(n.low(), n.high()).items()
 
 
+  func indexesReverse* (n: NimNode): Stream[NimNodeStep, NimNodeIndex] =
+    slice(n.low(), n.high()).itemsReverse()
+
+
   func children* (n: NimNode): Stream[NimNodeStep, NimNode] =
     n.indexes().map(i => n[i])
+
+
+  func childrenReverse* (n: NimNode): Stream[NimNodeStep, NimNode] =
+    n.indexesReverse().map(i => n[i])
 
 
   func pairs* (
