@@ -157,30 +157,31 @@ macro partial* (call: untyped{call}): untyped =
 
     **Examples:**
 
-    .. code-block:: nim
-      import std/[sugar]
+      .. code-block:: nim
 
-      proc plus [T](a, b: T): T =
-        a + b
+        import std/[sugar]
 
-      proc chain [A; B; C](f: A -> B; g: B -> C): A -> C =
-        (a: A) => a.f().g()
+        proc plus [T](a, b: T): T =
+          a + b
 
-      proc `not` [T](predicate: T -> bool): T -> bool =
-        predicate.chain(partial(not ?_))
+        proc chain [A; B; C](f: A -> B; g: B -> C): A -> C =
+          (a: A) => a.f().g()
 
-      let
-        f1 = partial(0 + ?:int)
-        f2 = partial(5.plus(?:int))
-        f3 = partial(plus(?:uint, 6))
-        f4 = partial(?:string & ?:char)
-        f5 = not partial(?:int < 0)
+        proc `not` [T](predicate: T -> bool): T -> bool =
+          predicate.chain(partial(not ?_))
 
-      doAssert(f1(1) == 1)
-      doAssert(f2(10) == 15)
-      doAssert(f3(154u) == 160u)
-      doAssert(f4("abc", 'd') == "abcd")
-      doAssert(f5(1))
+        let
+          f1 = partial(0 + ?:int)
+          f2 = partial(5.plus(?:int))
+          f3 = partial(plus(?:uint, 6))
+          f4 = partial(?:string & ?:char)
+          f5 = not partial(?:int < 0)
+
+        doAssert(f1(1) == 1)
+        doAssert(f2(10) == 15)
+        doAssert(f3(154u) == 160u)
+        doAssert(f4("abc", 'd') == "abcd")
+        doAssert(f5(1))
   ]##
   let
     callExpr = call.astToCallExpr()
