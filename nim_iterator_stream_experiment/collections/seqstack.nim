@@ -67,10 +67,12 @@ func deleteLast [T](self: SeqStack[T]): SeqStack[T] =
   self.modify(self.typeof().list(), deleteLast)
 
 
-func pop* [T](self: SeqStack[T]): tuple[stack: SeqStack[T]; item: Optional[T]] =
+func pop* [T](
+  self: SeqStack[T]
+): tuple[stack: SeqStack[T]; popped: Optional[T]] =
   let top = self.top()
 
-  (stack: top.ifSome(_ => self.deleteLast(), () => self), item: top)
+  (stack: top.ifSome(_ => self.deleteLast(), () => self), popped: top)
 
 
 
@@ -128,7 +130,7 @@ when isMainModule:
           let
             self = seqStack[T](@[])
             actual = self.pop()
-            expected = (stack: self, item: T.toNone())
+            expected = (stack: self, popped: T.toNone())
 
           check:
             actual == expected
@@ -148,8 +150,10 @@ when isMainModule:
             actual =
               self
                 .pop()
-                .apply(pair => (len: pair.stack.list.len(), item: pair.item))
-            expected = (len: self.len() - 1, item: self.top())
+                .apply(
+                  pair => (len: pair.stack.list.len(), popped: pair.popped)
+                )
+            expected = (len: self.len() - 1, popped: self.top())
 
           check:
             actual == expected
