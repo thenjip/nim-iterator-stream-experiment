@@ -1,6 +1,9 @@
 when not defined(js):
   import slice
   import ../stream
+  import ../collections/[seqstack]
+  import ../monad/[identity, optional]
+  import ../optics/[lens]
   import ../utils/[nimnodes]
 
   import std/[macros, sugar]
@@ -13,6 +16,10 @@ when not defined(js):
 
   type
     NimNodeStep* = SliceStep[NimNodeIndex]
+
+    PreOrderStep* = object
+      stack: SeqStack[NimNode]
+      current: Optional[NimNode]
 
 
 
@@ -39,8 +46,63 @@ when not defined(js):
 
 
 
+  func preOrderStep* (
+    stack: SeqStack[NimNode];
+    current: Optional[NimNode]
+  ): PreOrderStep =
+    PreOrderStep(stack: stack, current: current)
+
+
+
+  func current (X: typedesc[PreOrderStep]): Lens[X, NimNode] =
+    lens(
+      (self: X) => self.current,
+      (self: X, current: Optional[NimNode]) => preOrderStep(self.stack, current)
+    )
+
+
+  func stack (X: typedesc[PreOrderStep]): Lens[X, SeqStack[NimNode]] =
+    lens(
+      (self: X) => self.stack,
+      (self: X, stack: SeqStack[NimNode]) => preOrderStep(stack, self.current)
+    )
+
+
+
+  func initPreOrder* (root: NimNode): PreOrderStep =
+    preOrderStep(seqStack[NimNode](), root.toSome())
+
+
+  func hasMore* (self: PreOrderStep): bool =
+    self.current.isSome()
+
+
+  func generate* (self: PreOrderStep): NimNode {.
+    raises: [Exception, UnboxError]
+  .} =
+    self.current.unbox()
+
+
+  func next* (self: PreOrderStep): PreOrderStep =
+    self
+      .generate()
+      .childrenReverse()
+      .reduce(push[NimNode], self.stack)
+      .pop()
+      .apply(popResult => preOrderStep(popResult.stack, popResult.popped))
+
+
+
+  func traversePreOrder* (root: NimNode): Stream[PreOrderStep, NimNode] =
+    hasMore
+      .looped(next)
+      .generating(generate)
+      .startingAt(() => root.initPreOrder())
+
+
+
   when isMainModule:
-    import ../utils/[call]
+    import ../utils/[call, convert, ignore, partialprocs, unit]
 
     import std/[os, unittest]
 
@@ -95,6 +157,50 @@ when not defined(js):
             doTest(newProc())
           ]:
             t.call()
+
+
+
+        test """"root.traversePreOrder()" should yield itself and its descendants in depth first pre-order.""":
+          # "Seq[NimNode]" is not a valid type for "const" symbols.
+
+          func collectPreOrder (root: NimNode): seq[NimNode] =
+            var stack = @[root]
+            result = @[]
+
+            while stack.len() > 0:
+              let current = stack.pop()
+
+              result.add(current)
+              for i in current.low() .. current.high():
+                let j = current.high() - i
+
+                stack.add(current[j])
+
+
+          proc doTest (root: NimNode) =
+            let
+              actual =
+                root
+                  .traversePreOrder()
+                  .reduce(
+                    partial(?:seq[NimNode] & ?:NimNode),
+                    seq[NimNode](@[])
+                  )
+              expected = root.collectPreOrder()
+
+            doAssert(actual == expected)
+
+
+
+          static:
+            doTest(newEmptyNode())
+            doTest("abc".newLit())
+            doTest("doTest".newCall(0.newLit(), 0.0.newLit()))
+            doTest(
+              quote do:
+                var a = "abc"
+                let b = a.f(a & a, g(a))
+            )
 
 
 
