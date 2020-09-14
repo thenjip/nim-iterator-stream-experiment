@@ -34,7 +34,6 @@ jobs:
 
 
   examples:
-    needs: unit_tests
     strategy:
       fail-fast: false
       matrix:
