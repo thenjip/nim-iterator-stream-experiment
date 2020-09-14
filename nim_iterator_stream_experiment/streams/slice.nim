@@ -72,6 +72,7 @@ func ordinals* [T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T] =
 
 
 func ordinalsReverse* [T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T] =
+  ## Since 0.3.0.
   s.ordinals().map(i => s.high() - i)
 
 
@@ -89,6 +90,7 @@ func items* [T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T] =
 
 
 func itemsReverse* [T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T] =
+  ## Since 0.3.0.
   s.items().map(i => s.high() - i)
 
 
