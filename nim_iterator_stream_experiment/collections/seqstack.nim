@@ -18,6 +18,7 @@ type
   List [T] = seq[T]
 
   SeqStack* [T] = object
+    ## Since 0.3.0.
     list: List[T]
 
 
@@ -36,16 +37,25 @@ func deleteLast [T](self: List[T]): seq[T] =
 
 
 func seqStack* [T](s: seq[T]): SeqStack[T] =
+  ## Since 0.3.0.
   SeqStack[T](list: s)
 
 
 func seqStack* (T: typedesc): SeqStack[T] =
-  ## Returns an empty stack.
+  ##[
+    Returns an empty stack.
+
+    Since 0.3.0.
+  ]##
   seqStack[T](@[])
 
 
 func seqStack* [T](): SeqStack[T] =
-  ## Returns an empty stack.
+  ##[
+    Returns an empty stack.
+
+    Since 0.3.0.
+  ]##
   T.seqStack()
 
 
@@ -56,21 +66,31 @@ func list [T](X: typedesc[SeqStack[T]]): Lens[X, List[T]] =
 
 
 func len* [T](self: SeqStack[T]): Natural =
+  ## Since 0.3.0.
   self.list.len()
 
 
 func isEmpty* [T](self: SeqStack[T]): bool =
+  ## Since 0.3.0.
   self.list.isEmpty()
 
 
 func top* [T](self: SeqStack[T]): Optional[T] =
-  ## If the stack is empty, an empty `Optional` will be returned.
+  ##[
+    If the stack is empty, an empty `Optional` will be returned.
+
+    Since 0.3.0.
+  ]##
   self.list.tail()
 
 
 
 func push* [T](self: SeqStack[T]; item: T): SeqStack[T] =
-  ## Returns the updated stack.
+  ##[
+    Returns the updated stack.
+
+    Since 0.3.0.
+  ]##
   self.modify(self.typeof().list(), partial(?_ & item))
 
 
@@ -82,7 +102,11 @@ func deleteLast [T](self: SeqStack[T]): SeqStack[T] =
 func pop* [T](
   self: SeqStack[T]
 ): tuple[stack: SeqStack[T]; popped: Optional[T]] =
-  ## If the stack is empty, ``result.popped`` will be an empty `Optional`.
+  ##[
+    If the stack is empty, ``result.popped`` will be an empty `Optional`.
+
+    Since 0.3.0.
+  ]##
   let top = self.top()
 
   (stack: top.ifSome(_ => self.deleteLast(), () => self), popped: top)
