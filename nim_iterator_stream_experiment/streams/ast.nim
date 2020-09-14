@@ -94,6 +94,7 @@ when not defined(js):
 
 
   func traversePreOrder* (root: NimNode): Stream[PreOrderStep, NimNode] =
+    ## Traverse the tree starting at `root` in pre-order.
     hasMore
       .looped(next)
       .generating(generate)
