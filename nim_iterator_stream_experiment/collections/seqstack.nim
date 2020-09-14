@@ -1,3 +1,11 @@
+##[
+  This module provides a stack implementation based on Nim's `seq[T]`.
+
+  This API is purely functional, free of side effects.
+]##
+
+
+
 import ../monad/[optional]
 import ../optics/[lens]
 import ../utils/[ifelse, partialprocs]
@@ -32,10 +40,12 @@ func seqStack* [T](s: seq[T]): SeqStack[T] =
 
 
 func seqStack* (T: typedesc): SeqStack[T] =
+  ## Returns an empty stack.
   seqStack[T](@[])
 
 
 func seqStack* [T](): SeqStack[T] =
+  ## Returns an empty stack.
   T.seqStack()
 
 
@@ -54,11 +64,13 @@ func isEmpty* [T](self: SeqStack[T]): bool =
 
 
 func top* [T](self: SeqStack[T]): Optional[T] =
+  ## If the stack is empty, an empty `Optional` will be returned.
   self.list.tail()
 
 
 
 func push* [T](self: SeqStack[T]; item: T): SeqStack[T] =
+  ## Returns the updated stack.
   self.modify(self.typeof().list(), partial(?_ & item))
 
 
@@ -70,6 +82,7 @@ func deleteLast [T](self: SeqStack[T]): SeqStack[T] =
 func pop* [T](
   self: SeqStack[T]
 ): tuple[stack: SeqStack[T]; popped: Optional[T]] =
+  ## If the stack is empty, ``result.popped`` will be an empty `Optional`.
   let top = self.top()
 
   (stack: top.ifSome(_ => self.deleteLast(), () => self), popped: top)
