@@ -135,8 +135,12 @@ function main() {
     title="current[T](S: typedesc[SliceStep[T]]): Lens[S, T]"><wbr />current<span class="attachedType">SliceStep</span></a></li>
   <li><a class="reference" href="#ordinals%2CSlice%5BT%3A+Ordinal%5D"
     title="ordinals[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]"><wbr />ordinals<span class="attachedType">SignedSliceStep</span></a></li>
+  <li><a class="reference" href="#ordinalsReverse%2CSlice%5BT%3A+Ordinal%5D"
+    title="ordinalsReverse[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]"><wbr />ordinals<wbr />Reverse<span class="attachedType">SignedSliceStep</span></a></li>
   <li><a class="reference" href="#items%2CSlice%5BT%3A+Ordinal%5D"
     title="items[T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T]"><wbr />items<span class="attachedType">SliceStep</span></a></li>
+  <li><a class="reference" href="#itemsReverse%2CSlice%5BT%3A+Ordinal%5D"
+    title="itemsReverse[T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T]"><wbr />items<wbr />Reverse<span class="attachedType">SliceStep</span></a></li>
 
   </ul>
 </li>
@@ -295,8 +299,8 @@ class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L62" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
-<a id="items,Slice[T: Ordinal]"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#items%2CSlice%5BT%3A+Ordinal%5D"><span class="Identifier">items</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<a id="ordinalsReverse,Slice[T: Ordinal]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#ordinalsReverse%2CSlice%5BT%3A+Ordinal%5D"><span class="Identifier">ordinalsReverse</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="slice.html#SignedSliceStep"><span class="Identifier">SignedSliceStep</span></a><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
 <dd>
 
 
@@ -304,6 +308,28 @@ class="link-seesrc" target="_blank">Source</a>
 href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L74"
 class="link-seesrc" target="_blank">Source</a>
 <a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L74" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="items,Slice[T: Ordinal]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#items%2CSlice%5BT%3A+Ordinal%5D"><span class="Identifier">items</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L79"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L79" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="itemsReverse,Slice[T: Ordinal]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#itemsReverse%2CSlice%5BT%3A+Ordinal%5D"><span class="Identifier">itemsReverse</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">:</span> <span class="Identifier">Ordinal</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">s</span><span class="Other">:</span> <span class="Identifier">Slice</span><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="slice.html#SliceStep"><span class="Identifier">SliceStep</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">T</span><span class="Other">]</span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/slice.nim#L91"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/slice.nim#L91" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -321,7 +347,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-09-13 16:44:07 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-09-14 10:06:34 UTC</small>
       </div>
     </div>
   </div>

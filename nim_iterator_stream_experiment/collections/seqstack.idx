@@ -1,0 +1,9 @@
+SeqStack	nim_iterator_stream_experiment/collections/seqstack.html#SeqStack	seqstack: SeqStack	
+seqStack	nim_iterator_stream_experiment/collections/seqstack.html#seqStack,seq[T]	seqstack: seqStack[T](s: seq[T]): SeqStack[T]	
+seqStack	nim_iterator_stream_experiment/collections/seqstack.html#seqStack,typedesc	seqstack: seqStack(T: typedesc): SeqStack[T]	
+seqStack	nim_iterator_stream_experiment/collections/seqstack.html#seqStack_2	seqstack: seqStack[T](): SeqStack[T]	
+len	nim_iterator_stream_experiment/collections/seqstack.html#len,SeqStack[T]	seqstack: len[T](self: SeqStack[T]): Natural	
+isEmpty	nim_iterator_stream_experiment/collections/seqstack.html#isEmpty,SeqStack[T]	seqstack: isEmpty[T](self: SeqStack[T]): bool	
+top	nim_iterator_stream_experiment/collections/seqstack.html#top,SeqStack[T]	seqstack: top[T](self: SeqStack[T]): Optional[T]	
+push	nim_iterator_stream_experiment/collections/seqstack.html#push,SeqStack[T],T	seqstack: push[T](self: SeqStack[T]; item: T): SeqStack[T]	
+pop	nim_iterator_stream_experiment/collections/seqstack.html#pop,SeqStack[T]	seqstack: pop[T](self: SeqStack[T]): tuple[stack: SeqStack[T], popped: Optional[T]]	

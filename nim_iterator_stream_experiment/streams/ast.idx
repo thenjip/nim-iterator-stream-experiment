@@ -1,4 +1,13 @@
 NimNodeStep	nim_iterator_stream_experiment/streams/ast.html#NimNodeStep	ast: NimNodeStep	
+PreOrderStep	nim_iterator_stream_experiment/streams/ast.html#PreOrderStep	ast: PreOrderStep	
 indexes	nim_iterator_stream_experiment/streams/ast.html#indexes,NimNode	ast: indexes(n: NimNode): Stream[NimNodeStep, NimNodeIndex]	
+indexesReverse	nim_iterator_stream_experiment/streams/ast.html#indexesReverse,NimNode	ast: indexesReverse(n: NimNode): Stream[NimNodeStep, NimNodeIndex]	
 children	nim_iterator_stream_experiment/streams/ast.html#children,NimNode	ast: children(n: NimNode): Stream[NimNodeStep, NimNode]	
+childrenReverse	nim_iterator_stream_experiment/streams/ast.html#childrenReverse,NimNode	ast: childrenReverse(n: NimNode): Stream[NimNodeStep, NimNode]	
 pairs	nim_iterator_stream_experiment/streams/ast.html#pairs,NimNode	ast: pairs(n: NimNode): Stream[NimNodeStep, tuple[index: NimNodeIndex, node: NimNode]]	
+preOrderStep	nim_iterator_stream_experiment/streams/ast.html#preOrderStep,SeqStack[NimNode],Optional[NimNode]	ast: preOrderStep(stack: SeqStack[NimNode]; current: Optional[NimNode]): PreOrderStep	
+initPreOrder	nim_iterator_stream_experiment/streams/ast.html#initPreOrder,NimNode	ast: initPreOrder(root: NimNode): PreOrderStep	
+hasMore	nim_iterator_stream_experiment/streams/ast.html#hasMore,PreOrderStep	ast: hasMore(self: PreOrderStep): bool	
+generate	nim_iterator_stream_experiment/streams/ast.html#generate,PreOrderStep	ast: generate(self: PreOrderStep): NimNode	
+next	nim_iterator_stream_experiment/streams/ast.html#next,PreOrderStep	ast: next(self: PreOrderStep): PreOrderStep	
+traversePreOrder	nim_iterator_stream_experiment/streams/ast.html#traversePreOrder,NimNode	ast: traversePreOrder(root: NimNode): Stream[PreOrderStep, NimNode]	

@@ -9,4 +9,6 @@ signedSliceStep	nim_iterator_stream_experiment/streams/slice.html#signedSliceSte
 sliceStepSigned	nim_iterator_stream_experiment/streams/slice.html#sliceStepSigned,T	slice: sliceStepSigned[T: Ordinal](i: T): SignedSliceStep	
 current	nim_iterator_stream_experiment/streams/slice.html#current,typedesc[SliceStep[T]]	slice: current[T](S: typedesc[SliceStep[T]]): Lens[S, T]	
 ordinals	nim_iterator_stream_experiment/streams/slice.html#ordinals,Slice[T: Ordinal]	slice: ordinals[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]	
+ordinalsReverse	nim_iterator_stream_experiment/streams/slice.html#ordinalsReverse,Slice[T: Ordinal]	slice: ordinalsReverse[T: Ordinal](s: Slice[T]): Stream[SignedSliceStep, T]	
 items	nim_iterator_stream_experiment/streams/slice.html#items,Slice[T: Ordinal]	slice: items[T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T]	
+itemsReverse	nim_iterator_stream_experiment/streams/slice.html#itemsReverse,Slice[T: Ordinal]	slice: itemsReverse[T: Ordinal](s: Slice[T]): Stream[SliceStep[T], T]	

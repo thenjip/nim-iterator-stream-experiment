@@ -108,6 +108,10 @@ function main() {
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#NimNodeStep"
     title="NimNodeStep = SliceStep[NimNodeIndex]"><wbr />Nim<wbr />Node<wbr />Step<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#PreOrderStep"
+    title="PreOrderStep = object
+  stack: SeqStack[NimNode]
+  current: Optional[NimNode]"><wbr />Pre<wbr />Order<wbr />Step<span class="attachedType"></span></a></li>
 
   </ul>
 </li>
@@ -116,10 +120,26 @@ function main() {
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#indexes%2CNimNode"
     title="indexes(n: NimNode): Stream[NimNodeStep, NimNodeIndex]"><wbr />indexes<span class="attachedType">NimNodeStep</span></a></li>
+  <li><a class="reference" href="#indexesReverse%2CNimNode"
+    title="indexesReverse(n: NimNode): Stream[NimNodeStep, NimNodeIndex]"><wbr />indexes<wbr />Reverse<span class="attachedType">NimNodeStep</span></a></li>
   <li><a class="reference" href="#children%2CNimNode"
     title="children(n: NimNode): Stream[NimNodeStep, NimNode]"><wbr />children<span class="attachedType">NimNodeStep</span></a></li>
+  <li><a class="reference" href="#childrenReverse%2CNimNode"
+    title="childrenReverse(n: NimNode): Stream[NimNodeStep, NimNode]"><wbr />children<wbr />Reverse<span class="attachedType">NimNodeStep</span></a></li>
   <li><a class="reference" href="#pairs%2CNimNode"
     title="pairs(n: NimNode): Stream[NimNodeStep, tuple[index: NimNodeIndex, node: NimNode]]"><wbr />pairs<span class="attachedType">NimNodeStep</span></a></li>
+  <li><a class="reference" href="#preOrderStep%2CSeqStack%5BNimNode%5D%2COptional%5BNimNode%5D"
+    title="preOrderStep(stack: SeqStack[NimNode]; current: Optional[NimNode]): PreOrderStep"><wbr />pre<wbr />Order<wbr />Step<span class="attachedType">PreOrderStep</span></a></li>
+  <li><a class="reference" href="#initPreOrder%2CNimNode"
+    title="initPreOrder(root: NimNode): PreOrderStep"><wbr />init<wbr />Pre<wbr />Order<span class="attachedType">PreOrderStep</span></a></li>
+  <li><a class="reference" href="#hasMore%2CPreOrderStep"
+    title="hasMore(self: PreOrderStep): bool"><wbr />has<wbr />More<span class="attachedType">PreOrderStep</span></a></li>
+  <li><a class="reference" href="#generate%2CPreOrderStep"
+    title="generate(self: PreOrderStep): NimNode"><wbr />generate<span class="attachedType">PreOrderStep</span></a></li>
+  <li><a class="reference" href="#next%2CPreOrderStep"
+    title="next(self: PreOrderStep): PreOrderStep"><wbr />next<span class="attachedType">PreOrderStep</span></a></li>
+  <li><a class="reference" href="#traversePreOrder%2CNimNode"
+    title="traversePreOrder(root: NimNode): Stream[PreOrderStep, NimNode]"><wbr />traverse<wbr />Pre<wbr />Order<span class="attachedType">PreOrderStep</span></a></li>
 
   </ul>
 </li>
@@ -140,7 +160,7 @@ function main() {
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="slice.html">slice</a>, <a class="reference external" href="../stream.html">../stream</a>, <a class="reference external" href="../utils/nimnodes.html">../utils/nimnodes</a>
+<a class="reference external" href="slice.html">slice</a>, <a class="reference external" href="../stream.html">../stream</a>, <a class="reference external" href="../collections/seqstack.html">../collections/seqstack</a>, <a class="reference external" href="../monad/identity.html">../monad/identity</a>, <a class="reference external" href="../monad/optional.html">../monad/optional</a>, <a class="reference external" href="../optics/lens.html">../optics/lens</a>, <a class="reference external" href="../utils/nimnodes.html">../utils/nimnodes</a>
 </dl></div>
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
@@ -151,9 +171,23 @@ function main() {
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L15"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L18"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L15" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L18" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="PreOrderStep"></a>
+<dt><pre><a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">stack</span><span class="Other">:</span> <a href="../collections/seqstack.html#SeqStack"><span class="Identifier">SeqStack</span></a><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span>
+  <span class="Identifier">current</span><span class="Other">:</span> <a href="../monad/optional.html#Optional"><span class="Identifier">Optional</span></a><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span>
+</pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L20"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L20" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -167,9 +201,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L19"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L26"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L19" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L26" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="indexesReverse,NimNode"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#indexesReverse%2CNimNode"><span class="Identifier">indexesReverse</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="ast.html#NimNodeStep"><span class="Identifier">NimNodeStep</span></a><span class="Other">,</span> <a href="../utils/nimnodes.html#NimNodeIndex"><span class="Identifier">NimNodeIndex</span></a><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L30"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L30" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="children,NimNode"></a>
@@ -179,9 +225,21 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L23"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L34"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L23" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L34" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="childrenReverse,NimNode"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#childrenReverse%2CNimNode"><span class="Identifier">childrenReverse</span></a><span class="Other">(</span><span class="Identifier">n</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="ast.html#NimNodeStep"><span class="Identifier">NimNodeStep</span></a><span class="Other">,</span> <span class="Identifier">NimNode</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L38"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L38" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="pairs,NimNode"></a>
@@ -192,9 +250,79 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L27"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L42"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L27" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L42" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="preOrderStep,SeqStack[NimNode],Optional[NimNode]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#preOrderStep%2CSeqStack%5BNimNode%5D%2COptional%5BNimNode%5D"><span class="Identifier">preOrderStep</span></a><span class="Other">(</span><span class="Identifier">stack</span><span class="Other">:</span> <a href="../collections/seqstack.html#SeqStack"><span class="Identifier">SeqStack</span></a><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">current</span><span class="Other">:</span> <a href="../monad/optional.html#Optional"><span class="Identifier">Optional</span></a><span class="Other">[</span><span class="Identifier">NimNode</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L49"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L49" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="initPreOrder,NimNode"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#initPreOrder%2CNimNode"><span class="Identifier">initPreOrder</span></a><span class="Other">(</span><span class="Identifier">root</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L72"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L72" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="hasMore,PreOrderStep"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#hasMore%2CPreOrderStep"><span class="Identifier">hasMore</span></a><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L76"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L76" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="generate,PreOrderStep"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#generate%2CPreOrderStep"><span class="Identifier">generate</span></a><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">NimNode</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <a href="../monad/optional.html#UnboxError"><span class="Identifier">UnboxError</span></a><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L80"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L80" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="next,PreOrderStep"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#next%2CPreOrderStep"><span class="Identifier">next</span></a><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a><span class="Other">)</span><span class="Other">:</span> <a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma"><span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">UnboxError</span><span class="Other">]</span><span class="Other">,</span>
+    <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L86"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L86" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="traversePreOrder,NimNode"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#traversePreOrder%2CNimNode"><span class="Identifier">traversePreOrder</span></a><span class="Other">(</span><span class="Identifier">root</span><span class="Other">:</span> <span class="Identifier">NimNode</span><span class="Other">)</span><span class="Other">:</span> <a href="../stream.html#Stream"><span class="Identifier">Stream</span></a><span class="Other">[</span><a href="ast.html#PreOrderStep"><span class="Identifier">PreOrderStep</span></a><span class="Other">,</span> <span class="Identifier">NimNode</span><span class="Other">]</span> <span><span class="Other">{</span><span class="Other pragmadots">...</span><span class="Other">}</span></span><span class="pragmawrap"><span class="Other">{.</span><span class="pragma">
+    <span class="Identifier">raises</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">Exception</span><span class="Other">,</span> <span class="Identifier">UnboxError</span><span class="Other">]</span><span class="Other">,</span> <span class="Identifier">tags</span><span class="Other">:</span> <span class="Other">[</span><span class="Identifier">RootEffect</span><span class="Other">]</span></span><span class="Other">.}</span></span></pre></dt>
+<dd>
+
+Traverse the tree starting at <tt class="docutils literal"><span class="pre">root</span></tt> in pre-order.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/streams/ast.nim#L96"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/streams/ast.nim#L96" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -212,7 +340,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-09-13 16:44:07 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-09-14 10:06:34 UTC</small>
       </div>
     </div>
   </div>
