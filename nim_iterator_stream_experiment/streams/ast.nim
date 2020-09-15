@@ -18,6 +18,7 @@ when not defined(js):
     NimNodeStep* = SliceStep[NimNodeIndex]
 
     PreOrderStep* = object
+      ## Since 0.3.0.
       stack: SeqStack[NimNode]
       current: Optional[NimNode]
 
@@ -28,6 +29,7 @@ when not defined(js):
 
 
   func indexesReverse* (n: NimNode): Stream[NimNodeStep, NimNodeIndex] =
+    ## Since 0.3.0.
     slice(n.low(), n.high()).itemsReverse()
 
 
@@ -36,6 +38,7 @@ when not defined(js):
 
 
   func childrenReverse* (n: NimNode): Stream[NimNodeStep, NimNode] =
+    ## Since 0.3.0.
     n.indexesReverse().map(i => n[i])
 
 
@@ -50,6 +53,7 @@ when not defined(js):
     stack: SeqStack[NimNode];
     current: Optional[NimNode]
   ): PreOrderStep =
+    ## Since 0.3.0.
     PreOrderStep(stack: stack, current: current)
 
 
@@ -70,20 +74,24 @@ when not defined(js):
 
 
   func initPreOrder* (root: NimNode): PreOrderStep =
+    ## Since 0.3.0.
     preOrderStep(seqStack[NimNode](), root.toSome())
 
 
   func hasMore* (self: PreOrderStep): bool =
+    ## Since 0.3.0.
     self.current.isSome()
 
 
   func generate* (self: PreOrderStep): NimNode {.
     raises: [Exception, UnboxError]
   .} =
+    ## Since 0.3.0.
     self.current.unbox()
 
 
   func next* (self: PreOrderStep): PreOrderStep =
+    ## Since 0.3.0.
     self
       .generate()
       .childrenReverse()
@@ -94,7 +102,11 @@ when not defined(js):
 
 
   func traversePreOrder* (root: NimNode): Stream[PreOrderStep, NimNode] =
-    ## Traverse the tree starting at `root` in pre-order.
+    ##[
+      Traverse the tree starting at `root` in pre-order.
+
+      Since 0.3.0.
+    ]##
     hasMore
       .looped(next)
       .generating(generate)
