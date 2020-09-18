@@ -63,3 +63,18 @@ proc greaterOrEq* [T](x, y: T): bool =
 
 proc greater* [T](x, y: T): bool =
   x > y
+
+
+
+when isMainModule:
+  import std/[os, unittest]
+
+
+
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      discard
+
+
+
+  main()
