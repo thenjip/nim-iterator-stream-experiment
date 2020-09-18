@@ -217,79 +217,84 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"partial(a + ?:N)" should return a lambda expression equivalent to "(b: N) => a + b".""":
-      proc doTest [N: SomeNumber](a, b: N) =
-        let
-          actual = partial(a + ?:N)(b)
-          expected = a + b
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"partial(a + ?:N)" should return a lambda expression equivalent to "(b: N) => a + b".""":
+        proc doTest [N: SomeNumber](a, b: N) =
+          let
+            actual = partial(a + ?:N)(b)
+            expected = a + b
 
-        check:
-          actual == expected
-
-
-      doTest(1, 9)
-      doTest(11563.7, -5.568)
+          check:
+            actual == expected
 
 
-
-    test """"partial($ ?:T)" should return a lambda expression equivalent to "(a: T) => $a".""":
-      proc doTest [T](a: T) =
-        let
-          actual = partial($ ?:T)(a)
-          expected = $a
-
-        check:
-          actual == expected
-
-
-      doTest('a')
-      doTest("a")
-      doTest(-8)
-      doTest(Nan)
-      doTest({0: @[0, 1, 2]})
+        doTest(1, 9)
+        doTest(11563.7, -5.568)
 
 
 
-    test """"partial(f(a, ?:B))" should return a lambda expression equivalent to "(b: B) => f(a, b)".""":
-      proc doTest [A; B; R](f: (A, B) -> R; a: A; b: B) =
-        let
-          actual = partial(f(a, ?:B))(b)
-          expected = f(a, b)
+      test """"partial($ ?:T)" should return a lambda expression equivalent to "(a: T) => $a".""":
+        proc doTest [T](a: T) =
+          let
+            actual = partial($ ?:T)(a)
+            expected = $a
 
-        check:
-          actual == expected
-
-
-      doTest(plus[int, int, int], 0, 1)
-      doTest(plus[uint32, uint32, uint32], 5646532, 11)
-      doTest((a: string, b: string) => a & b, "a", "b")
+          check:
+            actual == expected
 
 
-
-    test """"partial(f(?:A, b, ?:C))" should return a lambda expression equivalent to "(a: A, c: C) => f(a, b, c)".""":
-      proc doTest [A; B; C; R](f: (A, B, C) -> R; a: A; b: B; c: C) =
-        let
-          actual = partial(f(?:A, b, ?:C))(a, c)
-          expected = f(a, b, c)
-
-        check:
-          actual == expected
-
-
-      doTest(sum[uint16], 3, 5, 7)
-      doTest(ternaryProc, 'a', 1, "")
+        doTest('a')
+        doTest("a")
+        doTest(-8)
+        doTest(Nan)
+        doTest({0: @[0, 1, 2]})
 
 
 
-    test """"f.chain(partial(g(?b, c)))" should be equivalent to "f.chain(b => b.g(c))(a)".""":
-      proc doTest [A; B; C; D](f: A -> B; g: (B, C) -> D; a: A; c: C) =
-        let
-          actual = f.chain(partial(g(?b, c)))(a)
-          expected = f.chain(b => b.g(c))(a)
+      test """"partial(f(a, ?:B))" should return a lambda expression equivalent to "(b: B) => f(a, b)".""":
+        proc doTest [A; B; R](f: (A, B) -> R; a: A; b: B) =
+          let
+            actual = partial(f(a, ?:B))(b)
+            expected = f(a, b)
 
-        check:
-          actual == expected
+          check:
+            actual == expected
 
 
-      doTest((a: int) => $a, (b: string, c: Positive) => b & $c, 1, 1)
+        doTest(plus[int, int, int], 0, 1)
+        doTest(plus[uint32, uint32, uint32], 5646532, 11)
+        doTest((a: string, b: string) => a & b, "a", "b")
+
+
+
+      test """"partial(f(?:A, b, ?:C))" should return a lambda expression equivalent to "(a: A, c: C) => f(a, b, c)".""":
+        proc doTest [A; B; C; R](f: (A, B, C) -> R; a: A; b: B; c: C) =
+          let
+            actual = partial(f(?:A, b, ?:C))(a, c)
+            expected = f(a, b, c)
+
+          check:
+            actual == expected
+
+
+        doTest(sum[uint16], 3, 5, 7)
+        doTest(ternaryProc, 'a', 1, "")
+
+
+
+      test """"f.chain(partial(g(?b, c)))" should be equivalent to "f.chain(b => b.g(c))(a)".""":
+        proc doTest [A; B; C; D](f: A -> B; g: (B, C) -> D; a: A; c: C) =
+          let
+            actual = f.chain(partial(g(?b, c)))(a)
+            expected = f.chain(b => b.g(c))(a)
+
+          check:
+            actual == expected
+
+
+        doTest((a: int) => $a, (b: string, c: Positive) => b & $c, 1, 1)
+
+
+
+  main()

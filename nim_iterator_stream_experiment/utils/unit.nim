@@ -34,17 +34,22 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"Unit.default()" should be equal to "unit()".""":
-      proc doTest () =
-        let
-          actual1 = Unit.default()
-          actual2 = default[Unit]()
-          expected = unit()
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"Unit.default()" should be equal to "unit()".""":
+        proc doTest () =
+          let
+            actual1 = Unit.default()
+            actual2 = default[Unit]()
+            expected = unit()
 
-        check:
-          actual1 == expected
-          actual2 == expected
+          check:
+            actual1 == expected
+            actual2 == expected
 
 
-      doTest()
+        doTest()
+
+
+
+  main()

@@ -23,5 +23,10 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    discard
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      discard
+
+
+
+  main()

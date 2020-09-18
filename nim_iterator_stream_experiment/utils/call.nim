@@ -39,30 +39,35 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"f.call(arg)" should produce "f(arg)".""":
-      proc doTest [A; B](f: A -> B; arg: A) =
-        let
-          actual = f.call(arg)
-          expected = f(arg)
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"f.call(arg)" should produce "f(arg)".""":
+        proc doTest [A; B](f: A -> B; arg: A) =
+          let
+            actual = f.call(arg)
+            expected = f(arg)
 
-        check:
-          actual == expected
-
-
-      doTest((c: char) => c.byte, 'a')
-      doTest((s: seq[string]) => s.len(), @["a", "b"])
+          check:
+            actual == expected
 
 
-
-    test """"f.call(arg1, arg2)" should produce "f(arg1, arg2)".""":
-      proc doTest [A; B; C](f: (A, B) -> C; arg1: A; arg2: B) =
-        let
-          actual = f.call(arg1, arg2)
-          expected = f(arg1, arg2)
-
-        check:
-          actual == expected
+        doTest((c: char) => c.byte, 'a')
+        doTest((s: seq[string]) => s.len(), @["a", "b"])
 
 
-      doTest(plus[int], 1, 2)
+
+      test """"f.call(arg1, arg2)" should produce "f(arg1, arg2)".""":
+        proc doTest [A; B; C](f: (A, B) -> C; arg1: A; arg2: B) =
+          let
+            actual = f.call(arg1, arg2)
+            expected = f(arg1, arg2)
+
+          check:
+            actual == expected
+
+
+        doTest(plus[int], 1, 2)
+
+
+
+  main()

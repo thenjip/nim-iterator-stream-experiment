@@ -18,15 +18,20 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"expr.lambda().call().typeof()" should be "expr.typeof()".""":
-      template doTest [T](expr: T): proc () {.nimcall.} =
-        (
-          proc () =
-            check:
-              expr.lambda().call().typeof().`is`(T)
-        )
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"expr.lambda().call().typeof()" should be "expr.typeof()".""":
+        template doTest [T](expr: T): proc () =
+          (
+            proc () =
+              check:
+                expr.lambda().call().typeof().`is`(T)
+          )
 
 
-      for t in [doTest(1), doTest("abc"), doTest(new char)]:
-        t.call()
+        for t in [doTest(1), doTest("abc"), doTest(new char)]:
+          t.call()
+
+
+
+  main()

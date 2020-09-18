@@ -24,25 +24,30 @@ when isMainModule:
 
 
 
-  suite currentSourcePath().splitFile().name:
-    test """"condition.ifElse(then, `else`)" should enter only 1 of the 2 paths.""":
-      proc doTest [T](condition: bool; then, `else`: () -> T) =
-        const expected = 1.Natural
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      test """"condition.ifElse(then, `else`)" should enter only 1 of the 2 paths.""":
+        proc doTest [T](condition: bool; then, `else`: () -> T) =
+          const expected = 1.Natural
 
-        var pathTaken = 0.Natural
+          var pathTaken = 0.Natural
 
-        let incPathCounter =
-          (value: T) => pathTaken.modify(plus1).apply(_ => value)
+          let incPathCounter =
+            (value: T) => pathTaken.modify(plus1).apply(_ => value)
 
-        condition
-          .ifElse(then.chain(incPathCounter), `else`.chain(incPathCounter))
-          .ignore()
+          condition
+            .ifElse(then.chain(incPathCounter), `else`.chain(incPathCounter))
+            .ignore()
 
-        let actual = pathTaken.read()
+          let actual = pathTaken.read()
 
-        check:
-          actual == expected
+          check:
+            actual == expected
 
 
-      doTest(false, () => unit(), () => unit())
-      doTest(true, () => -5, () => int.high())
+        doTest(false, () => unit(), () => unit())
+        doTest(true, () => -5, () => int.high())
+
+
+
+  main()
