@@ -16,3 +16,18 @@ proc run* [R; T](self: Reducer[R, T]; reduction: R; item: T): R =
 
 func map* [R; T](self: Reducer[R, T]; f: R -> R): Reducer[R, T] =
   (reduction: R, item: T) => self.run(reduction, item).f()
+
+
+
+when isMainModule:
+  import std/[os, unittest]
+
+
+
+  proc main () =
+    suite currentSourcePath().splitFile().name:
+      discard
+
+
+
+  main()
