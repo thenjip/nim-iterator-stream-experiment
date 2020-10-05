@@ -112,6 +112,10 @@ function main() {
   <li><a class="reference" href="#SingleStep"
     title="SingleStep = object
   consumed: bool"><wbr />Single<wbr />Step<span class="attachedType"></span></a></li>
+  <li><a class="reference" href="#ZipStep"
+    title="ZipStep[SA; SB] = object
+  left: SA
+  right: SB"><wbr />Zip<wbr />Step<span class="attachedType"></span></a></li>
   <li><a class="reference" href="#LimitStep"
     title="LimitStep[S; N] = object
   step: S
@@ -128,6 +132,21 @@ function main() {
   </ul>
 </li>
 <li>
+  <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
+  <ul class="simple simple-toc-section">
+      <li><a class="reference" href="#hasMore%2CZipStep%5BSA%2CSB%5D%2CCondition%5BSA%5D%2CCondition%5BSB%5D"
+    title="hasMore[SA; SB](self: ZipStep[SA, SB]; leftCond: Condition[SA];
+               rightCond: Condition[SB]): bool"><wbr />has<wbr />More<span class="attachedType">ZipStep</span></a></li>
+  <li><a class="reference" href="#generate%2CZipStep%5BSA%2CSB%5D%2CGenerator%5BSA%2CA%5D%2CGenerator%5BSB%2CB%5D"
+    title="generate[SA; A; SB; B](self: ZipStep[SA, SB]; leftGen: Generator[SA, A];
+                    rightGen: Generator[SB, B]): Pair[A, B]"><wbr />generate<span class="attachedType">ZipStep</span></a></li>
+  <li><a class="reference" href="#next%2CZipStep%5BSA%2CSB%5D%2CStepper%5BSA%5D%2CStepper%5BSB%5D"
+    title="next[SA; SB](self: ZipStep[SA, SB]; leftStepper: Stepper[SA];
+            rightStepper: Stepper[SB]): ZipStep[SA, SB]"><wbr />next<span class="attachedType">ZipStep</span></a></li>
+
+  </ul>
+</li>
+<li>
   <a class="reference reference-toplevel" href="#13" id="63">Funcs</a>
   <ul class="simple simple-toc-section">
       <li><a class="reference" href="#emptyStep_2"
@@ -136,6 +155,16 @@ function main() {
     title="singleStep(consumed: bool): SingleStep"><wbr />single<wbr />Step<span class="attachedType">SingleStep</span></a></li>
   <li><a class="reference" href="#isConsumed%2Ctypedesc%5BSingleStep%5D"
     title="isConsumed(X: typedesc[SingleStep]): Lens[X, bool]"><wbr />is<wbr />Consumed<span class="attachedType">SingleStep</span></a></li>
+  <li><a class="reference" href="#zipStep%2CSA%2CSB"
+    title="zipStep[SA; SB](left: SA; right: SB): ZipStep[SA, SB]"><wbr />zip<wbr />Step<span class="attachedType">ZipStep</span></a></li>
+  <li><a class="reference" href="#left%2Ctypedesc%5BZipStep%5BSA%2CSB%5D%5D"
+    title="left[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SA]"><wbr />left<span class="attachedType">ZipStep</span></a></li>
+  <li><a class="reference" href="#right%2Ctypedesc%5BZipStep%5BSA%2CSB%5D%5D"
+    title="right[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SB]"><wbr />right<span class="attachedType">ZipStep</span></a></li>
+  <li><a class="reference" href="#toPair%2CZipStep%5BSA%2CSB%5D"
+    title="toPair[SA; SB](self: ZipStep[SA, SB]): Pair[SA, SB]"><wbr />to<wbr />Pair<span class="attachedType">ZipStep</span></a></li>
+  <li><a class="reference" href="#toZipStep%2CPair%5BSA%2CSB%5D"
+    title="toZipStep[SA; SB](pair: Pair[SA, SB]): ZipStep[SA, SB]"><wbr />to<wbr />Zip<wbr />Step<span class="attachedType">ZipStep</span></a></li>
   <li><a class="reference" href="#limitStep%2CS%2CN"
     title="limitStep[S; N: SomeNatural](step: S; count: N): LimitStep[S, N]"><wbr />limit<wbr />Step<span class="attachedType">LimitStep</span></a></li>
   <li><a class="reference" href="#step%2Ctypedesc%5BLimitStep%5BS%2CN%3A+SomeNatural%5D%5D"
@@ -168,7 +197,7 @@ function main() {
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="../monad/optional.html">../monad/optional</a>, <a class="reference external" href="../optics/lens.html">../optics/lens</a>, <a class="reference external" href="../utils/somenatural.html">../utils/somenatural</a>
+<a class="reference external" href="loop.html">loop</a>, <a class="reference external" href="loop/loopscope.html">loop/loopscope</a>, <a class="reference external" href="../monad/optional.html">../monad/optional</a>, <a class="reference external" href="../monad/reader.html">../monad/reader</a>, <a class="reference external" href="../monad/predicate.html">../monad/predicate</a>, <a class="reference external" href="../optics/lens.html">../optics/lens</a>, <a class="reference external" href="../utils/pair.html">../utils/pair</a>, <a class="reference external" href="../utils/partialprocs.html">../utils/partialprocs</a>, <a class="reference external" href="../utils/somenatural.html">../utils/somenatural</a>
 </dl></div>
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
@@ -181,9 +210,9 @@ function main() {
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L10"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L11"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L10" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L11" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="SingleStep"></a>
@@ -194,9 +223,23 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L13"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L14"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L13" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L14" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="ZipStep"></a>
+<dt><pre><a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span> <span class="Other">=</span> <span class="Keyword">object</span>
+  <span class="Identifier">left</span><span class="Other">:</span> <span class="Identifier">SA</span>
+  <span class="Identifier">right</span><span class="Other">:</span> <span class="Identifier">SB</span>
+</pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L17"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L17" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="LimitStep"></a>
@@ -208,9 +251,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L16"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L22"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L16" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L22" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="SkipStep"></a>
@@ -222,9 +265,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L20"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L26"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L20" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L26" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="TakeWhileStep"></a>
@@ -236,9 +279,50 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L24"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L30"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L24" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L30" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+
+</dl></div>
+<div class="section" id="12">
+<h1><a class="toc-backref" href="#12">Procs</a></h1>
+<dl class="item">
+<a id="hasMore,ZipStep[SA,SB],Condition[SA],Condition[SB]"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#hasMore%2CZipStep%5BSA%2CSB%5D%2CCondition%5BSA%5D%2CCondition%5BSB%5D"><span class="Identifier">hasMore</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">leftCond</span><span class="Other">:</span> <a href="loop/loopscope.html#Condition"><span class="Identifier">Condition</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">]</span><span class="Other">;</span>
+                   <span class="Identifier">rightCond</span><span class="Other">:</span> <a href="loop/loopscope.html#Condition"><span class="Identifier">Condition</span></a><span class="Other">[</span><span class="Identifier">SB</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">bool</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L81"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L81" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="generate,ZipStep[SA,SB],Generator[SA,A],Generator[SB,B]"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#generate%2CZipStep%5BSA%2CSB%5D%2CGenerator%5BSA%2CA%5D%2CGenerator%5BSB%2CB%5D"><span class="Identifier">generate</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">A</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">;</span> <span class="Identifier">B</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">leftGen</span><span class="Other">:</span> <a href="loop.html#Generator"><span class="Identifier">Generator</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">A</span><span class="Other">]</span><span class="Other">;</span>
+                        <span class="Identifier">rightGen</span><span class="Other">:</span> <a href="loop.html#Generator"><span class="Identifier">Generator</span></a><span class="Other">[</span><span class="Identifier">SB</span><span class="Other">,</span> <span class="Identifier">B</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../utils/pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">A</span><span class="Other">,</span> <span class="Identifier">B</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L90"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L90" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="next,ZipStep[SA,SB],Stepper[SA],Stepper[SB]"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#next%2CZipStep%5BSA%2CSB%5D%2CStepper%5BSA%5D%2CStepper%5BSB%5D"><span class="Identifier">next</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">leftStepper</span><span class="Other">:</span> <a href="loop/loopscope.html#Stepper"><span class="Identifier">Stepper</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">]</span><span class="Other">;</span>
+                <span class="Identifier">rightStepper</span><span class="Other">:</span> <a href="loop/loopscope.html#Stepper"><span class="Identifier">Stepper</span></a><span class="Other">[</span><span class="Identifier">SB</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L99"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L99" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -252,9 +336,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L30"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L36"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L30" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L36" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="singleStep,bool"></a>
@@ -263,9 +347,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L35"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L41"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L35" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L41" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="isConsumed,typedesc[SingleStep]"></a>
@@ -274,9 +358,64 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L39"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L45"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L39" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L45" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="zipStep,SA,SB"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#zipStep%2CSA%2CSB"><span class="Identifier">zipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">left</span><span class="Other">:</span> <span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">right</span><span class="Other">:</span> <span class="Identifier">SB</span><span class="Other">)</span><span class="Other">:</span> <a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L53"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L53" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="left,typedesc[ZipStep[SA,SB]]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#left%2Ctypedesc%5BZipStep%5BSA%2CSB%5D%5D"><span class="Identifier">left</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">X</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../optics/lens.html#Lens"><span class="Identifier">Lens</span></a><span class="Other">[</span><span class="Identifier">X</span><span class="Other">,</span> <span class="Identifier">SA</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L58"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L58" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="right,typedesc[ZipStep[SA,SB]]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#right%2Ctypedesc%5BZipStep%5BSA%2CSB%5D%5D"><span class="Identifier">right</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">X</span><span class="Other">:</span> <span class="Identifier">typedesc</span><span class="Other">[</span><a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../optics/lens.html#Lens"><span class="Identifier">Lens</span></a><span class="Other">[</span><span class="Identifier">X</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L63"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L63" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="toPair,ZipStep[SA,SB]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#toPair%2CZipStep%5BSA%2CSB%5D"><span class="Identifier">toPair</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="../utils/pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L71"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L71" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="toZipStep,Pair[SA,SB]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#toZipStep%2CPair%5BSA%2CSB%5D"><span class="Identifier">toZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">pair</span><span class="Other">:</span> <a href="../utils/pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="streamsteps.html#ZipStep"><span class="Identifier">ZipStep</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L76"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L76" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="limitStep,S,N"></a>
@@ -285,9 +424,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L47"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L109"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L47" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L109" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="step,typedesc[LimitStep[S,N: SomeNatural]]"></a>
@@ -296,9 +435,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L51"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L113"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L51" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L113" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="count,typedesc[LimitStep[S,N: SomeNatural]]"></a>
@@ -307,9 +446,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L58"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L120"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L58" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L120" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="skipStep,S,N"></a>
@@ -318,9 +457,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L66"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L128"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L66" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L128" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="step,typedesc[SkipStep[S,N: SomeNatural]]"></a>
@@ -329,9 +468,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L70"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L132"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L70" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L132" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="count,typedesc[SkipStep[S,N: SomeNatural]]"></a>
@@ -340,9 +479,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L74"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L136"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L74" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L136" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="takeWhileStep,S,Optional[T]"></a>
@@ -351,9 +490,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L82"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L144"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L82" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L144" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="step,typedesc[TakeWhileStep[S,T]]"></a>
@@ -362,9 +501,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L86"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L148"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L86" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L148" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="item,typedesc[TakeWhileStep[S,T]]"></a>
@@ -373,9 +512,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L93"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L155"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L93" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/streamsteps.nim#L155" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -388,7 +527,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-09-18 09:00:24 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-10-05 16:10:28 UTC</small>
       </div>
     </div>
   </div>

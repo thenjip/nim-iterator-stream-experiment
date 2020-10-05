@@ -17,7 +17,7 @@
 <link href='https://fonts.googleapis.com/css?family=Source+Code+Pro:400,500,600' rel='stylesheet' type='text/css'/>
 
 <!-- CSS -->
-<title>nim_iterator_stream_experiment/utils/default</title>
+<title>nim_iterator_stream_experiment/utils/pair</title>
 <link rel="stylesheet" type="text/css" href="../../nimdoc.out.css">
 
 <script type="text/javascript" src="dochack.js"></script>
@@ -71,7 +71,7 @@ function main() {
 <body onload="main()">
 <div class="document" id="documentId">
   <div class="container">
-    <h1 class="title">nim_iterator_stream_experiment/utils/default</h1>
+    <h1 class="title">nim_iterator_stream_experiment/utils/pair</h1>
     <div class="row">
   <div class="three columns">
   <div class="theme-switch-wrapper">
@@ -98,10 +98,20 @@ function main() {
   </div>
   <ul class="simple simple-toc" id="toc-list">
 <li>
-  <a class="reference reference-toplevel" href="#13" id="63">Funcs</a>
+  <a class="reference reference-toplevel" href="#7" id="57">Types</a>
   <ul class="simple simple-toc-section">
-      <li><a class="reference" href="#default"
-    title="default[T](): T"><wbr />default<span class="attachedType"></span></a></li>
+      <li><a class="reference" href="#Pair"
+    title="Pair[A; B] = tuple[first: A, second: B]"><wbr />Pair<span class="attachedType"></span></a></li>
+
+  </ul>
+</li>
+<li>
+  <a class="reference reference-toplevel" href="#12" id="62">Procs</a>
+  <ul class="simple simple-toc-section">
+      <li><a class="reference" href="#apply%2CPair%5BA1%2CA2%5D%2C%2C"
+    title="apply[A1; A2; B1; B2](self: Pair[A1, A2]; f1: A1 -&gt; B1; f2: A2 -&gt; B2): Pair[B1, B2]"><wbr />apply<span class="attachedType">Pair</span></a></li>
+  <li><a class="reference" href="#reduce%2CPair%5BA%2CB%5D%2C"
+    title="reduce[A; B; R](self: Pair[A, B]; reducer: (A, B) -&gt; R): R"><wbr />reduce<span class="attachedType">Pair</span></a></li>
 
   </ul>
 </li>
@@ -113,18 +123,45 @@ function main() {
   <div id="tocRoot"></div>
   
   <p class="module-desc"></p>
-  <div class="section" id="13">
-<h1><a class="toc-backref" href="#13">Funcs</a></h1>
+  <div class="section" id="7">
+<h1><a class="toc-backref" href="#7">Types</a></h1>
 <dl class="item">
-<a id="default"></a>
-<dt><pre><span class="Keyword">func</span> <a href="#default"><span class="Identifier">default</span></a><span class="Other">[</span><span class="Identifier">T</span><span class="Other">]</span><span class="Other">(</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">T</span></pre></dt>
+<a id="Pair"></a>
+<dt><pre><a href="pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">A</span><span class="Other">;</span> <span class="Identifier">B</span><span class="Other">]</span> <span class="Other">=</span> <span class="Keyword">tuple</span><span class="Other">[</span><span class="Identifier">first</span><span class="Other">:</span> <span class="Identifier">A</span><span class="Other">,</span> <span class="Identifier">second</span><span class="Other">:</span> <span class="Identifier">B</span><span class="Other">]</span></pre></dt>
 <dd>
 
-
+Since 0.4.0.
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/utils/default.nim#L1"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/utils/pair.nim#L6"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/utils/default.nim#L1" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/utils/pair.nim#L6" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+
+</dl></div>
+<div class="section" id="12">
+<h1><a class="toc-backref" href="#12">Procs</a></h1>
+<dl class="item">
+<a id="apply,Pair[A1,A2],,"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#apply%2CPair%5BA1%2CA2%5D%2C%2C"><span class="Identifier">apply</span></a><span class="Other">[</span><span class="Identifier">A1</span><span class="Other">;</span> <span class="Identifier">A2</span><span class="Other">;</span> <span class="Identifier">B1</span><span class="Other">;</span> <span class="Identifier">B2</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">A1</span><span class="Other">,</span> <span class="Identifier">A2</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">f1</span><span class="Other">:</span> <span class="Identifier">A1</span> <span class="Operator">-&gt;</span> <span class="Identifier">B1</span><span class="Other">;</span> <span class="Identifier">f2</span><span class="Other">:</span> <span class="Identifier">A2</span> <span class="Operator">-&gt;</span> <span class="Identifier">B2</span><span class="Other">)</span><span class="Other">:</span> <a href="pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">B1</span><span class="Other">,</span> <span class="Identifier">B2</span><span class="Other">]</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/utils/pair.nim#L12"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/utils/pair.nim#L12" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="reduce,Pair[A,B],"></a>
+<dt><pre><span class="Keyword">proc</span> <a href="#reduce%2CPair%5BA%2CB%5D%2C"><span class="Identifier">reduce</span></a><span class="Other">[</span><span class="Identifier">A</span><span class="Other">;</span> <span class="Identifier">B</span><span class="Other">;</span> <span class="Identifier">R</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">A</span><span class="Other">,</span> <span class="Identifier">B</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">reducer</span><span class="Other">:</span> <span class="Other">(</span><span class="Identifier">A</span><span class="Other">,</span> <span class="Identifier">B</span><span class="Other">)</span> <span class="Operator">-&gt;</span> <span class="Identifier">R</span><span class="Other">)</span><span class="Other">:</span> <span class="Identifier">R</span></pre></dt>
+<dd>
+
+Since 0.4.0.
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/utils/pair.nim#L21"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/utils/pair.nim#L21" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 

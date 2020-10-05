@@ -35,6 +35,7 @@ singleItemStream	nim_iterator_stream_experiment/stream.html#singleItemStream	str
 onClose	nim_iterator_stream_experiment/stream.html#onClose,Stream[S,T],	stream: onClose[S; T](self: Stream[S, T]; callback: () -&gt; Unit): Stream[S, T]	
 map	nim_iterator_stream_experiment/stream.html#map,Stream[S,A],	stream: map[S; A; B](self: Stream[S, A]; f: A -&gt; B): Stream[S, B]	
 filter	nim_iterator_stream_experiment/stream.html#filter,Stream[S,T],Predicate[T]	stream: filter[S; T](self: Stream[S, T]; predicate: Predicate[T]): Stream[S, T]	
+zip	nim_iterator_stream_experiment/stream.html#zip,Stream[SA,A],Stream[SB,B]	stream: zip[SA; A; SB; B](self: Stream[SA, A]; other: Stream[SB, B]): Stream[ZipStep[SA, SB],\n    Pair[A, B]]	
 peek	nim_iterator_stream_experiment/stream.html#peek,Stream[S,T],	stream: peek[S; T](self: Stream[S, T]; f: T -&gt; Unit): Stream[S, T]	
 limit	nim_iterator_stream_experiment/stream.html#limit,Stream[S,T],N	stream: limit[S; T; N: SomeNatural](self: Stream[S, T]; n: N): Stream[LimitStep[S, N], T]	
 skip	nim_iterator_stream_experiment/stream.html#skip,Stream[S,T],N	stream: skip[S; T; N: SomeNatural](self: Stream[S, T]; n: N): () -&gt; Stream[S, T]	
