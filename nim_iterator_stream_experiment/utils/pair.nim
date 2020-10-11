@@ -9,6 +9,12 @@ type
 
 
 
+func pair* [A; B](first: A; second: B): Pair[A, B] =
+  ## Since 0.4.0.
+  (first, second)
+
+
+
 proc apply* [A1; A2; B1; B2](
   self: Pair[A1, A2];
   f1: A1 -> B1;
