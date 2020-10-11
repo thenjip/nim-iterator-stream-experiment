@@ -361,10 +361,6 @@ function main() {
           </ul></dd>
 <dt><a name="generate" href="#generate"><span>generate:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="streamsteps: generate[SA; A; SB; B](self: ZipStep[SA, SB]; leftGen: Generator[SA, A];
-                    rightGen: Generator[SB, B]): Pair[A, B]" href="nim_iterator_stream_experiment/stream/streamsteps.html#generate%2CZipStep%5BSA%2CSB%5D%2CGenerator%5BSA%2CA%5D%2CGenerator%5BSB%2CB%5D">streamsteps: generate[SA; A; SB; B](self: ZipStep[SA, SB]; leftGen: Generator[SA, A];
-                    rightGen: Generator[SB, B]): Pair[A, B]</a></li>
-          <li><a class="reference external"
           data-doc-search-tag="ast: generate(self: PreOrderStep): NimNode" href="nim_iterator_stream_experiment/streams/ast.html#generate%2CPreOrderStep">ast: generate(self: PreOrderStep): NimNode</a></li>
           </ul></dd>
 <dt><a name="generating" href="#generating"><span>generating:</span></a></dt><dd><ul class="simple">
@@ -403,10 +399,6 @@ function main() {
           </ul></dd>
 <dt><a name="hasMore" href="#hasMore"><span>hasMore:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="streamsteps: hasMore[SA; SB](self: ZipStep[SA, SB]; leftCond: Condition[SA];
-               rightCond: Condition[SB]): bool" href="nim_iterator_stream_experiment/stream/streamsteps.html#hasMore%2CZipStep%5BSA%2CSB%5D%2CCondition%5BSA%5D%2CCondition%5BSB%5D">streamsteps: hasMore[SA; SB](self: ZipStep[SA, SB]; leftCond: Condition[SA];
-               rightCond: Condition[SB]): bool</a></li>
-          <li><a class="reference external"
           data-doc-search-tag="ast: hasMore(self: PreOrderStep): bool" href="nim_iterator_stream_experiment/streams/ast.html#hasMore%2CPreOrderStep">ast: hasMore(self: PreOrderStep): bool</a></li>
           </ul></dd>
 <dt><a name="high" href="#high"><span>high:</span></a></dt><dd><ul class="simple">
@@ -546,10 +538,6 @@ function main() {
 <dt><a name="LazyMonad" href="#LazyMonad"><span>LazyMonad:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="lazymonadlaws: LazyMonad" href="nim_iterator_stream_experiment/monad/lazymonadlaws.html#LazyMonad">lazymonadlaws: LazyMonad</a></li>
-          </ul></dd>
-<dt><a name="left" href="#left"><span>left:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="streamsteps: left[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SA]" href="nim_iterator_stream_experiment/stream/streamsteps.html#left%2Ctypedesc%5BZipStep%5BSA%2CSB%5D%5D">streamsteps: left[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SA]</a></li>
           </ul></dd>
 <dt><a name="LeftIdentitySpec" href="#LeftIdentitySpec"><span>LeftIdentitySpec:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -699,6 +687,16 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="plens: MemberUpdater" href="nim_iterator_stream_experiment/optics/plens.html#MemberUpdater">plens: MemberUpdater</a></li>
           </ul></dd>
+<dt><a name="merge" href="#merge"><span>merge:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="stream: merge[SA; A; SB; B](self: Stream[SA, A]; other: Stream[SB, B]): Stream[Pair[SA, SB],
+    Pair[A, B]]" href="nim_iterator_stream_experiment/stream.html#merge%2CStream%5BSA%2CA%5D%2CStream%5BSB%2CB%5D">stream: merge[SA; A; SB; B](self: Stream[SA, A]; other: Stream[SB, B]): Stream[Pair[SA, SB],
+    Pair[A, B]]</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="loop: merge[SA; A; SB; B](self: Loop[SA, A]; other: Loop[SB, B]): Loop[Pair[SA, SB], Pair[A, B]]" href="nim_iterator_stream_experiment/stream/loop.html#merge%2CLoop%5BSA%2CA%5D%2CLoop%5BSB%2CB%5D">loop: merge[SA; A; SB; B](self: Loop[SA, A]; other: Loop[SB, B]): Loop[Pair[SA, SB], Pair[A, B]]</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="loopscope: merge[SA; SB](self: LoopScope[SA]; other: LoopScope[SB]): LoopScope[Pair[SA, SB]]" href="nim_iterator_stream_experiment/stream/loop/loopscope.html#merge%2CLoopScope%5BSA%5D%2CLoopScope%5BSB%5D">loopscope: merge[SA; SB](self: LoopScope[SA]; other: LoopScope[SB]): LoopScope[Pair[SA, SB]]</a></li>
+          </ul></dd>
 <dt><a name="minus" href="#minus"><span>minus:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="operators: minus[T](x, y: T): T" href="nim_iterator_stream_experiment/utils/operators.html#minus%2CT%2CT">operators: minus[T](x, y: T): T</a></li>
@@ -757,10 +755,6 @@ function main() {
           </ul></dd>
 <dt><a name="next" href="#next"><span>next:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="streamsteps: next[SA; SB](self: ZipStep[SA, SB]; leftStepper: Stepper[SA];
-            rightStepper: Stepper[SB]): ZipStep[SA, SB]" href="nim_iterator_stream_experiment/stream/streamsteps.html#next%2CZipStep%5BSA%2CSB%5D%2CStepper%5BSA%5D%2CStepper%5BSB%5D">streamsteps: next[SA; SB](self: ZipStep[SA, SB]; leftStepper: Stepper[SA];
-            rightStepper: Stepper[SB]): ZipStep[SA, SB]</a></li>
-          <li><a class="reference external"
           data-doc-search-tag="ast: next(self: PreOrderStep): PreOrderStep" href="nim_iterator_stream_experiment/streams/ast.html#next%2CPreOrderStep">ast: next(self: PreOrderStep): PreOrderStep</a></li>
           <li><a class="reference external"
           data-doc-search-tag="operators: next[T: Ordinal](x: T): T" href="nim_iterator_stream_experiment/utils/operators.html#next%2CT">operators: next[T: Ordinal](x: T): T</a></li>
@@ -810,6 +804,10 @@ function main() {
 <dt><a name="Pair" href="#Pair"><span>Pair:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="pair: Pair" href="nim_iterator_stream_experiment/utils/pair.html#Pair">pair: Pair</a></li>
+          </ul></dd>
+<dt><a name="pair" href="#pair"><span>pair:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="pair: pair[A; B](first: A; second: B): Pair[A, B]" href="nim_iterator_stream_experiment/utils/pair.html#pair%2CA%2CB">pair: pair[A; B](first: A; second: B): Pair[A, B]</a></li>
           </ul></dd>
 <dt><a name="pairs" href="#pairs"><span>pairs:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -924,10 +922,6 @@ function main() {
           data-doc-search-tag="proctypes: returnType(T: typedesc[proc]): typedesc" href="nim_iterator_stream_experiment/utils/proctypes.html#returnType.m%2Ctypedesc%5Bproc%5D">proctypes: returnType(T: typedesc[proc]): typedesc</a></li>
           <li><a class="reference external"
           data-doc-search-tag="proctypes: returnType(p: proc): typedesc" href="nim_iterator_stream_experiment/utils/proctypes.html#returnType.t%2Cproc">proctypes: returnType(p: proc): typedesc</a></li>
-          </ul></dd>
-<dt><a name="right" href="#right"><span>right:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="streamsteps: right[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SB]" href="nim_iterator_stream_experiment/stream/streamsteps.html#right%2Ctypedesc%5BZipStep%5BSA%2CSB%5D%5D">streamsteps: right[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SB]</a></li>
           </ul></dd>
 <dt><a name="RightIdentitySpec" href="#RightIdentitySpec"><span>RightIdentitySpec:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1165,10 +1159,6 @@ function main() {
 <li><a class="reference external"
           data-doc-search-tag="seqstack: top[T](self: SeqStack[T]): Optional[T]" href="nim_iterator_stream_experiment/collections/seqstack.html#top%2CSeqStack%5BT%5D">seqstack: top[T](self: SeqStack[T]): Optional[T]</a></li>
           </ul></dd>
-<dt><a name="toPair" href="#toPair"><span>toPair:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="streamsteps: toPair[SA; SB](self: ZipStep[SA, SB]): Pair[SA, SB]" href="nim_iterator_stream_experiment/stream/streamsteps.html#toPair%2CZipStep%5BSA%2CSB%5D">streamsteps: toPair[SA; SB](self: ZipStep[SA, SB]): Pair[SA, SB]</a></li>
-          </ul></dd>
 <dt><a name="toReader" href="#toReader"><span>toReader:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="reader: toReader[S; T](value: T): Reader[S, T]" href="nim_iterator_stream_experiment/monad/reader.html#toReader%2CT">reader: toReader[S; T](value: T): Reader[S, T]</a></li>
@@ -1180,10 +1170,6 @@ function main() {
           data-doc-search-tag="optional: toSome[T: Nilable](value: T): Optional[T]" href="nim_iterator_stream_experiment/monad/optional.html#toSome%2CT">optional: toSome[T: Nilable](value: T): Optional[T]</a></li>
           <li><a class="reference external"
           data-doc-search-tag="optional: toSome[T: not Nilable](value: T): Optional[T]" href="nim_iterator_stream_experiment/monad/optional.html#toSome%2CT_2">optional: toSome[T: not Nilable](value: T): Optional[T]</a></li>
-          </ul></dd>
-<dt><a name="toZipStep" href="#toZipStep"><span>toZipStep:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="streamsteps: toZipStep[SA; SB](pair: Pair[SA, SB]): ZipStep[SA, SB]" href="nim_iterator_stream_experiment/stream/streamsteps.html#toZipStep%2CPair%5BSA%2CSB%5D">streamsteps: toZipStep[SA; SB](pair: Pair[SA, SB]): ZipStep[SA, SB]</a></li>
           </ul></dd>
 <dt><a name="traversePreOrder" href="#traversePreOrder"><span>traversePreOrder:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -1258,7 +1244,7 @@ function main() {
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-10-05 16:10:28 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-10-11 12:41:46 UTC</small>
       </div>
     </div>
   </div>

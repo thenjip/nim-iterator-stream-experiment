@@ -1,3 +1,4 @@
 Pair	nim_iterator_stream_experiment/utils/pair.html#Pair	pair: Pair	
+pair	nim_iterator_stream_experiment/utils/pair.html#pair,A,B	pair: pair[A; B](first: A; second: B): Pair[A, B]	
 apply	nim_iterator_stream_experiment/utils/pair.html#apply,Pair[A1,A2],,	pair: apply[A1; A2; B1; B2](self: Pair[A1, A2]; f1: A1 -&gt; B1; f2: A2 -&gt; B2): Pair[B1, B2]	
 reduce	nim_iterator_stream_experiment/utils/pair.html#reduce,Pair[A,B],	pair: reduce[A; B; R](self: Pair[A, B]; reducer: (A, B) -&gt; R): R	

@@ -161,6 +161,8 @@ function main() {
     title="asReader[S](self: LoopScope[S]; body: S -&gt; Unit): Reader[S, S]"><wbr />as<wbr />Reader<span class="attachedType">LoopScope</span></a></li>
   <li><a class="reference" href="#asReader%2CLoopScope%5BS%5D"
     title="asReader[S](self: LoopScope[S]): Reader[S, S]"><wbr />as<wbr />Reader<span class="attachedType">LoopScope</span></a></li>
+  <li><a class="reference" href="#merge%2CLoopScope%5BSA%5D%2CLoopScope%5BSB%5D"
+    title="merge[SA; SB](self: LoopScope[SA]; other: LoopScope[SB]): LoopScope[Pair[SA, SB]]"><wbr />merge<span class="attachedType">LoopScope</span></a></li>
   <li><a class="reference" href="#breakIf%2CLoopScope%5BS%5D%2CPredicate%5BS%5D"
     title="breakIf[S](self: LoopScope[S]; predicate: Predicate[S]): LoopScope[S]"><wbr />break<wbr />If<span class="attachedType">LoopScope</span></a></li>
 
@@ -189,7 +191,7 @@ function main() {
   <div class="section" id="6">
 <h1><a class="toc-backref" href="#6">Imports</a></h1>
 <dl class="item">
-<a class="reference external" href="loopscope/runonceresult.html">loopscope/runonceresult</a>, <a class="reference external" href="../../monad/identity.html">../../monad/identity</a>, <a class="reference external" href="../../monad/optional.html">../../monad/optional</a>, <a class="reference external" href="../../monad/predicate.html">../../monad/predicate</a>, <a class="reference external" href="../../monad/reader.html">../../monad/reader</a>, <a class="reference external" href="../../optics/plens.html">../../optics/plens</a>, <a class="reference external" href="../../optics/lens.html">../../optics/lens</a>, <a class="reference external" href="../../utils/convert.html">../../utils/convert</a>, <a class="reference external" href="../../utils/ifelse.html">../../utils/ifelse</a>, <a class="reference external" href="../../utils/ignore.html">../../utils/ignore</a>, <a class="reference external" href="../../utils/partialprocs.html">../../utils/partialprocs</a>, <a class="reference external" href="../../utils/unit.html">../../utils/unit</a>, <a class="reference external" href="../../utils/variables.html">../../utils/variables</a>
+<a class="reference external" href="loopscope/runonceresult.html">loopscope/runonceresult</a>, <a class="reference external" href="../../monad/identity.html">../../monad/identity</a>, <a class="reference external" href="../../monad/optional.html">../../monad/optional</a>, <a class="reference external" href="../../monad/predicate.html">../../monad/predicate</a>, <a class="reference external" href="../../monad/reader.html">../../monad/reader</a>, <a class="reference external" href="../../optics/plens.html">../../optics/plens</a>, <a class="reference external" href="../../optics/lens.html">../../optics/lens</a>, <a class="reference external" href="../../utils/convert.html">../../utils/convert</a>, <a class="reference external" href="../../utils/ifelse.html">../../utils/ifelse</a>, <a class="reference external" href="../../utils/ignore.html">../../utils/ignore</a>, <a class="reference external" href="../../utils/pair.html">../../utils/pair</a>, <a class="reference external" href="../../utils/partialprocs.html">../../utils/partialprocs</a>, <a class="reference external" href="../../utils/unit.html">../../utils/unit</a>, <a class="reference external" href="../../utils/variables.html">../../utils/variables</a>
 </dl></div>
 <div class="section" id="7">
 <h1><a class="toc-backref" href="#7">Types</a></h1>
@@ -200,9 +202,9 @@ function main() {
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L19"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L20"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L19" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L20" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="Stepper"></a>
@@ -211,9 +213,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L20"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L21"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L20" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L21" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="LoopScope"></a>
@@ -225,9 +227,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L22"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L23"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L22" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L23" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -241,9 +243,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L79"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L80"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L79" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L80" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="run,LoopScope[S],S"></a>
@@ -252,9 +254,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 Runs the loop while doing nothing in its body.
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L91"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L89"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L91" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L89" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="runOnce,LoopScope[S],S,"></a>
@@ -263,9 +265,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L106"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L104"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L106" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L104" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="mapSteps,LoopScope[SA],,"></a>
@@ -276,9 +278,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L122"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L139"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L122" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L139" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="mapSteps,LoopScope[SA],,_2"></a>
@@ -288,9 +290,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L132"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L149"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L132" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L149" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="mapSteps,LoopScope[SA],,_3"></a>
@@ -300,9 +302,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L140"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L157"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L140" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L157" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -316,9 +318,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L28"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L29"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L28" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L29" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="stepper,Reader[S,S]"></a>
@@ -327,9 +329,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L32"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L33"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L32" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L33" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="looped,Condition[S],Stepper[S]"></a>
@@ -338,9 +340,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L46"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L47"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L46" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L47" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="looped,Condition[S],"></a>
@@ -349,9 +351,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L50"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L51"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L50" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L51" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="emptyLoopScope,typedesc"></a>
@@ -360,9 +362,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L55"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L56"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L55" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L56" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="infinite,Stepper[S]"></a>
@@ -371,9 +373,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L59"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L60"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L59" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L60" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="condition,typedesc[LoopScope[S]]"></a>
@@ -382,9 +384,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L64"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L65"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L64" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L65" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="stepper,typedesc[LoopScope[S]]"></a>
@@ -393,9 +395,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L71"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L72"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L71" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L72" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="asReader,LoopScope[S],"></a>
@@ -404,9 +406,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L97"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L95"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L97" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L95" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="asReader,LoopScope[S]"></a>
@@ -415,9 +417,23 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L101"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L99"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L101" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L99" class="link-seesrc" target="_blank" >Edit</a>
+
+</dd>
+<a id="merge,LoopScope[SA],LoopScope[SB]"></a>
+<dt><pre><span class="Keyword">func</span> <a href="#merge%2CLoopScope%5BSA%5D%2CLoopScope%5BSB%5D"><span class="Identifier">merge</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">;</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">(</span><span class="Identifier">self</span><span class="Other">:</span> <a href="loopscope.html#LoopScope"><span class="Identifier">LoopScope</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">]</span><span class="Other">;</span> <span class="Identifier">other</span><span class="Other">:</span> <a href="loopscope.html#LoopScope"><span class="Identifier">LoopScope</span></a><span class="Other">[</span><span class="Identifier">SB</span><span class="Other">]</span><span class="Other">)</span><span class="Other">:</span> <a href="loopscope.html#LoopScope"><span class="Identifier">LoopScope</span></a><span class="Other">[</span><a href="../../utils/pair.html#Pair"><span class="Identifier">Pair</span></a><span class="Other">[</span><span class="Identifier">SA</span><span class="Other">,</span> <span class="Identifier">SB</span><span class="Other">]</span><span class="Other">]</span></pre></dt>
+<dd>
+
+<p>Merges <tt class="docutils literal"><span class="pre">self</span></tt> and <tt class="docutils literal"><span class="pre">other</span></tt> into a single <tt class="docutils literal"><span class="pre">LoopScope</span></tt>.</p>
+<p>The returned <tt class="docutils literal"><span class="pre">LoopScope</span></tt> will stop when either <tt class="docutils literal"><span class="pre">self</span></tt> or <tt class="docutils literal"><span class="pre">other</span></tt> stops.</p>
+<p>Since <tt class="docutils literal"><span class="pre">0.4.0</span></tt>. </p>
+
+&nbsp;&nbsp;<a
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L120"
+class="link-seesrc" target="_blank">Source</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L120" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="breakIf,LoopScope[S],Predicate[S]"></a>
@@ -426,9 +442,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L149"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L166"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L149" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L166" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -442,9 +458,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L37"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L38"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L37" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L38" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 <a id="stepType.t,LoopScope[S]"></a>
@@ -453,9 +469,9 @@ class="link-seesrc" target="_blank">Source</a>
 
 
 &nbsp;&nbsp;<a
-href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L41"
+href="https://github.com/thenjip/nim-iterator-stream-experiment/tree/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L42"
 class="link-seesrc" target="_blank">Source</a>
-<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L41" class="link-seesrc" target="_blank" >Edit</a>
+<a href="https://github.com/thenjip/nim-iterator-stream-experiment/edit/master/nim_iterator_stream_experiment/stream/loop/loopscope.nim#L42" class="link-seesrc" target="_blank" >Edit</a>
 
 </dd>
 
@@ -468,7 +484,7 @@ class="link-seesrc" target="_blank">Source</a>
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br/>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2020-10-05 16:10:28 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2020-10-11 12:41:46 UTC</small>
       </div>
     </div>
   </div>

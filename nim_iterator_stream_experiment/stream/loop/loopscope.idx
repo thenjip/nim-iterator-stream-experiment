@@ -16,6 +16,7 @@ run	nim_iterator_stream_experiment/stream/loop/loopscope.html#run,LoopScope[S],S
 asReader	nim_iterator_stream_experiment/stream/loop/loopscope.html#asReader,LoopScope[S],	loopscope: asReader[S](self: LoopScope[S]; body: S -&gt; Unit): Reader[S, S]	
 asReader	nim_iterator_stream_experiment/stream/loop/loopscope.html#asReader,LoopScope[S]	loopscope: asReader[S](self: LoopScope[S]): Reader[S, S]	
 runOnce	nim_iterator_stream_experiment/stream/loop/loopscope.html#runOnce,LoopScope[S],S,	loopscope: runOnce[S; T](self: LoopScope[S]; start: S; body: S -&gt; T): RunOnceResult[S, T]	
+merge	nim_iterator_stream_experiment/stream/loop/loopscope.html#merge,LoopScope[SA],LoopScope[SB]	loopscope: merge[SA; SB](self: LoopScope[SA]; other: LoopScope[SB]): LoopScope[Pair[SA, SB]]	
 mapSteps	nim_iterator_stream_experiment/stream/loop/loopscope.html#mapSteps,LoopScope[SA],,	loopscope: mapSteps[SA; SB](self: LoopScope[SA];\n                conditionMapper: Condition[SA] -&gt; Condition[SB];\n                stepperMapper: Stepper[SA] -&gt; Stepper[SB]): LoopScope[SB]	
 mapSteps	nim_iterator_stream_experiment/stream/loop/loopscope.html#mapSteps,LoopScope[SA],,_2	loopscope: mapSteps[SA; SB](self: LoopScope[SA]; extractor: SB -&gt; SA;\n                stepperMapper: Stepper[SA] -&gt; Stepper[SB]): LoopScope[SB]	
 mapSteps	nim_iterator_stream_experiment/stream/loop/loopscope.html#mapSteps,LoopScope[SA],,_3	loopscope: mapSteps[SA; SB](self: LoopScope[SA]; extractor: SB -&gt; SA; wrapper: SA -&gt; SB): LoopScope[SB]	

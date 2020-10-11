@@ -8,13 +8,6 @@ emptyStep	nim_iterator_stream_experiment/stream/streamsteps.html#emptyStep_2	str
 singleStep	nim_iterator_stream_experiment/stream/streamsteps.html#singleStep,bool	streamsteps: singleStep(consumed: bool): SingleStep	
 isConsumed	nim_iterator_stream_experiment/stream/streamsteps.html#isConsumed,typedesc[SingleStep]	streamsteps: isConsumed(X: typedesc[SingleStep]): Lens[X, bool]	
 zipStep	nim_iterator_stream_experiment/stream/streamsteps.html#zipStep,SA,SB	streamsteps: zipStep[SA; SB](left: SA; right: SB): ZipStep[SA, SB]	
-left	nim_iterator_stream_experiment/stream/streamsteps.html#left,typedesc[ZipStep[SA,SB]]	streamsteps: left[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SA]	
-right	nim_iterator_stream_experiment/stream/streamsteps.html#right,typedesc[ZipStep[SA,SB]]	streamsteps: right[SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SB]	
-toPair	nim_iterator_stream_experiment/stream/streamsteps.html#toPair,ZipStep[SA,SB]	streamsteps: toPair[SA; SB](self: ZipStep[SA, SB]): Pair[SA, SB]	
-toZipStep	nim_iterator_stream_experiment/stream/streamsteps.html#toZipStep,Pair[SA,SB]	streamsteps: toZipStep[SA; SB](pair: Pair[SA, SB]): ZipStep[SA, SB]	
-hasMore	nim_iterator_stream_experiment/stream/streamsteps.html#hasMore,ZipStep[SA,SB],Condition[SA],Condition[SB]	streamsteps: hasMore[SA; SB](self: ZipStep[SA, SB]; leftCond: Condition[SA];\n               rightCond: Condition[SB]): bool	
-generate	nim_iterator_stream_experiment/stream/streamsteps.html#generate,ZipStep[SA,SB],Generator[SA,A],Generator[SB,B]	streamsteps: generate[SA; A; SB; B](self: ZipStep[SA, SB]; leftGen: Generator[SA, A];\n                    rightGen: Generator[SB, B]): Pair[A, B]	
-next	nim_iterator_stream_experiment/stream/streamsteps.html#next,ZipStep[SA,SB],Stepper[SA],Stepper[SB]	streamsteps: next[SA; SB](self: ZipStep[SA, SB]; leftStepper: Stepper[SA];\n            rightStepper: Stepper[SB]): ZipStep[SA, SB]	
 limitStep	nim_iterator_stream_experiment/stream/streamsteps.html#limitStep,S,N	streamsteps: limitStep[S; N: SomeNatural](step: S; count: N): LimitStep[S, N]	
 step	nim_iterator_stream_experiment/stream/streamsteps.html#step,typedesc[LimitStep[S,N: SomeNatural]]	streamsteps: step[S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, S]	
 count	nim_iterator_stream_experiment/stream/streamsteps.html#count,typedesc[LimitStep[S,N: SomeNatural]]	streamsteps: count[S; N: SomeNatural](X: typedesc[LimitStep[S, N]]): Lens[X, N]	

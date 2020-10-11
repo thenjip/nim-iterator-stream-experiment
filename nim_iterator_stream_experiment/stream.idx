@@ -29,6 +29,7 @@ generator	nim_iterator_stream_experiment/stream.html#generator,typedesc[Stream[S
 generator	nim_iterator_stream_experiment/stream.html#generator,typedesc[Stream[S,T]]	stream: generator[S; T](X: typedesc[Stream[S, T]]): Lens[X, Generator[S, T]]	
 stepper	nim_iterator_stream_experiment/stream.html#stepper,typedesc[Stream[S,T]]	stream: stepper[S; T](X: typedesc[Stream[S, T]]): Lens[X, Stepper[S]]	
 run	nim_iterator_stream_experiment/stream.html#run,Stream[S,Unit]	stream: run[S](self: Stream[S, Unit]): Unit	
+merge	nim_iterator_stream_experiment/stream.html#merge,Stream[SA,A],Stream[SB,B]	stream: merge[SA; A; SB; B](self: Stream[SA, A]; other: Stream[SB, B]): Stream[Pair[SA, SB],\n    Pair[A, B]]	
 mapSteps	nim_iterator_stream_experiment/stream.html#mapSteps,Stream[SA,T],,,	stream: mapSteps[SA; SB; T](self: Stream[SA, T]; extractor: SB -&gt; SA;\n                  stepperMapper: Stepper[SA] -&gt; Stepper[SB];\n                  initialStepMapper: SA -&gt; SB): Stream[SB, T]	
 emptyStream	nim_iterator_stream_experiment/stream.html#emptyStream,typedesc	stream: emptyStream(T: typedesc): Stream[EmptyStep, T]	
 singleItemStream	nim_iterator_stream_experiment/stream.html#singleItemStream	stream: singleItemStream[T](item: () -&gt; T): Stream[SingleStep, T]	
