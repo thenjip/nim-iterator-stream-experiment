@@ -1,7 +1,6 @@
-import loop, loop/[loopscope]
-import ../monad/[optional, reader, predicate]
+import ../monad/[optional, reader]
 import ../optics/[lens]
-import ../utils/[pair, partialprocs, somenatural]
+import ../utils/[pair, somenatural]
 
 import std/[sugar]
 
@@ -14,10 +13,9 @@ type
   SingleStep* = object
     consumed: bool
 
-  ZipStep* [SA; SB] = object
+  ZipStep* [SA; SB] =
+    Pair[SA, SB]
     ## Since 0.4.0.
-    left: SA
-    right: SB
 
   LimitStep* [S; N: SomeNatural] = object
     step: S
@@ -52,57 +50,7 @@ func isConsumed* (X: typedesc[SingleStep]): Lens[X, bool] =
 
 func zipStep* [SA; SB](left: SA; right: SB): ZipStep[SA, SB] =
   ## Since 0.4.0.
-  ZipStep[SA, SB](left: left, right: right)
-
-
-func left* [SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SA] =
-  ## Since 0.4.0.
-  lens((self: X) => self.left, (self: X, left: SA) => zipStep(left, self.right))
-
-
-func right* [SA; SB](X: typedesc[ZipStep[SA, SB]]): Lens[X, SB] =
-  ## Since 0.4.0.
-  lens(
-    (self: X) => self.right,
-    (self: X, right: SB) => zipStep(self.left, right)
-  )
-
-
-func toPair* [SA; SB](self: ZipStep[SA, SB]): Pair[SA, SB] =
-  ## Since 0.4.0.
-  (self.left, self.right)
-
-
-func toZipStep* [SA; SB](pair: Pair[SA, SB]): ZipStep[SA, SB] =
-  ## Since 0.4.0.
-  zipStep(pair.first, pair.second)
-
-
-proc hasMore* [SA; SB](
-  self: ZipStep[SA, SB];
-  leftCond: Condition[SA];
-  rightCond: Condition[SB]
-): bool =
-  ## Since 0.4.0.
-  self.toPair().apply(leftCond, rightCond).reduce(partial(?_ and ?_))
-
-
-proc generate* [SA; A; SB; B](
-  self: ZipStep[SA, SB];
-  leftGen: Generator[SA, A];
-  rightGen: Generator[SB, B]
-): Pair[A, B] =
-  ## Since 0.4.0.
-  self.toPair().apply(leftGen, rightGen)
-
-
-proc next* [SA; SB](
-  self: ZipStep[SA, SB];
-  leftStepper: Stepper[SA];
-  rightStepper: Stepper[SB]
-): ZipStep[SA, SB] =
-  ## Since 0.4.0.
-  self.toPair().apply(leftStepper, rightStepper).toZipStep()
+  pair(left, right)
 
 
 
@@ -180,38 +128,6 @@ when isMainModule:
             identitySpec(singleStep(false)),
             retentionSpec(singleStep(true), false),
             doubleWriteSpec(singleStep(false), true, false)
-          )
-        )
-
-
-
-      test """"ZipStep[SA, SB].left()" should return a lens that verifies the lens laws.""":
-        proc doTest [SA; SB](spec: LensLawsSpec[ZipStep[SA, SB], SA]) =
-          check:
-            ZipStep[SA, SB].left().checkLensLaws(spec)
-
-
-        doTest(
-          lensLawsSpec(
-            identitySpec(zipStep(0, 'a')),
-            retentionSpec(zipStep(1, 'b'), -50),
-            doubleWriteSpec(zipStep(10, '\0'), int.low(), int.high())
-          )
-        )
-
-
-
-      test """"ZipStep[SA, SB].right()" should return a lens that verifies the lens laws.""":
-        proc doTest [SA; SB](spec: LensLawsSpec[ZipStep[SA, SB], SB]) =
-          check:
-            ZipStep[SA, SB].right().checkLensLaws(spec)
-
-
-        doTest(
-          lensLawsSpec(
-            identitySpec(zipStep(24, 'z')),
-            retentionSpec(zipStep(987, '\''), '\n'),
-            doubleWriteSpec(zipStep(10, '\0'), '-', '\a')
           )
         )
 
