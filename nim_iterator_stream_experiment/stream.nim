@@ -793,30 +793,36 @@ when isMainModule:
 
 
       test """"self.zip(other)" at compile time should return a stream that stops when one of the 2 input streams does.""":
-        template doTest [SA; A; SB; B](
-          self: Stream[SA, A];
-          other: Stream[SB, B]
-        ): proc () =
-          (
-            proc () =
-              const
-                actual = self.zip(other).reduce(addToSeq[Pair[A, B]], @[])
-                expected =
-                  self
-                    .reduce(addToSeq[A], @[])
-                    .zip(other.reduce(addToSeq[B], @[]))
+        when defined(js):
+          skip()
+        else:
+          template doTest [SA; A; SB; B](
+            self: Stream[SA, A];
+            other: Stream[SB, B]
+          ): proc () =
+            (
+              proc () =
+                const
+                  actual = self.zip(other).reduce(addToSeq[Pair[A, B]], @[])
+                  expected =
+                    self
+                      .reduce(addToSeq[A], @[])
+                      .zip(other.reduce(addToSeq[B], @[]))
 
-              check:
-                actual == expected
-          )
+                check:
+                  actual == expected
+            )
 
 
-        for t in [
-          doTest(@[0, 1, 2].items(), singleItemStream(() => -5)),
-          doTest(emptyStream(char), @['a', 'b'].items()),
-          doTest(@["abc", "012", "\n\f"].items(), @["\t", "  ", "abc"].items())
-        ]:
-          t.call()
+          for t in [
+            doTest(@[0, 1, 2].items(), singleItemStream(() => -5)),
+            doTest(emptyStream(char), @['a', 'b'].items()),
+            doTest(
+              @["abc", "012", "\n\f"].items(),
+              @["\t", "  ", "abc"].items()
+            )
+          ]:
+            t.call()
 
 
 
