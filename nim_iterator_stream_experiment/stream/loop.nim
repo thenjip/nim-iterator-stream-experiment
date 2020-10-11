@@ -2,7 +2,7 @@ import loop/[loopscope]
 import loop/loopscope/[runonceresult]
 import ../monad/[io, optional, predicate, reader]
 import ../optics/[lens]
-import ../utils/[convert, unit]
+import ../utils/[convert, pair, partialprocs, unit]
 
 import std/[sugar]
 
@@ -78,6 +78,18 @@ func condition* [S; T](X: typedesc[Loop[S, T]]): Lens[X, Condition[S]] =
 
 func stepper* [S; T](X: typedesc[Loop[S, T]]): Lens[X, Stepper[S]] =
   X.scope().chain(LoopScope[S].stepper())
+
+
+
+func merge* [SA; A; SB; B](
+  self: Loop[SA, A];
+  other: Loop[SB, B]
+): Loop[Pair[SA, SB], Pair[A, B]] =
+  ## Since 0.4.0.
+  self
+    .scope
+    .merge(other.scope)
+    .generating(partial(apply(?:Pair[SA, SB], self.generator, other.generator)))
 
 
 
