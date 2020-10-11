@@ -9,7 +9,8 @@
 import loopscope/[runonceresult]
 import ../../monad/[identity, optional, predicate, reader]
 import ../../optics/[plens, lens]
-import ../../utils/[convert, ifelse, ignore, partialprocs, unit, variables]
+import
+  ../../utils/[convert, ifelse, ignore, pair, partialprocs, unit, variables]
 
 import std/[sugar]
 
@@ -79,13 +80,10 @@ func stepper* [S](X: typedesc[LoopScope[S]]): Lens[X, Stepper[S]] =
 proc run* [S](self: LoopScope[S]; initial: S; body: S -> Unit): S =
   result = initial
 
-  while self.condition.test(result.read()):
-    body.run(result.read()).ignore()
+  while self.condition.test(result):
+    body.run(result).ignore()
 
-    when defined(cpp):
-      result = self.stepper.run(result.read())
-    else:
-      result.modify(self.stepper).ignore()
+    result = self.stepper.run(result)
 
 
 proc run* [S](self: LoopScope[S]; initial: S): S =
@@ -116,6 +114,25 @@ proc runOnce* [S; T](
       ,
       partial(runOnceResult(?:S, T.toNone()))
     ).run(start)
+
+
+
+func merge* [SA; SB](
+  self: LoopScope[SA];
+  other: LoopScope[SB]
+): LoopScope[Pair[SA, SB]] =
+  ##[
+    Merges `self` and `other` into a single `LoopScope`.
+
+    The returned `LoopScope` will stop when either `self` or `other` stops.
+
+    Since `0.4.0`.
+  ]##
+  let condition =
+    (pair: Pair[SA, SB]) =>
+      pair.apply(self.condition, other.condition).reduce(partial(?_ and ?_))
+
+  condition.looped(partial(apply(?_, self.stepper, other.stepper)))
 
 
 
@@ -154,9 +171,18 @@ func breakIf* [S](self: LoopScope[S]; predicate: Predicate[S]): LoopScope[S] =
 when isMainModule:
   import ../../monad/[identity]
   import ../../optics/[lenslaws]
-  import ../../utils/[operators]
+  import ../../utils/[call, operators]
 
-  import std/[os, unittest]
+  import std/[os, sequtils, unittest]
+
+
+
+  proc collectToSeq [S](self: LoopScope[S]; initial: S): seq[S] =
+    var collect = seq[S](@[])
+
+    self
+      .run(initial, proc (it: S): Unit = collect.add(it))
+      .apply((_: S) => collect)
 
 
 
@@ -333,6 +359,95 @@ when isMainModule:
 
 
         doTest()
+
+
+
+      test """"self.merge(other)" should return a LoopScope that stops when either "self" or "other" does.""":
+        proc doTest [SA; SB](
+          self: LoopScope[SA];
+          other: LoopScope[SB];
+          initial: Pair[SA, SB]
+        ) =
+          let
+            actual = self.merge(other).collectToSeq(initial)
+            expected =
+              self
+                .collectToSeq(initial.first)
+                .zip(other.collectToSeq(initial.second))
+
+          check:
+            actual == expected
+
+
+        doTest(
+          partial(?:Natural < 100).looped(next),
+          emptyLoopScope(Unit),
+          pair(0.Natural, unit())
+        )
+        doTest(
+          partial(?:Natural < 10).looped(next),
+          partial(?:Natural < 20).looped(next),
+          pair(0.Natural, 5.Natural)
+        )
+        doTest(
+          partial(?:Natural < 20).looped(next),
+          partial(?:Natural < 10).looped(next),
+          pair(4.Natural, 7.Natural)
+        )
+        doTest(
+          partial(?:Natural < 15).looped(next),
+          partial(?:Natural < 15).looped(next),
+          pair(10.Natural, 10.Natural)
+        )
+
+
+
+      test """"self.merge(other)" at compile time should return a LoopScope that stops when either "self" or "other" does.""":
+        when defined(js):
+          skip()
+        else:
+          template doTest [SA; SB](
+            self: LoopScope[SA];
+            other: LoopScope[SB];
+            initial: Pair[SA, SB]
+          ): proc () =
+            (
+              proc () =
+                const
+                  actual = self.merge(other).collectToSeq(initial)
+                  expected =
+                    self
+                      .collectToSeq(initial.first)
+                      .zip(other.collectToSeq(initial.second))
+
+                check:
+                  actual == expected
+            )
+
+
+          for t in [
+            doTest(
+              partial(?:Natural < 100).looped(next),
+              emptyLoopScope(Unit),
+              pair(0.Natural, unit())
+            ),
+            doTest(
+              partial(?:Natural < 10).looped(next),
+              partial(?:Natural < 20).looped(next),
+              pair(0.Natural, 5.Natural)
+            ),
+            doTest(
+              partial(?:Natural < 20).looped(next),
+              partial(?:Natural < 10).looped(next),
+              pair(4.Natural, 7.Natural)
+            ),
+            doTest(
+              partial(?:Natural < 15).looped(next),
+              partial(?:Natural < 15).looped(next),
+              pair(10.Natural, 10.Natural)
+            )
+          ]:
+            t.call()
 
 
 
