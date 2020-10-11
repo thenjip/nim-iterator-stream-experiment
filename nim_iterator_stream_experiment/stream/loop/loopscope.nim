@@ -243,7 +243,7 @@ when isMainModule:
 
 
 
-      test """Using "self.run(0, doNothing)" to count up to "expected" should return "expected".""":
+      test """Using "self.run(0)" to count up to "expected" should give "expected".""":
         proc doTest [N: SomeUnsignedInt](expected: N) =
           let actual =
             partial(?:N < expected).looped(plus1[N].stepper()).run(0.N)
@@ -259,7 +259,7 @@ when isMainModule:
 
 
 
-      test """Using "self.run(0)" to count up to "expected" at compile time should return "expected".""":
+      test """Using "self.run(0)" to count up to "expected" at compile time should give "expected".""":
         when defined(js):
           skip()
         else:
@@ -280,18 +280,13 @@ when isMainModule:
 
 
 
-      test """Using a LoopScope to copy an array should return an array equal to the original.""":
+      test """Using a LoopScope to copy an array should give an array equal to the original.""":
         proc doTest [I: Ordinal; T](expected: array[I, T]) =
           var copy: expected.typeof()
 
-          let self = looped((i: I) => i.int < expected.len(), next)
-
-          self
-            .run(
-              expected.low(),
-              proc (i: I): Unit =
-                copy[i] = expected[i]
-            ).ignore()
+          looped((i: I) => i.int < expected.len(), next)
+            .run(expected.low(), proc (i: I): Unit = copy[i] = expected[i])
+            .ignore()
 
           check:
             copy == expected
@@ -302,7 +297,7 @@ when isMainModule:
 
 
 
-      test """Running an "emptyLoopScope(I)" to count up starting at "start" should return "start".""":
+      test """Running an "emptyLoopScope(I)" to count up starting at "start" should give "start".""":
         proc doTest [I: SomeInteger](start: I) =
           let
             expected = start
@@ -451,7 +446,7 @@ when isMainModule:
 
 
 
-      test """Using "self.breakIf(n => n mod 2 == 1)" when iterating on Natural numbers should return the first found odd number.""":
+      test """Using "self.breakIf(n => n mod 2 == 1)" when iterating on Natural numbers should give the first found odd number.""":
         func isOdd [I: SomeInteger](i: I): bool =
           i mod 2 == 1
 
