@@ -1,4 +1,4 @@
-version = "0.3.0"
+version = "0.4.0"
 author = "thenjip"
 description =
   "An attempt at working around Nim's closure iterators striving for maximum backend compatibility."
